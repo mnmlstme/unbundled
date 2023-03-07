@@ -1,0 +1,19 @@
+{
+  "name": "unbundled",
+  "version": "1.0.0",
+  "description": "workspace for examples of Web Development, Unbundled",
+  "scripts": {
+    "publish": "npx @11ty/eleventy",
+    "start": "npx @11ty/eleventy --serve",
+    "serve": "http-server ./site -c-1",
+    "clean": "rm -rf package-lock.json node_modules kram_modules docs"
+  },
+  "author": "ken@mnmlst.me",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "@11ty/eleventy": "^2.0.0",
+    "@11ty/eleventy-plugin-webc": "^0.9.0",
+    "@cre.ative/kram-11ty": "^1.0.1",
+    "http-server": "^14.1.1"
+  }
+}

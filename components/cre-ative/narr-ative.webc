@@ -1,0 +1,195 @@
+<!-- <template> for narr-ative -->
+  
+<section class="prose">
+    <slot>Scene 1 Narrative</slot>
+</section>
+
+<style webc:scoped>
+  @import "/_styles/theme.css";
+
+  :host {
+    grid-row: var(--prose-grid-row);
+    overflow: hidden auto;
+    height: 100%;
+    width: 100%;
+  }
+  
+ 	.prose {
+   font-family: var(--fontBody);
+   font-size: var(--textSizeProse);
+   font-weight: var(--textWeightProse);
+   line-height: var(--lineHeightProse);
+   color: var(--textColorProse);
+   outline: none;
+   padding: 10em 0 1em 0;
+   height: min-content;
+  }
+
+  
+  .prose > * {
+    margin: 1rem;
+    position: relative;
+  }
+  
+  .prose > ul,
+  .prose > ol {
+    margin-left: 2rem;
+  }
+  
+  .prose > figure {
+    margin: 0.5rem;
+  }
+  
+  .prose pre > *:focus {
+    outline: none;
+  }
+  
+  .prose > h1,
+  .prose > h2,
+  .prose > h3,
+  .prose > h4,
+  .prose > h5,
+  .prose > h6 {
+    font-family: var(--fontDisplay);
+    font-weight: var(--textWeightHeading);
+    color: var(--textColorHeading);
+  }
+  
+  .prose > h1 {
+    font-size: var(--textSizeH1);
+  }
+  .prose > h2 {
+    font-size: var(--textSizeH2);
+  }
+  .prose > h3 {
+    font-size: var(--textSizeH3);
+  }
+  
+  .prose pre[class*='language-'] {
+    overflow: hidden;
+  }
+  
+  .prose > * + * {
+    margin-top: 0.5em;
+  }
+  
+  .prose > h1 + * {
+    margin-top: 2em;
+  }
+  
+  .prose ul,
+  .prose ol {
+    padding-left: 1em;
+  }
+  
+  .prose ul > li,
+  .prose ol > li {
+    position: relative;
+  }
+  
+  .prose > :not(figure) > code {
+    color: var(--textColorInlineCode);
+    font-family: var(--fontCode);
+    background: var(--backgroundInlineCode);
+  }
+  
+  .prose > :not(figure) a {
+    color: inherit;
+    text-decoration: none;
+  
+    background: linear-gradient(
+      transparent,
+      transparent 50%,
+      var(--backgroundLink)
+    );
+    padding: 0 0.25em;
+    border: var(--borderLink);
+    border-radius: var(--borderRadiusLink);
+    cursor: pointer;
+  }
+  
+  .prose > :not(figure) a:hover {
+    color: var(--textColorHoverLink);
+  }
+  
+  .prose > :not(figure) strong {
+    font-weight: var(--textWeightStrong);
+  }
+  
+  .prose > :not(figure) em {
+    font-style: --var(textStyleEmphasis);
+  }
+  
+  .prose > br {
+    margin: 0;
+    line-height: 0;
+  }
+  
+  .prose > :not(figure)::before,
+  .prose > :not(figure) > *::before,
+  .prose > :not(figure) > *::after {
+    display: inline;
+    color: var(--textColorMarkup);
+    background: var(--backgroundMarkup);
+    font-family: var(--fontCode);
+    line-height: var(--lineHeightMarkup);
+    font-style: var(--textStyleMarkup);
+    border-radius: var(--borderRadiusMarkup);
+    font-size: var(--textSizeMarkup);
+    font-weight: var(--textWeightMarkup);
+    padding: var(--borderRadiusMarkup);
+    vertical-align: 0.2em;
+    border: var(--borderMarkup);
+    margin: 0 0.1rem;
+  }
+  
+  .prose > :not(figure)::before,
+  .prose > * > li::before {
+    display: block;
+    position: absolute;
+    right: 100%;
+    top: 0.2em;
+    height: 1rem;
+    width: 1rem;
+  }
+  
+  .prose > ul::before,
+  .prose > ol::before {
+    display: block;
+    position: absolute;
+    right: 100%;
+  }
+  
+  .prose > [data-mark-before]:focus::before {
+    content: attr(data-mark-before);
+  }
+  
+  .prose > *:focus > li[data-mark-before] {
+    list-style: none;
+  }
+  
+  .prose > *:focus > li[data-mark-before]::before {
+    content: attr(data-mark-before);
+  }
+  
+  .prose > :not(figure):focus [data-mark-around]::before,
+  .prose > :not(figure):focus [data-mark-around]::after {
+    content: attr(data-mark-around);
+  }
+  
+  .prose > :not(figure):focus a::before {
+    content: '[';
+  }
+  
+  .prose > :not(figure):focus a::after {
+    content: ']';
+  }
+  
+  .prose > :not(figure):focus a[href]::after {
+    content: '](' attr(href) ')';
+  }
+</style>
+
+<script>
+	console.log("Narr-ative component (webc)");
+</script>

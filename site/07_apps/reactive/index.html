@@ -1,0 +1,235 @@
+<!doctype html>
+<html>
+<head>
+<title>Reactive Programming with Components</title>
+<link rel="stylesheet" href="/_styles/theme.css">
+<link rel="stylesheet" href="./styles.css">
+
+<script type="module" src="./script.js"></script>
+
+</head>
+<body>
+<template id="with-store-template">
+  <slot></slot>
+</template>
+
+<template id="o-o-template">
+  <slot>no_key</slot>
+  <span id="value" class="no-value"></span
+  ><!--
+	
+  --><style>
+    slot {
+      display: none;
+    }
+
+    .no-value {
+      background-color: red;
+      color: white;
+    }
+
+    .no-value::before {
+      content: "##NO-VALUE##";
+    }</style
+  ><!--
+--></template>
+
+
+<st-ative><!-- <template> for st-ative --><article>
+	
+<navig-ative><!-- <template> for navig-ative --><footer>
+	<h6><span>Reactive Programming with Components
+</span></h6>
+  <button name="previous">Previous</button>
+  <input type="number" min="1" value="1"> 
+  <button name="next">Next</button>
+</footer>
+
+
+
+
+</navig-ative>
+<consolid-ative><!-- <template> for consolid-ative --><main class="layout">
+	
+<oper-ative class="waph7lku6"><!-- <template> for oper-ative --><output class="render">
+	<with-store>
+  <p>© Copyright <o-o>copyright_year</o-o> by <o-o>author</o-o>.</p>
+  <p>This page has been viewed <o-o>page_views</o-o> times.</p>
+</with-store>
+
+</output>
+
+</oper-ative>
+<narr-ative class="wu80fvwz2"><!-- <template> for narr-ative --><section class="prose">
+    <h1>Reactive Programming using Web Components</h1>
+
+<p>The basis of reactive programming is that all side-effects are sent to
+data store which is provided by the root element of the UI.
+To the rest of the code, the store is read-only.</p>
+
+<p>Components may get values from the store, and also listen for change events.</p>
+
+<p>All dynamic web pages require code that retrieves data (for example, from an API)
+and inserts it into the HTML or DOM.
+Originally, this was accomplished with templating on the server.
+But if the data changes, we don't want to reload the entire page, just the data that changed.
+Typically, this means using Javascript to fetch the data and then manipulate the DOM.</p>
+
+<p>This is not easy to do. The problem of keeping the DOM in sync with data stored in Javascript
+has given rise to multiple competing frameworks; client-side rendering; a proposed extension to JS to add HTML expressions;
+and ultimately the idea that Javascript, not HTML, is the lingua franca of the web.</p>
+
+<p>The difficulty here is that HTML provides very few hooks to attach Javascript to elements.
+Unless the element was created by JS in the browser, the only way to get a JS handle for an element
+is by querying the DOM.
+This introduces dependencies between the HTML and Javascript, which makes it difficult to change
+either.
+HTML custom elements address this difficulty, because they allow us attach Javascript functionality to elements.</p>
+
+<p>Typically, we have a record of data, and a chunk of HTML that presents the data.
+What we want is a way, <em data-mark-around="_">from HTML</em>, to say "put this piece of data here".</p>
+
+<p>So let's define two components: one that lets us identify a set of data we want to present,
+and one to indicate where to insert each piece.</p>
+
+<figure><figcaption>html</figcaption><pre lang="html"><code>&lt;template id="with-store-template"&gt;
+  &lt;slot&gt;&lt;/slot&gt;
+&lt;/template&gt;
+
+&lt;template id="o-o-template"&gt;
+  &lt;slot&gt;no_key&lt;/slot&gt;
+  &lt;span id="value" class="no-value"&gt;&lt;/span
+  &gt;&lt;!--
+	
+  --&gt;&lt;style&gt;
+    slot {
+      display: none;
+    }
+
+    .no-value {
+      background-color: red;
+      color: white;
+    }
+
+    .no-value::before {
+      content: "##NO-VALUE##";
+    }&lt;/style
+  &gt;&lt;!--
+--&gt;&lt;/template&gt;
+</code></pre></figure>
+
+<figure><figcaption>js</figcaption><pre lang="js"><code>class WithStoreElement extends HTMLElement {
+  constructor() {
+    super();
+    let content = document.getElementById("with-store-template").content;
+    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
+  }
+
+  connectedCallback() {
+    const { get } = connectStore();
+    this.getFromStore = get;
+    this.dataset.store = JSON.stringify(".");
+  }
+}
+
+class OOElement extends HTMLElement {
+  constructor() {
+    super();
+    let content = document.getElementById("o-o-template").content;
+    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
+  }
+
+  connectedCallback() {
+    this._updateRendering();
+  }
+
+  _updateRendering() {
+    const valueSpan = this.shadowRoot.getElementById("value");
+
+    const store = this.closest("[data-store]");
+
+    // get field key from slot#key
+    const key = this.textContent;
+
+    // lookup key in store
+    const value = store.getFromStore(key);
+
+    console.log("Rendering o-o data: ", key, value);
+
+    // set className and innerText on span#value
+    switch (typeof value) {
+      case "undefined":
+        valueSpan.className = "no-value";
+        valueSpan.innerText = "";
+        break;
+      default:
+        valueSpan.className = "string-value";
+        valueSpan.innerText = value.toString();
+    }
+  }
+}
+
+customElements.define("with-store", WithStoreElement);
+customElements.define("o-o", OOElement);
+</code></pre></figure>
+
+</section>
+
+
+
+
+</narr-ative>
+<ide-ative class="wpji-7oeu"><!-- <template> for ide-ative --><figure class="code">
+	<pre><code lang="html">&lt;with-store&gt;
+  &lt;p&gt;&amp;copy; Copyright &lt;o-o&gt;copyright_year&lt;/o-o&gt; by &lt;o-o&gt;author&lt;/o-o&gt;.&lt;/p&gt;
+  &lt;p&gt;This page has been viewed &lt;o-o&gt;page_views&lt;/o-o&gt; times.&lt;/p&gt;
+&lt;/with-store&gt;
+</code></pre>
+</figure>
+
+
+</ide-ative>
+<oper-ative class="waph7lku6"><!-- <template> for oper-ative --><output class="render">
+	
+</output>
+
+</oper-ative>
+<narr-ative class="wu80fvwz2"><!-- <template> for narr-ative --><section class="prose">
+    <h1>Next Scene</h1>
+
+</section>
+
+
+
+
+</narr-ative>
+<ide-ative class="wpji-7oeu"><!-- <template> for ide-ative --><figure class="code">
+	<pre></pre>
+</figure>
+
+
+</ide-ative>
+
+</main>
+
+
+
+
+
+</consolid-ative>
+
+</article>
+
+</st-ative>
+
+<script type="module">
+import { mount } from "/_scripts/oper.ative.js";
+console.log("Mounting Operative");
+const mountpoint = document.getElementById("lets-be-oper-ative");
+const initial = {"who_am_i":"Reactive Programming","author":"The Unbundled Dev","copyright_year":2023,"page_views":9999};
+mount("Kram_ae3b1e21_reactive.kr", mountpoint, initial);
+</script>
+
+
+</body>
+</html>

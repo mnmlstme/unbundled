@@ -1,0 +1,237 @@
+<!doctype html>
+<html>
+<head>
+<title>CSS Custom Properties</title>
+<link rel="stylesheet" href="/_styles/theme.css">
+<link rel="stylesheet" href="./styles.css">
+
+<script type="module" src="./script.js"></script>
+
+</head>
+<body>
+
+
+<st-ative><!-- <template> for st-ative --><article>
+	
+<navig-ative><!-- <template> for navig-ative --><footer>
+	<h6><span>CSS Custom Properties
+</span></h6>
+  <button name="previous">Previous</button>
+  <input type="number" min="1" value="1"> 
+  <button name="next">Next</button>
+</footer>
+
+
+
+
+</navig-ative>
+<consolid-ative><!-- <template> for consolid-ative --><main class="layout">
+	
+<oper-ative class="waph7lku6"><!-- <template> for oper-ative --><output class="render">
+	<p class="custom">
+  One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin. 
+</p>
+
+<p style="--color-1: honeyDew; --color-2: azure" class="custom">
+  “What’s happened to me?” he thought. It wasn’t a dream. His room, a proper human room although a little too small, lay peacefully between its four familiar walls. 
+</p>
+
+</output>
+
+</oper-ative>
+<narr-ative class="wu80fvwz2"><!-- <template> for narr-ative --><section class="prose">
+    <h1>CSS Custom Properties</h1>
+
+<figure><figcaption>css</figcaption><pre lang="css"><code>:root {
+  --color-1: lightCoral;
+  --color-2: plum;
+}
+
+.custom {
+	background: linear-gradient(45deg, var(--color-1), var(--color-2));
+	padding: 1em;
+}
+</code></pre></figure>
+
+</section>
+
+
+
+
+</narr-ative>
+<ide-ative class="wpji-7oeu"><!-- <template> for ide-ative --><figure class="code">
+	<pre><code lang="html">&lt;p class="custom"&gt;
+  One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin. 
+&lt;/p&gt;
+
+&lt;p class="custom" style="--color-1: honeyDew; --color-2: azure"&gt;
+  “What’s happened to me?” he thought. It wasn’t a dream. His room, a proper human room although a little too small, lay peacefully between its four familiar walls. 
+&lt;/p&gt;
+</code></pre>
+</figure>
+
+
+</ide-ative>
+<oper-ative class="waph7lku6"><!-- <template> for oper-ative --><output class="render">
+	<p class="custom-rotation">
+  One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin. 
+</p>
+
+<p style="--from-direction: var(--direction-sw)" class="custom-rotation">
+  “What’s happened to me?” he thought. It wasn’t a dream. His room, a proper human room although a little too small, lay peacefully between its four familiar walls. 
+</p>
+
+</output>
+
+</oper-ative>
+<narr-ative class="wu80fvwz2"><!-- <template> for narr-ative --><section class="prose">
+    <h2>Calculating values from CSS variables</h2>
+
+<figure><figcaption>css</figcaption><pre lang="css"><code>:root {
+  --direction-n: 0;
+  --direction-e: 1;
+  --direction-s: 2;
+  --direction-w: 3;
+  --direction-ne: calc(var(--direction-n) + 0.5);
+  --direction-se: calc(var(--direction-e) + 0.5);
+  --direction-sw: calc(var(--direction-s) + 0.5);
+  --direction-nw: calc(var(--direction-w) + 0.5);
+}
+
+.custom-rotation {
+  --gradient-rotation: calc(90deg * var(--from-direction, 0));
+  background: linear-gradient(var(--gradient-rotation), var(--color-1), var(--color-2));
+  padding: 1em;
+}
+</code></pre></figure>
+
+</section>
+
+
+
+
+</narr-ative>
+<ide-ative class="wpji-7oeu"><!-- <template> for ide-ative --><figure class="code">
+	<pre><code lang="html">&lt;p class="custom-rotation"&gt;
+  One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed in his bed into a horrible vermin. 
+&lt;/p&gt;
+
+&lt;p class="custom-rotation" style="--from-direction: var(--direction-sw)"&gt;
+  “What’s happened to me?” he thought. It wasn’t a dream. His room, a proper human room although a little too small, lay peacefully between its four familiar walls. 
+&lt;/p&gt;
+</code></pre>
+</figure>
+
+
+</ide-ative>
+<oper-ative class="waph7lku6"><!-- <template> for oper-ative --><output class="render">
+	<p data-color-option="salmon" class="custom-options">
+  One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed
+  in his bed into a horrible vermin. 
+</p>
+<p data-color-option="aubergine" class="custom-options">
+  “What’s happened to me?” he thought. It wasn’t a dream. His room, a proper human room 
+  although a little too small, lay peacefully between its four familiar walls.
+</p>
+<p data-color-option="mint" class="custom-options">
+  Gregor then turned to look out the window at the dull weather. 
+  Drops of rain could be heard hitting the pane, which made him feel quite sad. 
+</p>
+<p data-color-option="sky" class="custom-options">
+  Doing business like this takes much more effort than doing your own business at home, 
+  and on top of that there’s the curse of travelling, 
+  worries about making train connections, bad and irregular food, 
+  contact with different people all the time so that you can never get to know anyone 
+  or become friendly with them. 
+</p>
+
+</output>
+
+</oper-ative>
+<narr-ative class="wu80fvwz2"><!-- <template> for narr-ative --><section class="prose">
+    <h2>CSS variables as a set of options</h2>
+
+<figure><figcaption>css</figcaption><pre lang="css"><code>:root {
+  --color-salmon: lightCoral;
+  --color-aubergine: plum;
+  --color-mint: honeydew;
+  --color-sky: azure;
+}
+
+.custom-options {
+  background: var(--color-option, var(--color-salmon));
+  padding: 1em;
+}
+
+[data-color-option="salmon"] {
+  --color-option: var(--color-salmon);
+}
+
+[data-color-option="aubergine"] {
+  --color-option: var(--color-aubergine);
+}
+
+[data-color-option="mint"] {
+  --color-option: var(--color-mint);
+}
+
+[data-color-option="sky"] {
+  --color-option: var(--color-sky);
+}
+</code></pre></figure>
+
+</section>
+
+
+
+
+</narr-ative>
+<ide-ative class="wpji-7oeu"><!-- <template> for ide-ative --><figure class="code">
+	<pre><code lang="html">&lt;p class="custom-options" data-color-option="salmon"&gt;
+  One morning, when Gregor Samsa woke from troubled dreams, he found himself transformed
+  in his bed into a horrible vermin. 
+&lt;/p&gt;
+&lt;p class="custom-options" data-color-option="aubergine"&gt;
+  “What’s happened to me?” he thought. It wasn’t a dream. His room, a proper human room 
+  although a little too small, lay peacefully between its four familiar walls.
+&lt;/p&gt;
+&lt;p class="custom-options" data-color-option="mint"&gt;
+  Gregor then turned to look out the window at the dull weather. 
+  Drops of rain could be heard hitting the pane, which made him feel quite sad. 
+&lt;/p&gt;
+&lt;p class="custom-options" data-color-option="sky"&gt;
+  Doing business like this takes much more effort than doing your own business at home, 
+  and on top of that there’s the curse of travelling, 
+  worries about making train connections, bad and irregular food, 
+  contact with different people all the time so that you can never get to know anyone 
+  or become friendly with them. 
+&lt;/p&gt;
+</code></pre>
+</figure>
+
+
+</ide-ative>
+
+</main>
+
+
+
+
+
+</consolid-ative>
+
+</article>
+
+</st-ative>
+
+<script type="module">
+import { mount } from "/_scripts/oper.ative.js";
+console.log("Mounting Operative");
+const mountpoint = document.getElementById("lets-be-oper-ative");
+const initial = undefined;
+mount("Kram_5b55dfba_vars.kr", mountpoint, initial);
+</script>
+
+
+</body>
+</html>
