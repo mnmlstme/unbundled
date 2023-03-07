@@ -1,0 +1,49 @@
+<!-- <template> for navig-ative -->
+
+<footer>
+	<h6><slot name="title">Untitled</slot></h6>
+  <button name="previous">Previous</button>
+  <input type="number" min="1" value="1"> 
+  <button name="next">Next</button>
+</footer>
+
+<style>
+	footer {
+		display: flex;
+		flex-direction: row;
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: var(--heightFooter);
+	}
+</style>
+
+<script>
+  customElements.define("navig-ative", class extends HTMLElement {
+    connectedCallback() {
+      let provider = this.closest("[data-provider]");
+      let numberInput = this.querySelector(':scope input[type="number"]');
+      let previousButton = this.querySelector(':scope button[name="previous"]');
+      let nextButton = this.querySelector(':scope button[name="next"]');
+      
+      const {get, set} = provider.bind('current-scene', 
+        (newValue) => numberInput.value = newValue
+      );
+      
+      numberInput.value = get();
+      
+      numberInput.addEventListener("change", () =>
+        set(numberInput.value)
+      )
+      
+      previousButton.addEventListener("click", () => 
+        set( get() - 1 )
+      )
+
+      nextButton.addEventListener("click", () => {
+        set( get() + 1 )
+      })
+    }
+  })
+</script>
