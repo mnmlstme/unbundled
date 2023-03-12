@@ -1,0 +1,17 @@
+{
+  "overrides": [
+    {
+      "files": "*.kr",
+      "options": {
+        "parser": "markdown",
+        "proseWrap": "always"
+      }
+    },
+    {
+      "files": "*.webc",
+      "options": {
+        "parser": "html"
+      }
+    }
+  ]
+}

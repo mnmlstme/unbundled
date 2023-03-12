@@ -2,6 +2,7 @@
 <html>
 <head>
 <title>CSS Layout</title>
+<link rel="stylesheet" href="/_styles/prism.css">
 <link rel="stylesheet" href="/_styles/theme.css">
 <link rel="stylesheet" href="./styles.css">
 
@@ -11,13 +12,13 @@
 <body>
 
 
-<st-ative><!-- <template> for st-ative --><article>
-	
-<navig-ative><!-- <template> for navig-ative --><footer>
-	<h6><span>CSS Layout
+<st-ative class="wuhun-ot6"><!-- <template> for st-ative --><article>
+  
+<navig-ative class="whxbgrbov"><!-- <template> for navig-ative --><footer>
+  <h6><span>CSS Layout
 </span></h6>
   <button name="previous">Previous</button>
-  <input type="number" min="1" value="1"> 
+  <input type="number" min="1" value="1">
   <button name="next">Next</button>
 </footer>
 
@@ -25,57 +26,83 @@
 
 
 </navig-ative>
-<consolid-ative><!-- <template> for consolid-ative --><main class="layout">
-	
-<oper-ative class="waph7lku6"><!-- <template> for oper-ative --><output class="render">
-	
+<consolid-ative class="whf5ymiad"><!-- <template> for consolid-ative --><main class="layout">
+  
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  
 </output>
 
+
 </oper-ative>
-<narr-ative class="wu80fvwz2"><!-- <template> for narr-ative --><section class="prose">
-    <h1>CSS Layout</h1>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"></pre>
+</figure>
 
-<p>Layout is the process of determining where to position each piece of content in 2-dimensional space.
-You may be familiar with this concept from desktop publishing tools such as Adobe InDesign, or its predecessor Pagemaker.
-Or even from the pre-digital printing practice utilizing columns of text, called galleys, which are then cut to length and pasted up on a grid along with photos and illustrations.</p>
 
-<p>CSS layout borrows from this long history of page layout in graphic design.
-However, layouts for the web need to be more flexible than those for physical media.
-In a typical desktop publishing process, the designer has the content available, and also knows
-the size of the pages that are being printed.
-If one of these changes, the designer will go through the layouts and update so that the content fits on the pages.</p>
 
-<p>When designing layouts for the web, however, the designer often doesn't have the content, because it hasn't been generated yet.
-The output medium is also variable, as the resulting layout will be viewed on many different devices, at different sizes and resolutions.
-Users may also have configured their devices to their own preferences, such as font size or scale factor.</p>
 
-<p>If web pages were rendered at a fixed size like pages of a physical book, they could still be legible, but much more difficult to consume.
-This is the situation we encounter when documents are preformatted as PDF.
-The pages of a PDF file are usually intended for printing on one of the standard paper sizes.
-It can be previewed on a screen, and if that screen is large enough and has adequate resolution, this
-screen view may be an acceptable reading experience.
-But view that same file on a mobile phone, tablet, or even most laptop computers, and users will have to
+</ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h1>CSS Layout</h1>
+
+<p>Layout is the process of determining where to position each piece of
+content in 2-dimensional space. You may be familiar with this concept
+from desktop publishing tools such as Adobe InDesign, or its predecessor
+Pagemaker. Or even from the pre-digital printing practice utilizing
+columns of text, called galleys, which are then cut to length and pasted
+up on a grid along with photos and illustrations.</p>
+
+<p>CSS layout borrows from this long history of page layout in graphic
+design. However, layouts for the web need to be more flexible than those
+for physical media. In a typical desktop publishing process, the
+designer has the content available, and also knows the size of the pages
+that are being printed. If one of these changes, the designer will go
+through the layouts and update so that the content fits on the pages.</p>
+
+<p>When designing layouts for the web, however, the designer often doesn't
+have the content, because it hasn't been generated yet. The output
+medium is also variable, as the resulting layout will be viewed on many
+different devices, at different sizes and resolutions. Users may also
+have configured their devices to their own preferences, such as font
+size or scale factor.</p>
+
+<p>If web pages were rendered at a fixed size like pages of a physical
+book, they could still be legible, but much more difficult to consume.
+This is the situation we encounter when documents are preformatted as
+PDF. The pages of a PDF file are usually intended for printing on one of
+the standard paper sizes. It can be previewed on a screen, and if that
+screen is large enough and has adequate resolution, this screen view may
+be an acceptable reading experience. But view that same file on a mobile
+phone, tablet, or even most laptop computers, and users will have to
 zoom out to see the entire page, and zoom in to make the text legible.
-When zoomed in, they will have to scroll or drag the page up/down and left/right to access all of the content.
-This is not an acceptable reading experience.
-And if the content is something that the user needs to interact with, it quickly becomes unworkable.</p>
+When zoomed in, they will have to scroll or drag the page up/down and
+left/right to access all of the content. This is not an acceptable
+reading experience. And if the content is something that the user needs
+to interact with, it quickly becomes unworkable.</p>
 
-<p>Since pre-formatted pages are unacceptable, web layout must be deferred until both the full content,
-and the target screen characteristics are known.
-This means the actual formatting has to take place in the browser.
-It also means that any layout instructions we give to the browser cannot be overly specific.
-In essence, CSS layout is about providing constraints, hints, and strategies, which the browser
-then applies as needed to present the content on each specific device configuration.</p>
+<p>Since pre-formatted pages are unacceptable, web layout must be deferred
+until both the full content, and the target screen characteristics are
+known. This means the actual formatting has to take place in the
+browser. It also means that any layout instructions we give to the
+browser cannot be overly specific. In essence, CSS layout is about
+providing constraints, hints, and strategies, which the browser then
+applies as needed to present the content on each specific device
+configuration.</p>
 
-<p>There is a very general strategy, built into every browser, which is applied when no CSS layout has been given.
-It starts by assuming that the content has been properly marked up in HTML.
-The markup is used to divide the content into <code data-mark-around="`">block</code> elements and <code data-mark-around="`">inline</code> elements.
-Block elements are larger pieces of content like paragraphs, headings, figures, tables, and lists.
-Inline elements are shorter strings of characters such as links, quotations, emphasized phrases, and (strangely) images.
-Block elements may contain inline elements, other block elements, or both.
-Inline elements may only contain other inline elements.</p>
+<p>There is a very general strategy, built into every browser, which is
+applied when no CSS layout has been given. It starts by assuming that
+the content has been properly marked up in HTML. The markup is used to
+divide the content into <code data-mark-around="`">block</code> elements and <code data-mark-around="`">inline</code> elements. Block
+elements are larger pieces of content like paragraphs, headings,
+figures, tables, and lists. Inline elements are shorter strings of
+characters such as links, quotations, emphasized phrases, and
+(strangely) images. Block elements may contain inline elements, other
+block elements, or both. Inline elements may only contain other inline
+elements.</p>
 
-<p>Once the content is divided into block and inline elements, the layout strategy proceeds as follows:</p>
+<p>Once the content is divided into block and inline elements, the layout
+strategy proceeds as follows:</p>
 
 <ul><undefined></undefined>
 </ul>
@@ -86,267 +113,358 @@ Inline elements may only contain other inline elements.</p>
 
 
 </narr-ative>
-<ide-ative class="wpji-7oeu"><!-- <template> for ide-ative --><figure class="code">
-	<pre></pre>
-</figure>
-
-
-</ide-ative>
-<oper-ative class="waph7lku6"><!-- <template> for oper-ative --><output class="render">
-	<p class="boxed-text">
-  Paragraphs are by default full width.
-</p>
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  <p class="boxed-text">Paragraphs are by default full width.</p>
+<p class="narrow-box boxed-text">This box is narrow.</p>
 <p class="narrow-box boxed-text">
-  This box is narrow.
-</p>
-<p class="narrow-box boxed-text">
-  If we add more content to a narrow box, that content 
-  will wrap to as many lines as it needs, making the box taller.
+  If we add more content to a narrow box, that content will wrap to as many
+  lines as it needs, making the box taller.
 </p>
 <p class="narrow-box two-line-box boxed-text">
-  If we constrain the height of the box, the content
-  will overflow.
+  If we constrain the height of the box, the content will overflow.
 </p>
 
 </output>
 
+
 </oper-ative>
-<narr-ative class="wu80fvwz2"><!-- <template> for narr-ative --><section class="prose">
-    <h2>Controlling the size of blocks</h2>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Paragraphs are by default full width.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>narrow-box boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>This box is narrow.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>narrow-box boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  If we add more content to a narrow box, that content will wrap to as many
+  lines as it needs, making the box taller.
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>narrow-box two-line-box boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  If we constrain the height of the box, the content will overflow.
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+</figure>
 
-<p>Let's draw make the box around our blocks visible.
-We can define the class <code data-mark-around="`">boxed-text</code> to do that:</p>
 
-<figure><figcaption>css</figcaption><pre lang="css"><code>.boxed-text {
-  border: 1px solid lightCoral;
-}
-</code></pre></figure>
 
-<p>Our box extends to the full width of the page, because that is the default layout for
-block elements.
-To change the width of the box, we can use the <code data-mark-around="`">width</code> property:</p>
 
-<figure><figcaption>css</figcaption><pre lang="css"><code>.narrow-box {
-  width: 15em;
-}
-</code></pre></figure>
+</ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h2>Controlling the size of blocks</h2>
 
+<p>Let's draw make the box around our blocks visible. We can define the
+class <code data-mark-around="`">boxed-text</code> to do that:</p>
+
+<ide-ative data-language="css" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-css"><span class="token selector">.boxed-text</span> <span class="token punctuation">{</span>
+  <span class="token property">border</span><span class="token punctuation">:</span> 1px solid lightCoral<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<p>Our box extends to the full width of the page, because that is the
+default layout for block elements. To change the width of the box, we
+can use the <code data-mark-around="`">width</code> property:</p>
+
+<ide-ative data-language="css" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-css"><span class="token selector">.narrow-box</span> <span class="token punctuation">{</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 15em<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</figure>
+
+
+
+
+</ide-ative>
 <p>We can also control the height of the box, using the <code data-mark-around="`">height</code> property:</p>
 
-<figure><figcaption>css</figcaption><pre lang="css"><code>.two-line-box {
-  height: 2.5em;
-}
-</code></pre></figure>
+<ide-ative data-language="css" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-css"><span class="token selector">.two-line-box</span> <span class="token punctuation">{</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 2.5em<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</figure>
 
+
+
+
+</ide-ative>
 </section>
 
 
 
 
 </narr-ative>
-<ide-ative class="wpji-7oeu"><!-- <template> for ide-ative --><figure class="code">
-	<pre><code lang="html">&lt;p class="boxed-text"&gt;
-  Paragraphs are by default full width.
-&lt;/p&gt;
-&lt;p class="narrow-box boxed-text"&gt;
-  This box is narrow.
-&lt;/p&gt;
-&lt;p class="narrow-box boxed-text"&gt;
-  If we add more content to a narrow box, that content 
-  will wrap to as many lines as it needs, making the box taller.
-&lt;/p&gt;
-&lt;p class="narrow-box two-line-box boxed-text"&gt;
-  If we constrain the height of the box, the content
-  will overflow.
-&lt;/p&gt;
-</code></pre>
-</figure>
-
-
-</ide-ative>
-<oper-ative class="waph7lku6"><!-- <template> for oper-ative --><output class="render">
-	<p class="boxed-text narrow-box">
-  Too little text.
-</p>
-<p class="boxed-text hug-box">
-  This box hugs content.
-</p>
-<p class="boxed-text squeeze-box">
-  This box is as narrow as it can be.
-</p>
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  <p class="boxed-text narrow-box">Too little text.</p>
+<p class="boxed-text hug-box">This box hugs content.</p>
+<p class="boxed-text squeeze-box">This box is as narrow as it can be.</p>
 <p class="boxed-text min-box">
   This box is not too narrow because it has a minimum width.
 </p>
 <p class="boxed-text min-box">
   This box has a minimum width, but if there are
-  <em class="non-breaking">phrases that cannot be broken</em>, 
-  CSS will make room for them.
+  <em class="non-breaking">phrases that cannot be broken</em>
+  , CSS will make room for them.
 </p>
 
 </output>
 
+
 </oper-ative>
-<narr-ative class="wu80fvwz2"><!-- <template> for narr-ative --><section class="prose">
-    <h2>Intrinsic Sizing</h2>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text narrow-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Too little text.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text hug-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>This box hugs content.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text squeeze-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>This box is as narrow as it can be.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text min-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  This box is not too narrow because it has a minimum width.
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text min-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  This box has a minimum width, but if there are
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>em</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>non-breaking<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>phrases that cannot be broken<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>em</span><span class="token punctuation">&gt;</span></span>
+  , CSS will make room for them.
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+</figure>
 
-<p>In the previous section, we looked at the box model, and how setting the <code data-mark-around="`">width</code> on a box forces the text within the box to wrap.
-But there are also times when we want the box to <em data-mark-around="_">hug</em> the contents.</p>
 
-<figure><figcaption>css</figcaption><pre lang="css"><code>.hug-box {
-  width: max-content;
-}
 
-.squeeze-box {
-  width: min-content;
-}
-</code></pre></figure>
 
-<figure><figcaption>css</figcaption><pre lang="css"><code>.min-box {
-  min-width: 8em;
-  width: min-content;
-}
+</ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h2>Intrinsic Sizing</h2>
 
-.non-breaking {
-  white-space: nowrap;
-}
-</code></pre></figure>
+<p>In the previous section, we looked at the box model, and how setting the
+<code data-mark-around="`">width</code> on a box forces the text within the box to wrap. But there are
+also times when we want the box to <em data-mark-around="_">hug</em> the contents.</p>
 
+<ide-ative data-language="css" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-css"><span class="token selector">.hug-box</span> <span class="token punctuation">{</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> max-content<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.squeeze-box</span> <span class="token punctuation">{</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> min-content<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<ide-ative data-language="css" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-css"><span class="token selector">.min-box</span> <span class="token punctuation">{</span>
+  <span class="token property">min-width</span><span class="token punctuation">:</span> 8em<span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> min-content<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.non-breaking</span> <span class="token punctuation">{</span>
+  <span class="token property">white-space</span><span class="token punctuation">:</span> nowrap<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</figure>
+
+
+
+
+</ide-ative>
 </section>
 
 
 
 
 </narr-ative>
-<ide-ative class="wpji-7oeu"><!-- <template> for ide-ative --><figure class="code">
-	<pre><code lang="html">&lt;p class="boxed-text narrow-box"&gt;
-  Too little text.
-&lt;/p&gt;
-&lt;p class="boxed-text hug-box"&gt;
-  This box hugs content.
-&lt;/p&gt;
-&lt;p class="boxed-text squeeze-box"&gt;
-  This box is as narrow as it can be.
-&lt;/p&gt;
-&lt;p class="boxed-text min-box"&gt;
-  This box is not too narrow because it has a minimum width.
-&lt;/p&gt;
-&lt;p class="boxed-text min-box"&gt;
-  This box has a minimum width, but if there are
-  &lt;em class="non-breaking"&gt;phrases that cannot be broken&lt;/em&gt;, 
-  CSS will make room for them.
-&lt;/p&gt;
-</code></pre>
-</figure>
-
-
-</ide-ative>
-<oper-ative class="waph7lku6"><!-- <template> for oper-ative --><output class="render">
-	<section class="boxed-section">
-  <h1 class="boxed-text"><em>Metamorphosis</em> by Franz Kafka</h1>
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  <section class="boxed-section">
+  <h1 class="boxed-text">
+    <em>Metamorphosis</em>
+    by Franz Kafka
+  </h1>
 
   <p class="boxed-text with-margins">
-    One morning, when Gregor Samsa woke from troubled dreams, 
-    he found himself transformed in his bed into a horrible vermin. 
-    He lay on his armour-like back, and if he lifted his head a little 
-    he could see his brown belly, slightly domed and divided by arches 
-    into stiff sections. The bedding was hardly able to cover it and 
-    seemed ready to slide off any moment. His many legs, pitifully thin compared with the size of the rest of him, waved about helplessly as he looked. 
+    One morning, when Gregor Samsa woke from troubled dreams, he found himself
+    transformed in his bed into a horrible vermin. He lay on his armour-like
+    back, and if he lifted his head a little he could see his brown belly,
+    slightly domed and divided by arches into stiff sections. The bedding was
+    hardly able to cover it and seemed ready to slide off any moment. His many
+    legs, pitifully thin compared with the size of the rest of him, waved about
+    helplessly as he looked.
   </p>
   <p class="boxed-text with-padding">
-    “What’s happened to me?” he thought. It wasn’t a dream. His room, a proper human room although a little too small, lay peacefully between its four familiar walls. A collection of textile samples lay spread out on the table—Samsa was a travelling salesman—and above it there hung a picture that he had recently cut out of an illustrated magazine and housed in a nice, gilded frame. It showed a lady fitted out with a fur hat and fur boa who sat upright, raising a heavy fur muff that covered the whole of her lower arm towards the viewer. 
+    “What’s happened to me?” he thought. It wasn’t a dream. His room, a proper
+    human room although a little too small, lay peacefully between its four
+    familiar walls. A collection of textile samples lay spread out on the
+    table—Samsa was a travelling salesman—and above it there hung a picture that
+    he had recently cut out of an illustrated magazine and housed in a nice,
+    gilded frame. It showed a lady fitted out with a fur hat and fur boa who sat
+    upright, raising a heavy fur muff that covered the whole of her lower arm
+    towards the viewer.
   </p>
 </section>
 
 </output>
 
+
 </oper-ative>
-<narr-ative class="wu80fvwz2"><!-- <template> for narr-ative --><section class="prose">
-    <h2>Margins and Padding</h2>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>section</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-section<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>em</span><span class="token punctuation">&gt;</span></span>Metamorphosis<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>em</span><span class="token punctuation">&gt;</span></span>
+    by Franz Kafka
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
 
-<figure><figcaption>css</figcaption><pre lang="css"><code>.boxed-section {
-  width: 25em;
-  border: 1px solid plum;
-}
-
-.with-margins {
-  margin: 2em;
-}
-
-.with-padding {
-  padding: 2em;
-}
-</code></pre></figure>
-
-</section>
-
-
-
-
-</narr-ative>
-<ide-ative class="wpji-7oeu"><!-- <template> for ide-ative --><figure class="code">
-	<pre><code lang="html">&lt;section class="boxed-section"&gt;
-  &lt;h1 class="boxed-text"&gt;&lt;em&gt;Metamorphosis&lt;/em&gt; by Franz Kafka&lt;/h1&gt;
-
-  &lt;p class="boxed-text with-margins"&gt;
-    One morning, when Gregor Samsa woke from troubled dreams, 
-    he found himself transformed in his bed into a horrible vermin. 
-    He lay on his armour-like back, and if he lifted his head a little 
-    he could see his brown belly, slightly domed and divided by arches 
-    into stiff sections. The bedding was hardly able to cover it and 
-    seemed ready to slide off any moment. His many legs, pitifully thin compared with the size of the rest of him, waved about helplessly as he looked. 
-  &lt;/p&gt;
-  &lt;p class="boxed-text with-padding"&gt;
-    “What’s happened to me?” he thought. It wasn’t a dream. His room, a proper human room although a little too small, lay peacefully between its four familiar walls. A collection of textile samples lay spread out on the table—Samsa was a travelling salesman—and above it there hung a picture that he had recently cut out of an illustrated magazine and housed in a nice, gilded frame. It showed a lady fitted out with a fur hat and fur boa who sat upright, raising a heavy fur muff that covered the whole of her lower arm towards the viewer. 
-  &lt;/p&gt;
-&lt;/section&gt;
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text with-margins<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+    One morning, when Gregor Samsa woke from troubled dreams, he found himself
+    transformed in his bed into a horrible vermin. He lay on his armour-like
+    back, and if he lifted his head a little he could see his brown belly,
+    slightly domed and divided by arches into stiff sections. The bedding was
+    hardly able to cover it and seemed ready to slide off any moment. His many
+    legs, pitifully thin compared with the size of the rest of him, waved about
+    helplessly as he looked.
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text with-padding<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+    “What’s happened to me?” he thought. It wasn’t a dream. His room, a proper
+    human room although a little too small, lay peacefully between its four
+    familiar walls. A collection of textile samples lay spread out on the
+    table—Samsa was a travelling salesman—and above it there hung a picture that
+    he had recently cut out of an illustrated magazine and housed in a nice,
+    gilded frame. It showed a lady fitted out with a fur hat and fur boa who sat
+    upright, raising a heavy fur muff that covered the whole of her lower arm
+    towards the viewer.
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>section</span><span class="token punctuation">&gt;</span></span>
 </code></pre>
 </figure>
 
 
+
+
 </ide-ative>
-<oper-ative class="waph7lku6"><!-- <template> for oper-ative --><output class="render">
-	
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h2>Margins and Padding</h2>
+
+<ide-ative data-language="css" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-css"><span class="token selector">.boxed-section</span> <span class="token punctuation">{</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 25em<span class="token punctuation">;</span>
+  <span class="token property">border</span><span class="token punctuation">:</span> 1px solid plum<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.with-margins</span> <span class="token punctuation">{</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> 2em<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.with-padding</span> <span class="token punctuation">{</span>
+  <span class="token property">padding</span><span class="token punctuation">:</span> 2em<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</figure>
+
+
+
+
+</ide-ative>
+</section>
+
+
+
+
+</narr-ative>
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  <section>
+  <p class="content-box">Here is our content.</p>
+  <img src="../_files/Box Model.svg">
+</section>
+
 </output>
 
+
 </oper-ative>
-<narr-ative class="wu80fvwz2"><!-- <template> for narr-ative --><section class="prose">
-    <h2>Box Model</h2>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>section</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>content-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Here is our content.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>../_files/Box Model.svg<span class="token punctuation">"</span></span> <span class="token punctuation">/&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>section</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+</figure>
 
-<p>In the previous section, we saw that padding adds space inside was inserted inside</p>
 
-<p>The <code data-mark-around="`">content-box</code> and <code data-mark-around="`">border-box</code> classes use the properties <code data-mark-around="`">height</code>, <code data-mark-around="`">width</code>, <code data-mark-around="`">padding</code>, and <code data-mark-around="`">border</code>, to describe the layout of these boxes.
-The difference between the two boxes is the <code data-mark-around="`">box-sizing</code> properties,
-which determines how the overall dimensions of the box are computed from the other properties.</p>
 
-<h3>The <code data-mark-around="`">width</code> property</h3>
 
-<p>Every box in CSS has a width.
-Often there is no need to set the width since the browser will automatically determine a width based on the box's content and other properties.</p>
+</ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h2>Box Model</h2>
 
-<p>But we can also control the width by setting the <code data-mark-around="`">width</code> property directly.
-We can either specify a length, a percentage, or one of several keywords, including the default, <code data-mark-around="`">auto</code>.
-Here we specify a length in pixels.</p>
+<p>In the previous section, we used <code data-mark-around="`">padding</code> to make space inside an element's border,
+and <code data-mark-around="`">margin</code> to make space outside.
+We are now ready to look at the CSS <em data-mark-around="_">box model</em>, and how the overall
+<code data-mark-around="`">width</code> and <code data-mark-around="`">height</code> of an element are computed.</p>
 
-<p>This is called an <em data-mark-around="_">extrinsic</em> width, because it has nothing to do with the contents of the element.
-We will see soon how to set an <em data-mark-around="_">intrinsic</em> width, which accounts for the box's contents.</p>
+<ide-ative data-language="css" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-css"><span class="token selector">.content-box</span> <span class="token punctuation">{</span>
+  <span class="token property">box-sizing</span><span class="token punctuation">:</span> content-box<span class="token punctuation">;</span> <span class="token comment">/* (default) */</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 200px<span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> 50px<span class="token punctuation">;</span>
+  <span class="token property">padding</span><span class="token punctuation">:</span> 2rem<span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> lightCoral<span class="token punctuation">;</span>
+  <span class="token property">border</span><span class="token punctuation">:</span> 0.5rem dashed plum<span class="token punctuation">;</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> 2rem<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</figure>
 
-<h3>The <code data-mark-around="`">height</code> property</h3>
 
-<p>Analogous to <code data-mark-around="`">width</code>, the <code data-mark-around="`">height</code> property determines how tall the box is.</p>
 
-<p>Setting <code data-mark-around="`">height</code> to a fixed value, instead of the default <code data-mark-around="`">auto</code>, leads to the potential of content overflowing the box, and the need to handle scrolling, or truncated content. So it tends to be less common to set the <code data-mark-around="`">height</code> than the <code data-mark-around="`">width</code>.</p>
 
-<h3>The <code data-mark-around="`">border</code> property</h3>
+</ide-ative>
+<p>For any element presented, the CSS box model defines 4 different boxes.
+The innermost box is the <em data-mark-around="_">content box</em>.
+This is where any content inside the element is placed.
+In this example, we have a <code data-mark-around="`">&lt;p&gt;</code> element which contains some text.</p>
 
-<p>We've seen the <code data-mark-around="`">border</code> property before, when we discussed colors. The <code data-mark-around="`">border</code> property is actually a shorthand for the properties <code data-mark-around="`">border-color</code>, <code data-mark-around="`">border-style</code>, and <code data-mark-around="`">border-width</code>.
-In this discussion we'll be concerned with the <code data-mark-around="`">border-width</code>, which sets the width, or <em data-mark-around="_">thickness</em>, of the border. Here we've specified that the border be 4 pixels thick.</p>
+<p>The next box is the <em data-mark-around="_">padding box</em>, which contains the content box
+as well as any <code data-mark-around="`">padding</code> from the CSS applied to the element.
+In this example, we have <code data-mark-around="`">2.0rem</code> of padding on all sides.</p>
 
-<h3>The <code data-mark-around="`">padding</code> property</h3>
+<p>Next is the <em data-mark-around="_">border box</em>, which contains the padding box
+as well as any <code data-mark-around="`">border</code> from the CSS applied to the element.
+In this example, we have a transparent border which is <code data-mark-around="`">0.5rem</code> wide
+on all sides.
+Note that even though the border is transparent, it still contributes
+to the overall height and width calculations for the box.</p>
 
-<p>Because we often want some whitespace between a box's border and its content,
-the box model allows us to set the dimensions of the <code data-mark-around="`">padding</code>. Here we've specified the same padding,
-20 pixels, in all directions.
-It is also possible to use the <code data-mark-around="`">padding</code> property to set different dimensions for horizontal and vertical padding, or even to specify a different amount of padding in each direction.</p>
+<p>When we are laying out content on a web page, and arranging boxes next to each
+other, it is usually the border box that we're concerned with.
+This is because the border box is the maximum visual extent of the element.
+All of an element's content, as well as its border is contained in the border box.</p>
+
+<p>Though the border box is the visual extent of the element, for historical
+reasons, CSS uses the <code data-mark-around="`">width</code> and <code data-mark-around="`">height</code> properties to determine the
+size of the content box.
+We will see in the next section how we can instead specify the dimensions of the
+border box, and have CSS compute the limits of the content box.</p>
+
+<p>If a <code data-mark-around="`">background</code> has been applied to the element, it will also be contained by the border box.
+If the element has a background and a border, the background will extend all the way to the
+outside edge of the border box.
+This can be observed by applying a transparent border, as in our example.</p>
+
+<p>The final box in the box model lies outside the element, and serves to
+separate it from adjacent or enclosing boxes.
+This is the <em data-mark-around="_">margin box</em> which contains the border box as well as any <code data-mark-around="`">margin</code>
+applied around the element.</p>
 
 </section>
 
@@ -354,81 +472,94 @@ It is also possible to use the <code data-mark-around="`">padding</code> propert
 
 
 </narr-ative>
-<ide-ative class="wpji-7oeu"><!-- <template> for ide-ative --><figure class="code">
-	<pre><code lang="html"></code></pre>
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  <p class="content-box">
+  This content box has a width of 200px. We've put a box with a border around
+  it.
+</p>
+
+<p class="border-box">
+  This border box has a width 200px. We've put the content inside.
+</p>
+
+</output>
+
+
+</oper-ative>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>content-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  This content box has a width of 200px. We've put a box with a border around
+  it.
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>border-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  This border box has a width 200px. We've put the content inside.
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
 </figure>
 
 
+
+
 </ide-ative>
-<oper-ative class="waph7lku6"><!-- <template> for oper-ative --><output class="render">
-	
-</output>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h2>The <code data-mark-around="`">box-sizing</code> property</h2>
 
-</oper-ative>
-<narr-ative class="wu80fvwz2"><!-- <template> for narr-ative --><section class="prose">
-    <h2>The <code data-mark-around="`">box-sizing</code> property</h2>
+<ide-ative data-language="css" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-css"><span class="token selector">.border-box</span> <span class="token punctuation">{</span>
+  <span class="token property">box-sizing</span><span class="token punctuation">:</span> border-box<span class="token punctuation">;</span>
+  <span class="token property">width</span><span class="token punctuation">:</span> 200px<span class="token punctuation">;</span>
+  <span class="token property">height</span><span class="token punctuation">:</span> auto<span class="token punctuation">;</span>
+  <span class="token property">padding</span><span class="token punctuation">:</span> 2rem<span class="token punctuation">;</span>
+  <span class="token property">background</span><span class="token punctuation">:</span> azure<span class="token punctuation">;</span>
+  <span class="token property">border</span><span class="token punctuation">:</span> 0.5rem dashed plum<span class="token punctuation">;</span>
+  <span class="token property">margin</span><span class="token punctuation">:</span> 2rem 4.5rem<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</figure>
 
-&lt;&gt;&lt;p class="content-box"&gt;
-  This is a paragraph of content. We've put a box with a border around it.
-&lt;/p&gt;
 
 
-&lt;&gt;&lt;p class="border-box"&gt;
-  Here is a box with a border around it. We've put this content inside.
-&lt;/p&gt;
-```
+
+</ide-ative>
+<p>We've seen that by default, the <code data-mark-around="`">width</code> property refers to the width of the element's
+<em data-mark-around="_">content box</em>, exclusive of the padding and border. Sometimes this is what
+you want, but at other times, we want to make this box fit into a larger
+layout, and it would be easier for us to specify the overall width of
+the box, including padding and borders. In fact, before CSS was
+standardized, that is exactly how some browsers (notably Internet
+Explorer) interpreted <code data-mark-around="`">width</code>. This was called <em data-mark-around="_">Quirks mode</em>.</p>
+
+<p>When CSS standardized the definition of the <code data-mark-around="`">width</code> property, it
+would've been very difficult to convert the large amounts of CSS that
+were written assuming <em data-mark-around="_">Quirks mode</em>'s box model. So another property,
+<code data-mark-around="`">box-sizing</code> was added to provide support for three box models:
+<code data-mark-around="`">content-box</code> (the default), <code data-mark-around="`">border-box</code> (the Quirks mode one), and
+<code data-mark-around="`">padding-box</code> (which considers everything up to the inside edge the border
+to contribute to the width).</p>
+
+<p>Even though the default is <code data-mark-around="`">content-box</code>, many developers still prefer
+<code data-mark-around="`">border-box</code>, and end up "resetting" the default <code data-mark-around="`">box-sizing</code> to
+<code data-mark-around="`">border-box</code>. In the following discussion, we will assume this reset has
+been applied to the CSS.</p>
+
+<ide-ative data-language="css" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-css"><span class="token selector">*</span> <span class="token punctuation">{</span>
+  <span class="token comment">/* reset the box model to use border-box */</span>
+  <span class="token property">box-sizing</span><span class="token punctuation">:</span> border-box<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</figure>
 
 
-<p>Every web page is laid out by putting content into boxes, and positioning
-those boxes relative to each other. So the basic model for layout is
-the box model.</p>
 
-<figure><figcaption>css</figcaption><pre lang="css"><code>.content-box {
-  width: 200px;
-  height: auto; /* default */
-  border: 4px solid #cec;
-  padding: 20px;
-  /* this was the default, prior to reset: */
-  box-sizing: content-box;
-}
 
-.border-box {
-  width: 200px;
-  height: auto; /* default */
-  border: 4px solid #cce;
-  padding: 20px;
-}
-
-</code></pre></figure>
-
-<p>By default, the <code data-mark-around="`">width</code> property refers to the width of the box's <em data-mark-around="_">content</em>, exclusive of the padding and border.
-Sometimes this is what you want, but at other times, we want to make this box fit into a larger layout,
-and it would be easier for us to specify the overall width of the box, including padding and borders.
-In fact, before CSS was standardized, that is exactly how some browsers (notably Internet Explorer) interpreted <code data-mark-around="`">width</code>. This was called <em data-mark-around="_">Quirks mode</em>.</p>
-
-<p>When CSS standardized the definition of the <code data-mark-around="`">width</code> property, it would've been very difficult to
-convert the large amounts of CSS that were written assuming <em data-mark-around="_">Quirks mode</em>'s box model.
-So another property, <code data-mark-around="`">box-sizing</code> was added to provide support for three box models: <code data-mark-around="`">content-box</code> (the default), <code data-mark-around="`">border-box</code> (the Quirks mode one), and <code data-mark-around="`">padding-box</code> (which considers everything inside the border part of the width).</p>
-
-<p>Even though the default is <code data-mark-around="`">content-box</code>, many developers still prefer <code data-mark-around="`">border-box</code>, and end up
-"resetting" the default <code data-mark-around="`">box-sizing</code> to <code data-mark-around="`">border-box</code>. In the following discussion, we will assume this reset has been applied to the CSS.</p>
-
-<figure><figcaption>css</figcaption><pre lang="css"><code>* {
-  /* reset the box model to use border-box */
-  box-sizing: border-box;
-}
-</code></pre></figure>
-
-<h2>Dealing with Overflow</h2>
-
-<p>When designing layouts, we should always consider the content that is being presented.
-In some cases, the content is static.
-We know what it contains and it will never change.
-But often the same layout is used to contain different content at different times.
-For example, the same layout may be used to present all the articles on a news site.</p>
-
-<p>Designers often work with placeholder text when working with content that is unknown or subject to change.
-But we also need to anticipate what will happen when some unusual text occurs.</p>
+</ide-ative>
+<p>In the instances where we actually intend to size the content box (or the padding box for
+that matter), we will explicitly set the <code data-mark-around="`">box-sizing</code> property.</p>
 
 </section>
 
@@ -436,15 +567,181 @@ But we also need to anticipate what will happen when some unusual text occurs.</
 
 
 </narr-ative>
-<ide-ative class="wpji-7oeu"><!-- <template> for ide-ative --><figure class="code">
-	<pre></pre>
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  
+</output>
+
+
+</oper-ative>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"></pre>
 </figure>
 
 
+
+
 </ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h2>Flex Layouts</h2>
+
+</section>
+
+
+
+
+</narr-ative>
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  
+</output>
+
+
+</oper-ative>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h2>Grid Layouts</h2>
+
+</section>
+
+
+
+
+</narr-ative>
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  
+</output>
+
+
+</oper-ative>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h2>Dealing with Overflow</h2>
+
+<p>When designing layouts, we should always consider the content that is
+being presented. In rare cases, the content is static. We know what it
+is and it will never change. But frequently the same layout is used to
+contain different content at different times. For example, the same
+layout may be used to present all the articles on a news site.</p>
+
+<p>Designers often work with placeholder text when working with content
+that is unknown or subject to change. But we also need to anticipate
+what will happen when some unusual text occurs.</p>
+
+<p>We've seen that within block elements,
+content is laid out as lines of text
+which may wrap to the next line.
+The default CSS of <code data-mark-around="`">width: auto;</code>, which allows lines to be
+as wide as possible,
+this strategy is usually sufficient to avoid horizontal overflow.</p>
+
+<p>To avoid vertical overflow, the CSS default is again the simplest approach.
+With CSS of <code data-mark-around="`">height: auto;</code>, boxes will grow in height to accommodate
+all of the content.
+Of course, this may force each enclosing box to get taller,
+ultimately increasing the size of the page as it is presented on the screen.</p>
+
+<p>For this reason, traditional web layouts have a fixed width,
+but scroll vertically.
+For web pages that are primarily focused on presenting content,
+avoiding overflow in this way is often the best layout strategy.
+Our first strategy for managing overflow is to avoid overflow.</p>
+
+</section>
+
+
+
+
+</narr-ative>
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  
+</output>
+
+
+</oper-ative>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h2>Scrolling</h2>
+
+</section>
+
+
+
+
+</narr-ative>
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  
+</output>
+
+
+</oper-ative>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h2>Locating Content Out-of-Flow</h2>
+
+</section>
+
+
+
+
+</narr-ative>
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  
+</output>
+
+
+</oper-ative>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h2>Absolute Positioning</h2>
+
+</section>
+
+
+
+
+</narr-ative>
 
 </main>
-
 
 
 
@@ -453,14 +750,12 @@ But we also need to anticipate what will happen when some unusual text occurs.</
 
 </article>
 
-</st-ative>
 
+
+
+</st-ative>
 <script type="module">
-import { mount } from "/_scripts/oper.ative.js";
-console.log("Mounting Operative");
-const mountpoint = document.getElementById("lets-be-oper-ative");
-const initial = undefined;
-mount("Kram_d693e88c_layout.kr", mountpoint, initial);
+
 </script>
 
 

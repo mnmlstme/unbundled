@@ -1,0 +1,400 @@
+<!doctype html>
+<html>
+<head>
+<title>Mapping CSS to HTML with Rules</title>
+<link rel="stylesheet" href="/_styles/prism.css">
+<link rel="stylesheet" href="/_styles/theme.css">
+<link rel="stylesheet" href="./styles.css">
+
+<script type="module" src="./script.js"></script>
+
+</head>
+<body>
+
+
+<st-ative class="wuhun-ot6"><!-- <template> for st-ative --><article>
+  
+<navig-ative class="whxbgrbov"><!-- <template> for navig-ative --><footer>
+  <h6><span>Mapping CSS to HTML with Rules
+</span></h6>
+  <button name="previous">Previous</button>
+  <input type="number" min="1" value="1">
+  <button name="next">Next</button>
+</footer>
+
+
+
+
+</navig-ative>
+<consolid-ative class="whf5ymiad"><!-- <template> for consolid-ative --><main class="layout">
+  
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  <h1 style="font: italic bold 2rem Georgia; color: darkOrange">
+  Hello, in style!
+</h1>
+
+<h1>Chapter 1. Keep it Simple</h1>
+
+<h1 id="Chapter02">Chapter 2. Make it Fancy</h1>
+
+<h1 class="fancy">Also fancy, but normal size.</h1>
+
+<p class="fancy schmancy">Now we're getting really fancy</p>
+
+</output>
+
+
+</oper-ative>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">font</span><span class="token punctuation">:</span> italic bold 2rem Georgia<span class="token punctuation">;</span> <span class="token property">color</span><span class="token punctuation">:</span> darkOrange<span class="token punctuation">;</span></span><span class="token punctuation">"</span></span></span><span class="token punctuation">&gt;</span></span>
+  Hello, in style!
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">&gt;</span></span>Chapter 1. Keep it Simple<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Chapter02<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Chapter 2. Make it Fancy<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Also fancy, but normal size.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy schmancy<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Now we're getting really fancy<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h2>Mapping CSS to HTML with Rules</h2>
+
+<p>Though we want to keep presentation separate from content,
+we also need to relate them to each other.
+For each presentation style that we define in CSS,
+there are several ways to select the HTML element or elements
+to which the style applies.
+This combination of a style and a content selector is called a
+<em data-mark-around="_">rule</em>.</p>
+
+<p>Before exploring rules in earnest,
+consider the most direct way of applying a style to
+an HTML element: the <code data-mark-around="`">style</code> attribute.
+Any element can be styled inline by providing a list
+of CSS property/value pairs in the <code data-mark-around="`">style</code>.</p>
+
+<p>In general, we don't want to mix content and presentation like
+this.
+If we do, then modifying the presentation will be very tedious
+and error-prone.
+Also, whenever we add new content, we'd have to be careful to match
+the existing style.</p>
+
+<p>Luckily, there is a better way to identify a set of elements
+in an HTML document: <em data-mark-around="_">selectors</em>.
+You can think of a selector as a pattern that identifies
+a set of matching elements.
+Once we have selected a set of elements, we can then apply
+the same style to all those elements with a rule.</p>
+
+<p>In the previous chapter, we learned how writing semantic HTML
+makes it easier for both humans and computers to process the
+content and operate on it.
+It should not be surprising then, that there are CSS selectors
+which apply presentation styles on the basis of semantic tags
+in our HTML.</p>
+
+<p>We will now write our first CSS rule.
+To write a CSS rule with a <em data-mark-around="_">tag selector</em>, we write the name
+of the element tag we wish to match, for example <code data-mark-around="`">h1</code>.
+The style part of the rule is surrounded by curly braces,
+and is a list of all the style properties we wish to apply
+to the matched elements.</p>
+
+<ide-ative data-language="css" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-css"><span class="token selector">h1</span> <span class="token punctuation">{</span>
+  <span class="token property">font</span><span class="token punctuation">:</span> 2rem<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<p>Tag selectors allow us to apply very general styling rules
+to an entire document.
+They require no changes to the HTML and also apply
+uniformly to all newly authored content,
+as long as it follows the same semantic HTML conventions.
+Because they apply to an entire document (or even an entire site),
+tag selectors allow us to establish a baseline style
+which we can specialize as need be.</p>
+
+<p>On the other end of the specificity spectrum is the <code data-mark-around="`">id</code> selector,
+which allows us to identify one single element for our rule.
+We need to modify the HTML in this case, and add an <code data-mark-around="`">id</code> attribute
+to the one element.
+In the CSS rule, we then refer to that element by placing a
+hash <code data-mark-around="`">#</code> character in front of it.</p>
+
+<ide-ative data-language="css" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-css"><span class="token selector">#Chapter02</span> <span class="token punctuation">{</span>
+  <span class="token property">font</span><span class="token punctuation">:</span> italic 3rem Georgia<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<p>The HTML standard prohibits more than one element in a document
+with the same <code data-mark-around="`">id</code>, so an <code data-mark-around="`">id</code> rule is guaranteed to only match
+one element.
+In this respect, it is similar to using the style attribute,
+but it allows us to keep all the styles together in the CSS
+file for easier maintenance.</p>
+
+<p>In between the very general tag selector
+and the very specific <code data-mark-around="`">id</code> selector is the <code data-mark-around="`">class</code> selector.
+Like <code data-mark-around="`">id</code>, the <code data-mark-around="`">class</code> attribute may be applied to any element
+in HTML.</p>
+
+<p>However, the same class name may be applied to many elements,
+and an element's <code data-mark-around="`">class</code> attribute may include multiple class
+names (separated by spaces).</p>
+
+<p>We specify a CSS class rule by placing a dot (<code data-mark-around="`">.</code>) before
+the name of the class.</p>
+
+<ide-ative data-language="css" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-css"><span class="token selector">.fancy</span> <span class="token punctuation">{</span>
+  <span class="token property">font-style</span><span class="token punctuation">:</span> italic<span class="token punctuation">;</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> Georgia<span class="token punctuation">;</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> darkOrange<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token selector">.schmancy</span> <span class="token punctuation">{</span>
+  <span class="token property">font-family</span><span class="token punctuation">:</span> Brush Script MT<span class="token punctuation">,</span> cursive<span class="token punctuation">;</span>
+  <span class="token property">color</span><span class="token punctuation">:</span> fireBrick<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<p>Note that the same element may match multiple <code data-mark-around="`">class</code> rules.
+In addition, we've seen that the same element may match
+a tag rule, an <code data-mark-around="`">id</code> rule, and a <code data-mark-around="`">class</code> rule.
+This is part of the power of CSS.
+As a pattern-matching language, it allows us to compose
+new styles by layering rules on top of each other.
+While this power makes it relatively easy to make
+sweeping changes in our presentation style,
+it can also lead to unintentional results when styles
+conflict.</p>
+
+<p>In the next section we will learn how CSS handles conflicts
+between multiple matching rules,
+and explore some best practices for managing our CSS rules
+to avoid the problems arise from those conflicts.</p>
+
+</section>
+
+
+
+
+</narr-ative>
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  <h1>Chapter 1. Keep it Simple</h1>
+
+<h1 id="Chapter02">Chapter 2. Make it Fancy</h1>
+
+<h1 class="fancy">Also fancy, but normal size.</h1>
+
+<p class="fancy schmancy">Now we're getting really fancy</p>
+
+</output>
+
+
+</oper-ative>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">&gt;</span></span>Chapter 1. Keep it Simple<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Chapter02<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Chapter 2. Make it Fancy<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Also fancy, but normal size.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
+
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy schmancy<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Now we're getting really fancy<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h2>Specificity and the Cascade</h2>
+
+<p>In the previous section, we wrote some CSS rules and some HTML that matched
+the selectors for those rules.
+Several of the elements, in fact, matched multiple selectors,
+and in some cases, the rules applied assigned different values to the same
+property (e.g., <code data-mark-around="`">font</code> or <code data-mark-around="`">color</code>).
+That is, there were conflicts between the rules applied to some elements.
+Although the results were what we intended, a slight change to how we wrote
+our CSS would have changed the way the conflicts were resolved, and yielded
+unexpected results (also known as a bug).</p>
+
+<p>We need to go back and understand why our CSS worked,
+so that we can avoid these kinds of bugs.
+We will also learn ways to make our code be more resilient and better
+reflect our design intent.
+To gain this understanding, we need to learn about <em data-mark-around="_">specificity</em> and
+the <em data-mark-around="_">cascade</em>.</p>
+
+<p>Cascade is what the "C" in "CSS" stands for.
+So clearly, it's pretty fundamental to how CSS works.
+And yet, even senior developers continue to be frustrated by the cascade,
+spending too much of their time to try to defeat it.
+Instead, we're going to take the time to learn why the cascade was
+invented in the first place, and why it still makes sense over 25 years later.
+We'll learn how to work <em data-mark-around="_">with</em> specificity to better express the design
+intent and prioritize between conflicting demands.</p>
+
+<p>The cascade was a a key part of the CSS language as proposed in October 1994 by
+Håkon Wium Lie.
+The newly-formed W3C was very interested in standardizing style sheets for the
+web, and convened a committee to develop the CSS standard.
+The CSS Level 1 Specification was released by the W3C in December 1996,
+and soon after adopted (incompletely and incompatibly) by the warring
+browsers, Microsoft Internet Explorer and Netscape Navigator.</p>
+
+<p>Prior to CSS, the presentation of web pages was set by browser vendors,
+so web pages looked different between browsers.
+The original browser written by Tim Berners-Lee made use
+of an internal stylesheet, but did not give users the ability to customize it.
+Some browsers gave users access to this stylesheet, allowing users to override
+the browser's styles, in much the same way that Microsoft Word allows the
+default paragraph, heading, and list styles to be redefined.
+These early examples of stylesheets were by necessity very general,
+as they would be applied to every web page the user visited.</p>
+
+<p>Meanwhile, web designers and publishers, expected to be able to
+control how their content was presented on the web.
+After all, this is what they were used to in print media,
+and PDF afforded them this capability.
+Brands especially didn't want
+browser vendors or users changing the styling
+of their pages, and would resort to converting type to images
+for publishing to the web.</p>
+
+<p>In response to the demand for publisher control of page styling,
+Netscape added the HTML <code data-mark-around="`">&lt;font&gt;</code> tag in 1995.
+While it gave publishers control over the color, face, and size of type
+this element had to be inserted into the HTML at every place where
+the designer wanted to change the font.
+Nevertheless, the <code data-mark-around="`">&lt;font&gt;</code> tag made its way to the HTML 3.2 standard,
+and though deprecated, is still a part of standard HTML.</p>
+
+<p>So when the W3C released the CSS1 standard at the end of 1996,
+there was an expectation that both publishers and consumers would have
+control over presentation.
+In addition, Netscape was pushing to add more presentation elements to HTML
+to fend off pressure from Adobe's PDF.
+But the W3C, led Tim Berners-Lee, were insistent
+that presentation remain separate from content,
+and later HTML standards would not allow any more elements like
+<code data-mark-around="`">&lt;center&gt;</code> and <code data-mark-around="`">&lt;font&gt;</code>.
+How was CSS going to satisfy these conflicting requirements?</p>
+
+<p>The answer was the cascade.</p>
+
+<p>Cascading allows several style sheets to
+influence the presentation of a document
+— Håkon Wium Lie, in <a href="https://www.wiumlie.no/2006/phd/css.pdf">his thesis dissertation</a></p>
+
+<p>The solution was to allow CSS stylesheets to come from multiple sources.
+They could be embedded in the HTML page using a <code data-mark-around="`">&lt;style&gt;</code> element.
+Stylesheets served as separate files can be linked to multiple HTML pages on
+the same site.
+Users could also provide a stylesheet, either generally, or per-site.
+And browser vendors would still provide the base styling for every element,
+also expressible as CSS rules.</p>
+
+<p>We've already seen how conflicts arise between rules in a stylesheet.
+When rules are coming from multiple stylesheets, developed independently
+by people with different, or even competing, motivations, conflicts
+become inevitable.
+The cascade provides a mechanism for deciding how conflicts between
+stylesheets are resolved.</p>
+
+<p>Today, user stylesheets are not very commonly used or well supported,
+despite the improvements they can make to accessibility.
+Browser stylesheets have been fairly standardized, and many sites
+apply a <em data-mark-around="_">reset</em> to reduce dependency on browser styles anyway.
+So do we still need the cascade even though 99.9% of the styles
+are written by the developers or under their control?</p>
+
+<p>The answer is yes. And the reason is <em data-mark-around="_">scaling</em>.
+Very rarely does one developer write <em data-mark-around="_">all</em> the CSS for a web site.
+And even then, they don't write it at all at once, and it's
+never all in their head at the same time.
+In reality, CSS is written and modified by many people over
+years and years.
+And in the era of Open-Source Software, CSS can be coming
+from developers who never worked on our project at all.</p>
+
+<p>Furthermore, most conflicts cannot be found by analyzing the CSS.
+They occur when an HTML element matches multiple rules which have conflicting declarations.
+We could find all potentially conflicting rules in any set of CSS files,
+but this would be useless, because most of those conflicts will never happen.
+Most conflicting scenarios are never encountered, because the rules that are in
+conflict were not intended to be applied together.
+Those combinations don't do anything useful, so they aren't used.</p>
+
+<p>Which leads us to a strategy for how we can manage conflicts within our
+own CSS code.
+If we can describe which combinations of rules are intended,
+and make sure that those don't have conflicts,
+then we have reduced the problem immensely.</p>
+
+<p>Maybe then we wouldn't even need the cascade.
+Unless, of course, the cascade can help us work with
+sorting through various combinations of rules.</p>
+
+<p>Which, it can. Because the cascade gives us <em data-mark-around="_">specificity</em>.</p>
+
+</section>
+
+
+
+
+</narr-ative>
+
+</main>
+
+
+
+
+</consolid-ative>
+
+</article>
+
+
+
+
+</st-ative>
+<script type="module">
+
+</script>
+
+
+</body>
+</html>

@@ -2,6 +2,7 @@
 <html>
 <head>
 <title>Reactive Programming with Components</title>
+<link rel="stylesheet" href="/_styles/prism.css">
 <link rel="stylesheet" href="/_styles/theme.css">
 <link rel="stylesheet" href="./styles.css">
 
@@ -35,13 +36,13 @@
 --></template>
 
 
-<st-ative><!-- <template> for st-ative --><article>
-	
-<navig-ative><!-- <template> for navig-ative --><footer>
-	<h6><span>Reactive Programming with Components
+<st-ative class="wuhun-ot6"><!-- <template> for st-ative --><article>
+  
+<navig-ative class="whxbgrbov"><!-- <template> for navig-ative --><footer>
+  <h6><span>Reactive Programming with Components
 </span></h6>
   <button name="previous">Previous</button>
-  <input type="number" min="1" value="1"> 
+  <input type="number" min="1" value="1">
   <button name="next">Next</button>
 </footer>
 
@@ -49,19 +50,33 @@
 
 
 </navig-ative>
-<consolid-ative><!-- <template> for consolid-ative --><main class="layout">
-	
-<oper-ative class="waph7lku6"><!-- <template> for oper-ative --><output class="render">
-	<with-store>
+<consolid-ative class="whf5ymiad"><!-- <template> for consolid-ative --><main class="layout">
+  
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  <with-store>
   <p>© Copyright <o-o>copyright_year</o-o> by <o-o>author</o-o>.</p>
   <p>This page has been viewed <o-o>page_views</o-o> times.</p>
 </with-store>
 
 </output>
 
+
 </oper-ative>
-<narr-ative class="wu80fvwz2"><!-- <template> for narr-ative --><section class="prose">
-    <h1>Reactive Programming using Web Components</h1>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>with-store</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span><span title="©" class="token entity named-entity">&amp;copy;</span> Copyright <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>o-o</span><span class="token punctuation">&gt;</span></span>copyright_year<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>o-o</span><span class="token punctuation">&gt;</span></span> by <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>o-o</span><span class="token punctuation">&gt;</span></span>author<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>o-o</span><span class="token punctuation">&gt;</span></span>.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span>This page has been viewed <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>o-o</span><span class="token punctuation">&gt;</span></span>page_views<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>o-o</span><span class="token punctuation">&gt;</span></span> times.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>with-store</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h1>Reactive Programming using Web Components</h1>
 
 <p>The basis of reactive programming is that all side-effects are sent to
 data store which is provided by the root element of the UI.
@@ -92,16 +107,18 @@ What we want is a way, <em data-mark-around="_">from HTML</em>, to say "put this
 <p>So let's define two components: one that lets us identify a set of data we want to present,
 and one to indicate where to insert each piece.</p>
 
-<figure><figcaption>html</figcaption><pre lang="html"><code>&lt;template id="with-store-template"&gt;
-  &lt;slot&gt;&lt;/slot&gt;
-&lt;/template&gt;
+<ide-ative data-language="html" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>with-store-template<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
 
-&lt;template id="o-o-template"&gt;
-  &lt;slot&gt;no_key&lt;/slot&gt;
-  &lt;span id="value" class="no-value"&gt;&lt;/span
-  &gt;&lt;!--
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>o-o-template<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">&gt;</span></span>no_key<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>value<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>no-value<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span>
+  <span class="token punctuation">&gt;</span></span><span class="token comment">&lt;!--
 	
-  --&gt;&lt;style&gt;
+  --&gt;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">&gt;</span></span>
     slot {
       display: none;
     }
@@ -113,89 +130,101 @@ and one to indicate where to insert each piece.</p>
 
     .no-value::before {
       content: "##NO-VALUE##";
-    }&lt;/style
-  &gt;&lt;!--
---&gt;&lt;/template&gt;
-</code></pre></figure>
-
-<figure><figcaption>js</figcaption><pre lang="js"><code>class WithStoreElement extends HTMLElement {
-  constructor() {
-    super();
-    let content = document.getElementById("with-store-template").content;
-    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
-  }
-
-  connectedCallback() {
-    const { get } = connectStore();
-    this.getFromStore = get;
-    this.dataset.store = JSON.stringify(".");
-  }
-}
-
-class OOElement extends HTMLElement {
-  constructor() {
-    super();
-    let content = document.getElementById("o-o-template").content;
-    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
-  }
-
-  connectedCallback() {
-    this._updateRendering();
-  }
-
-  _updateRendering() {
-    const valueSpan = this.shadowRoot.getElementById("value");
-
-    const store = this.closest("[data-store]");
-
-    // get field key from slot#key
-    const key = this.textContent;
-
-    // lookup key in store
-    const value = store.getFromStore(key);
-
-    console.log("Rendering o-o data: ", key, value);
-
-    // set className and innerText on span#value
-    switch (typeof value) {
-      case "undefined":
-        valueSpan.className = "no-value";
-        valueSpan.innerText = "";
-        break;
-      default:
-        valueSpan.className = "string-value";
-        valueSpan.innerText = value.toString();
-    }
-  }
-}
-
-customElements.define("with-store", WithStoreElement);
-customElements.define("o-o", OOElement);
-</code></pre></figure>
-
-</section>
-
-
-
-
-</narr-ative>
-<ide-ative class="wpji-7oeu"><!-- <template> for ide-ative --><figure class="code">
-	<pre><code lang="html">&lt;with-store&gt;
-  &lt;p&gt;&amp;copy; Copyright &lt;o-o&gt;copyright_year&lt;/o-o&gt; by &lt;o-o&gt;author&lt;/o-o&gt;.&lt;/p&gt;
-  &lt;p&gt;This page has been viewed &lt;o-o&gt;page_views&lt;/o-o&gt; times.&lt;/p&gt;
-&lt;/with-store&gt;
+    }<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span>
+  <span class="token punctuation">&gt;</span></span><span class="token comment">&lt;!--
+--&gt;</span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
 </code></pre>
 </figure>
 
 
+
+
 </ide-ative>
-<oper-ative class="waph7lku6"><!-- <template> for oper-ative --><output class="render">
-	
+<ide-ative data-language="js" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">WithStoreElement</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
+  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"with-store-template"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">"open"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>content<span class="token punctuation">.</span><span class="token function">cloneNode</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token function">connectedCallback</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> <span class="token punctuation">{</span> get <span class="token punctuation">}</span> <span class="token operator">=</span> <span class="token function">connectStore</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>getFromStore <span class="token operator">=</span> get<span class="token punctuation">;</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>dataset<span class="token punctuation">.</span>store <span class="token operator">=</span> <span class="token constant">JSON</span><span class="token punctuation">.</span><span class="token function">stringify</span><span class="token punctuation">(</span><span class="token string">"."</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">class</span> <span class="token class-name">OOElement</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
+  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">let</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"o-o-template"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">"open"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>content<span class="token punctuation">.</span><span class="token function">cloneNode</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token function">connectedCallback</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">_updateRendering</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token function">_updateRendering</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> valueSpan <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"value"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">const</span> store <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">closest</span><span class="token punctuation">(</span><span class="token string">"[data-store]"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// get field key from slot#key</span>
+    <span class="token keyword">const</span> key <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>textContent<span class="token punctuation">;</span>
+
+    <span class="token comment">// lookup key in store</span>
+    <span class="token keyword">const</span> value <span class="token operator">=</span> store<span class="token punctuation">.</span><span class="token function">getFromStore</span><span class="token punctuation">(</span>key<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Rendering o-o data: "</span><span class="token punctuation">,</span> key<span class="token punctuation">,</span> value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token comment">// set className and innerText on span#value</span>
+    <span class="token keyword">switch</span> <span class="token punctuation">(</span><span class="token keyword">typeof</span> value<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">case</span> <span class="token string">"undefined"</span><span class="token operator">:</span>
+        valueSpan<span class="token punctuation">.</span>className <span class="token operator">=</span> <span class="token string">"no-value"</span><span class="token punctuation">;</span>
+        valueSpan<span class="token punctuation">.</span>innerText <span class="token operator">=</span> <span class="token string">""</span><span class="token punctuation">;</span>
+        <span class="token keyword">break</span><span class="token punctuation">;</span>
+      <span class="token keyword">default</span><span class="token operator">:</span>
+        valueSpan<span class="token punctuation">.</span>className <span class="token operator">=</span> <span class="token string">"string-value"</span><span class="token punctuation">;</span>
+        valueSpan<span class="token punctuation">.</span>innerText <span class="token operator">=</span> value<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+
+customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">"with-store"</span><span class="token punctuation">,</span> WithStoreElement<span class="token punctuation">)</span><span class="token punctuation">;</span>
+customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">"o-o"</span><span class="token punctuation">,</span> OOElement<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+</figure>
+
+
+
+
+</ide-ative>
+</section>
+
+
+
+
+</narr-ative>
+<oper-ative class="wqum_1r_x"><!-- <template> for oper-ative --><output class="render">
+  
 </output>
 
+
 </oper-ative>
-<narr-ative class="wu80fvwz2"><!-- <template> for narr-ative --><section class="prose">
-    <h1>Next Scene</h1>
+<ide-ative data-language="auto" class="w1b6go_6i"><!-- <template> for ide-ative --><figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"></pre>
+</figure>
+
+
+
+
+</ide-ative>
+<narr-ative class="w-sw1pcjv"><!-- <template> for narr-ative --><section class="prose">
+  <h1>Next Scene</h1>
 
 </section>
 
@@ -203,15 +232,8 @@ customElements.define("o-o", OOElement);
 
 
 </narr-ative>
-<ide-ative class="wpji-7oeu"><!-- <template> for ide-ative --><figure class="code">
-	<pre></pre>
-</figure>
-
-
-</ide-ative>
 
 </main>
-
 
 
 
@@ -220,14 +242,19 @@ customElements.define("o-o", OOElement);
 
 </article>
 
-</st-ative>
 
+
+
+</st-ative>
 <script type="module">
+
 import { mount } from "/_scripts/oper.ative.js";
 console.log("Mounting Operative");
 const mountpoint = document.getElementById("lets-be-oper-ative");
 const initial = {"who_am_i":"Reactive Programming","author":"The Unbundled Dev","copyright_year":2023,"page_views":9999};
-mount("Kram_ae3b1e21_reactive.kr", mountpoint, initial);
+const moduleNames = ["Kram_ae3b1e21_reactive"];
+moduleNames.forEach((name) => mount(name, mountpoint, initial));
+
 </script>
 
 

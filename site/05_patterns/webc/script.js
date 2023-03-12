@@ -1,62 +1,179 @@
-// module Kram_ae3b1e21_reactive (ES6)
+// module Kram_ccdea868_webc (ES6)
           import { register } from "/_scripts/oper.ative.js"
           
-          console.log('Loading module "Kram_ae3b1e21_reactive"')
+          console.log('Loading module "Kram_ccdea868_webc"')
           export function Program ({connectStore}) {
             // JS Definition from scene 1
-class WithStoreElement extends HTMLElement {
+class HelloWorldElement extends HTMLElement {
   constructor() {
     super();
-    let content = document.getElementById("with-store-template").content;
+    let content = document.getElementById("hello-world-template").content;
     this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
-  }
-
-  connectedCallback() {
-    const { get } = connectStore();
-    this.getFromStore = get;
-    this.dataset.store = JSON.stringify(".");
   }
 }
 
-class OOElement extends HTMLElement {
+customElements.define("hello-world", HelloWorldElement);
+
+// JS Definition from scene 3
+class HelloStyleElement extends HTMLElement {
   constructor() {
     super();
-    let content = document.getElementById("o-o-template").content;
+    let content = document.getElementById("hello-style-template").content;
+    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
+  }
+}
+
+customElements.define("hello-style", HelloStyleElement);
+
+// JS Definition from scene 4
+class GreetWorldElement extends HTMLElement {
+  constructor() {
+    super();
+    let content = document.getElementById("greet-world-template").content;
+    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
+  }
+}
+
+customElements.define("greet-world", GreetWorldElement);
+
+// JS Definition from scene 5
+class ArrowButtonElement extends HTMLElement {
+  static get observedAttributes() {
+    return ["heading"];
+  }
+
+  constructor() {
+    super();
+    let content = document.getElementById("arrow-button-template").content;
     this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
   }
 
   connectedCallback() {
-    this._updateRendering();
+    const heading = this.getAttribute("heading");
+
+    if (heading) {
+      this._updateRotation(heading);
+    }
   }
 
-  _updateRendering() {
-    const valueSpan = this.shadowRoot.getElementById("value");
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === "heading") {
+      this._updateRotation(newValue);
+    }
+  }
 
-    const store = this.closest("[data-store]");
+  _updateRotation(heading) {
+    const button = this.shadowRoot.firstElementChild;
+    button.style.setProperty("--arrow-rotation", heading);
+  }
+}
 
-    // get field key from slot#key
-    const key = this.textContent;
+customElements.define("arrow-button", ArrowButtonElement);
 
-    // lookup key in store
-    const value = store.getFromStore(key);
+// JS Definition from scene 6
+class V1DropdownElement extends HTMLElement {
+  constructor() {
+    super();
+    let content = document.getElementById("dropdown-menu-template").content;
+    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
+    this.isShownInput = this.shadowRoot.getElementById("is-shown");
 
-    console.log("Rendering o-o data: ", key, value);
+    this.clickawayHandler = (ev) => {
+      if (!ev.composedPath().includes(this)) {
+        this.toggle(false);
+      } else {
+        ev.stopPropagation();
+      }
+    };
 
-    // set className and innerText on span#value
-    switch (typeof value) {
-      case "undefined":
-        valueSpan.className = "no-value";
-        valueSpan.innerText = "";
-        break;
-      default:
-        valueSpan.className = "string-value";
-        valueSpan.innerText = value.toString();
+    this.isShownInput.addEventListener("change", () =>
+      this.toggleClickAway(this.isShownInput.checked)
+    );
+  }
+
+  toggle(open) {
+    this.isShownInput.checked = open;
+    this.toggleClickAway(open);
+  }
+
+  toggleClickAway(open) {
+    if (open) {
+      document.addEventListener("click", this.clickawayHandler);
+    } else {
+      document.removeEventListener("click", this.clickawayHandler);
     }
   }
 }
 
-customElements.define("with-store", WithStoreElement);
-customElements.define("o-o", OOElement);
+customElements.define("dropdown-menu", V1DropdownElement);
+
+// JS Definition from scene 8
+class DropdownBaseElement extends HTMLElement {
+  constructor() {
+    super();
+    let content = document.getElementById("dropdown-base-template").content;
+    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
+    this.isShownInput = this.shadowRoot.getElementById("is-shown");
+
+    this.clickawayHandler = (ev) => {
+      if (!ev.composedPath().includes(this)) {
+        this.toggle(false);
+      } else {
+        ev.stopPropagation();
+      }
+    };
+
+    this.isShownInput.addEventListener("change", () =>
+      this.toggleClickAway(this.isShownInput.checked)
+    );
+  }
+
+  toggle(open) {
+    this.isShownInput.checked = open;
+    this.toggleClickAway(open);
+  }
+
+  toggleClickAway(open) {
+    if (open) {
+      document.addEventListener("click", this.clickawayHandler);
+    } else {
+      document.removeEventListener("click", this.clickawayHandler);
+    }
+  }
+}
+
+customElements.define("dropdown-base", DropdownBaseElement);
+
+// JS Definition from scene 9
+class CommandMenuElement extends HTMLElement {
+  constructor() {
+    super();
+    let content = document.getElementById("command-menu-template").content;
+    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
+  }
+}
+
+class CommandGroupElement extends HTMLElement {
+  constructor() {
+    super();
+    let content = document.getElementById("command-group-template").content;
+    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
+  }
+}
+
+customElements.define("command-menu", CommandMenuElement);
+customElements.define("command-group", CommandGroupElement);
+
+// JS Definition from scene 10
+class ActionItemElement extends HTMLElement {
+  constructor() {
+    super();
+    let content = document.getElementById("action-item-template").content;
+    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
+  }
+}
+
+customElements.define("action-item", ActionItemElement);
 
             return ({
               
@@ -74,7 +191,7 @@ customElements.define("o-o", OOElement);
               program[n-1].call(container)
             }
           }
-          register("Kram_ae3b1e21_reactive", {Program, mount})
+          register("Kram_ccdea868_webc", {Program, mount})
         
 
   const STORE_CHANGE_EVENT = "store:change";

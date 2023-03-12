@@ -13,7 +13,11 @@
   "devDependencies": {
     "@11ty/eleventy": "^2.0.0",
     "@11ty/eleventy-plugin-webc": "^0.9.0",
-    "@cre.ative/kram-11ty": "^1.0.1",
+    "@cre.ative/kram-11ty": "file:.yalc/@cre.ative/kram-11ty",
     "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "prettier": "^2.8.4",
+    "prismjs": "^1.29.0"
   }
 }

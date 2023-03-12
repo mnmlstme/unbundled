@@ -1,0 +1,91 @@
+<!-- <template> for consolid-ative -->
+
+<main class="layout">
+  <slot></slot>
+</main>
+
+<style webc:scoped>
+  .layout {
+    --prose-grid-row: 1 / span 2;
+    --render-grid-row: 1;
+    --code-grid-row: 2;
+
+    display: grid;
+    position: absolute;
+    top: 0;
+    left: calc(100vw * (1 - var(--current-scene, 1)));
+    height: 100vh;
+    grid-template-columns: 60vw 40vw;
+    grid-template-rows: 3fr 2fr var(--heightFooter);
+    grid-auto-columns: 60vw 40vw;
+    grid-auto-flow: row;
+    justify-items: start;
+    transition: left 0.5s ease-in-out;
+    pointer-events: none;
+  }
+
+  .layout > * {
+    pointer-events: all;
+  }
+
+  .layout .render {
+    display: block;
+    grid-row: 1;
+    position: relative;
+    padding: var(--sizeRenderPadding);
+  }
+
+  .layout .code {
+    grid-row: 2;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: auto;
+  }
+
+  @media print {
+    .layout {
+      --prose-grid-row: unset;
+      --render-grid-row: unset;
+      --code-grid-row: unset;
+
+      position: relative;
+      top: auto;
+      left: auto;
+      height: auto;
+      grid-template-columns: initial;
+      grid-template-rows: initial;
+      grid-auto-columns: initial;
+    }
+
+    .layout .render {
+      break-before: page;
+      break-inside: avoid;
+      border: 1px dotted black;
+    }
+
+    .layout .code {
+      overflow: visible;
+    }
+  }
+</style>
+
+<script>
+  customElements.define(
+    "consolid-ative",
+    class extends HTMLElement {
+      connectedCallback() {
+        let provider = this.closest("[data-provider]");
+
+        const { value: currentScene } = provider.observe(
+          "current-scene",
+          (newValue) => {
+            console.log("Setting layout to scene", newValue);
+            this.style = `--current-scene: ${newValue}`;
+          }
+        );
+
+        console.log("Consolid-ative (webc)");
+      }
+    }
+  );
+</script>
