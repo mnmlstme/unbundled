@@ -1,5 +1,4 @@
-<!-- <template> for navig-ative -->
-
+<!-- template -->
 <footer>
   <h6><slot name="title">Untitled</slot></h6>
   <button name="previous">Previous</button>
@@ -7,7 +6,7 @@
   <button name="next">Next</button>
 </footer>
 
-<style webc:scoped>
+<style>
   footer {
     display: flex;
     flex-direction: row;
@@ -24,8 +23,11 @@
     }
   }
 </style>
+<!-- /template -->
 
-<script>
+<script webc:keep>
+  console.log("Defining navig-ative...");
+
   customElements.define(
     "navig-ative",
     class extends HTMLElement {
@@ -37,20 +39,26 @@
         );
         let nextButton = this.querySelector(':scope button[name="next"]');
 
-        const { get, set } = provider.bind(
-          "current-scene",
-          (newValue) => (numberInput.value = newValue)
-        );
+        console.log("Navig-ative attempting to connect...", provider);
 
-        numberInput.value = get();
+        if (provider) {
+          const { get, set } = provider.bind(
+            "current-scene",
+            (newValue) => (numberInput.value = newValue)
+          );
 
-        numberInput.addEventListener("change", () => set(numberInput.value));
+          numberInput.value = get();
 
-        previousButton.addEventListener("click", () => set(get() - 1));
+          numberInput.addEventListener("change", () => set(numberInput.value));
 
-        nextButton.addEventListener("click", () => {
-          set(get() + 1);
-        });
+          previousButton.addEventListener("click", () => set(get() - 1));
+
+          nextButton.addEventListener("click", () => {
+            set(get() + 1);
+          });
+
+          console.log("Consolid-ative (webc)");
+        }
       }
     }
   );

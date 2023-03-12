@@ -1,26 +1,4 @@
-<!-- <template> for st-ative -->
-
-<article>
-  <slot></slot>
-</article>
-
-<style webc:scoped>
-  article {
-    position: fixed;
-    height: 100vh;
-    width: 100vw;
-  }
-
-  @media print {
-    article {
-      position: static;
-      height: auto;
-      width: 100%;
-    }
-  }
-</style>
-
-<script>
+<script webc:keep>
   const STORE_CHANGE_EVENT = "store:change";
 
   function createStore(eventTarget, initial = {}) {
@@ -66,12 +44,15 @@
   customElements.define(
     "st-ative",
     class extends HTMLElement {
-      connectedCallback() {
+      constructor() {
+        super();
+
+        const storeRoot = [];
         let Store = createStore(this, {
           "current-scene": 1,
         });
 
-        this.dataset.provider = JSON.stringify(".");
+        this.dataset.provider = JSON.stringify(storeRoot);
 
         this.observe = (key, watcher) => {
           if (watcher) {
@@ -93,8 +74,30 @@
           };
         };
 
-        console.log("Store provider connected");
+        console.log("Store provider constructed");
       }
     }
   );
 </script>
+
+<!-- template -->
+<article>
+  <slot></slot>
+</article>
+
+<style>
+  article {
+    position: fixed;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  @media print {
+    article {
+      position: static;
+      height: auto;
+      width: 100%;
+    }
+  }
+</style>
+<!-- /template -->

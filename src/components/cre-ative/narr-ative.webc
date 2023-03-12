@@ -1,5 +1,4 @@
-<!-- <template> for narr-ative -->
-
+<!-- template id="narr-ative" webc:raw -->
 <section class="prose">
   <slot>Scene 1 Narrative</slot>
 </section>
@@ -214,7 +213,16 @@
     }
   }
 </style>
+<!-- /template -->
 
-<script>
-  console.log("Narr-ative component (webc)");
+<script webc:ignore>
+  class Narr_ative extends HTMLElement {
+    constructor() {
+      super();
+      let content = document.getElementById("narr-ative").content;
+      this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
+    }
+  }
+
+  customElements.define("narr-ative", Narr_ative);
 </script>

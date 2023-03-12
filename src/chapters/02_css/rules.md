@@ -224,9 +224,11 @@ How was CSS going to satisfy these conflicting requirements?
 
 The answer was the cascade.
 
-Cascading allows several style sheets to
-influence the presentation of a document
-— Håkon Wium Lie, in [his thesis dissertation](https://www.wiumlie.no/2006/phd/css.pdf)
+> Cascading allows several style sheets to
+> influence the presentation of a document
+>
+> — Håkon Wium Lie,
+> in [his thesis dissertation](https://www.wiumlie.no/2006/phd/css.pdf)
 
 The solution was to allow CSS stylesheets to come from multiple sources.
 They could be embedded in the HTML page using a `<style>` element.
