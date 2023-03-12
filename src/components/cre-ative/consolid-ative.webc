@@ -76,15 +76,17 @@
       connectedCallback() {
         let provider = this.closest("[data-provider]");
 
-        const { value: currentScene } = provider.observe(
-          "current-scene",
-          (newValue) => {
-            console.log("Setting layout to scene", newValue);
-            this.style = `--current-scene: ${newValue}`;
-          }
-        );
+        if (provider) {
+          const { value: currentScene } = provider.observe(
+            "current-scene",
+            (newValue) => {
+              console.log("Setting layout to scene", newValue);
+              this.style = `--current-scene: ${newValue}`;
+            }
+          );
 
-        console.log("Consolid-ative (webc)");
+          console.log("Consolid-ative (webc)");
+        }
       }
     }
   );

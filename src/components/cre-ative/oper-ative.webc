@@ -1,5 +1,4 @@
-<!-- <template> for oper-ative -->
-
+<!-- template -->
 <output class="render">
   <slot></slot>
 </output>
@@ -29,3 +28,4 @@
     }
   }
 </style>
+<!-- /template -->

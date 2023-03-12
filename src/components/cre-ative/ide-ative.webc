@@ -1,5 +1,4 @@
-<!-- <template> for ide-ative -->
-
+<!-- template -->
 <figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><slot></slot></pre>
@@ -31,12 +30,4 @@
     }
   }
 </style>
-
-<script>
-  customElements.define(
-    "ide-ative",
-    class extends HTMLElement {
-      connectedCallback() {}
-    }
-  );
-</script>
+<!-- /template -->
