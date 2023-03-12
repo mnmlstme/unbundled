@@ -1,4 +1,26 @@
+<!-- <template> for st-ative -->
 
+<article>
+  <slot></slot>
+</article>
+
+<style webc:scoped>
+  article {
+    position: fixed;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  @media print {
+    article {
+      position: static;
+      height: auto;
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
   const STORE_CHANGE_EVENT = "store:change";
 
   function createStore(eventTarget, initial = {}) {
@@ -75,64 +97,4 @@
       }
     }
   );
-
-
-  customElements.define(
-    "consolid-ative",
-    class extends HTMLElement {
-      connectedCallback() {
-        let provider = this.closest("[data-provider]");
-
-        const { value: currentScene } = provider.observe(
-          "current-scene",
-          (newValue) => {
-            console.log("Setting layout to scene", newValue);
-            this.style = `--current-scene: ${newValue}`;
-          }
-        );
-
-        console.log("Consolid-ative (webc)");
-      }
-    }
-  );
-
-
-  console.log("Narr-ative component (webc)");
-
-
-  customElements.define(
-    "ide-ative",
-    class extends HTMLElement {
-      connectedCallback() {}
-    }
-  );
-
-
-  customElements.define(
-    "navig-ative",
-    class extends HTMLElement {
-      connectedCallback() {
-        let provider = this.closest("[data-provider]");
-        let numberInput = this.querySelector(':scope input[type="number"]');
-        let previousButton = this.querySelector(
-          ':scope button[name="previous"]'
-        );
-        let nextButton = this.querySelector(':scope button[name="next"]');
-
-        const { get, set } = provider.bind(
-          "current-scene",
-          (newValue) => (numberInput.value = newValue)
-        );
-
-        numberInput.value = get();
-
-        numberInput.addEventListener("change", () => set(numberInput.value));
-
-        previousButton.addEventListener("click", () => set(get() - 1));
-
-        nextButton.addEventListener("click", () => {
-          set(get() + 1);
-        });
-      }
-    }
-  );
+</script>

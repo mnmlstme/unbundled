@@ -1,0 +1,31 @@
+<!-- <template> for oper-ative -->
+
+<output class="render">
+  <slot></slot>
+</output>
+
+<style webc:scoped>
+  :host {
+    height: 100%;
+    width: 100%;
+    overflow: auto;
+    grid-row: var(--render-grid-row);
+  }
+
+  .render {
+    min-width: 100%;
+    min-height: 100%;
+  }
+
+  @media print {
+    :host {
+      display: block;
+      height: auto;
+      overflow: hidden;
+    }
+    .render {
+      min-width: 0;
+      min-height: 0;
+    }
+  }
+</style>

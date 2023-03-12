@@ -1,3 +1,5 @@
 /.nova
 /kram_modules
 /node_modules
+/.yalc
+/yalc.lock

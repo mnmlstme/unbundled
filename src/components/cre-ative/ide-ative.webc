@@ -1,0 +1,42 @@
+<!-- <template> for ide-ative -->
+
+<figure class="code">
+  <figcaption></figcaption>
+  <pre class="language-markup"><slot></slot></pre>
+</figure>
+
+<style webc:scoped>
+  :host {
+    --ide-language: attr(data-language);
+
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    grid-row: var(--code-grid-row);
+  }
+
+  .code {
+    height: max-content;
+  }
+
+  figcaption:empty::after {
+    content: var(--ide-language, "code");
+  }
+
+  @media print {
+    :host {
+      display: block;
+      height: auto;
+      break-inside: avoid;
+    }
+  }
+</style>
+
+<script>
+  customElements.define(
+    "ide-ative",
+    class extends HTMLElement {
+      connectedCallback() {}
+    }
+  );
+</script>
