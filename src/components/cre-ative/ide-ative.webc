@@ -11,11 +11,14 @@
     height: 100%;
     width: 100%;
     overflow: hidden;
-    grid-row: var(--code-grid-row);
+    grid-column: var(--code-grid-column);
   }
 
   .code {
     height: max-content;
+    max-width: 100%;
+    max-height: 100%;
+    overflow: auto;
   }
 
   figcaption:empty::after {

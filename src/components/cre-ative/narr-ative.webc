@@ -7,7 +7,8 @@
   @import "/_styles/theme.css";
 
   :host {
-    grid-row: var(--prose-grid-row);
+    grid-column: var(--prose-grid-column);
+    grid-row-end: span 2;
     overflow: hidden auto;
     height: 100%;
     width: 100%;
