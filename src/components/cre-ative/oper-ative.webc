@@ -8,12 +8,15 @@
     height: 100%;
     width: 100%;
     overflow: auto;
-    grid-row: var(--render-grid-row);
+    grid-column: var(--render-grid-column);
   }
 
   .render {
     min-width: 100%;
     min-height: 100%;
+    display: block;
+    position: relative;
+    padding: var(--sizeRenderPadding);
   }
 
   @media print {
