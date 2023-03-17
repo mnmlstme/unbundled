@@ -7,6 +7,7 @@ platform: none
 
 In this chapter:
 
+- [Style Properties](../props)
 - [Mapping CSS to HTML with Rules](../rules)
 - [CSS Custom Properties (Variables)](../vars)
 - Typography
