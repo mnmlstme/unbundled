@@ -285,7 +285,7 @@ To the rest of the code, the store is read-only.</p>
 <p>All dynamic web pages require code that retrieves data (for example, from an API)
 and inserts it into the HTML or DOM.
 Originally, this was accomplished with templating on the server.
-But if the data changes, we don't want to reload the entire page, just the data that changed.
+But if the data changes, we don’t want to reload the entire page, just the data that changed.
 Typically, this means using Javascript to fetch the data and then manipulate the DOM.</p>
 
 <p>This is not easy to do. The problem of keeping the DOM in sync with data stored in Javascript
@@ -300,9 +300,9 @@ either.
 HTML custom elements address this difficulty, because they allow us attach Javascript functionality to elements.</p>
 
 <p>Typically, we have a record of data, and a chunk of HTML that presents the data.
-What we want is a way, <em data-mark-around="_">from HTML</em>, to say "put this piece of data here".</p>
+What we want is a way, <em data-mark-around="_">from HTML</em>, to say “put this piece of data here”.</p>
 
-<p>So let's define two components: one that lets us identify a set of data we want to present,
+<p>So let’s define two components: one that lets us identify a set of data we want to present,
 and one to indicate where to insert each piece.</p>
 
 <ide-ative data-language="html" class="wbxffgulu"><!-- template --><figure class="code">
