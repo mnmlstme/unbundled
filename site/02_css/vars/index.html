@@ -73,21 +73,15 @@
   function createStore(eventTarget, initial = {}) {
     let root = Object.assign({}, initial);
 
-    console.log("create Store", JSON.stringify(root));
+    console.log("create Global Store for st-ative", JSON.stringify(root));
 
     return new Proxy(root, {
       get: (target, prop, receiver) => {
         const value = Reflect.get(target, prop, receiver);
-        console.log(`Store['${prop}'] => ${JSON.stringify(value)}`);
         return value;
       },
       set: (target, prop, newValue, receiver) => {
         const oldValue = root[prop];
-        console.log(
-          `Store['${prop}'] <= ${JSON.stringify(
-            newValue
-          )}; was ${JSON.stringify(oldValue)}`
-        );
         const didSet = Reflect.set(target, prop, newValue, receiver);
         if (didSet) {
           eventTarget.dispatchEvent(changeEvent(prop, newValue, oldValue));

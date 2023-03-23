@@ -38,7 +38,7 @@ command-group + command-group {
           import { register } from "/_scripts/oper.ative.js"
           
           console.log('Loading module "Kram_ccdea868_webc"')
-          export function Program ({connectStore}) {
+          export function Program ({connectStore, initializeStore}) {
             // JS Definition from scene 1
 class HelloWorldElement extends HTMLElement {
   constructor() {
@@ -219,9 +219,15 @@ customElements.define("action-item", ActionItemElement);
             let Store = {
               root: Object.assign({}, initial),
             };
-            const connectStore = (root = "root") => ({
-                get: (key) => Store[root][key],
-            })
+            const connectStore = (path = ["root"]) => {
+              let root = Store;
+              path.forEach((key) => root = root[key]);
+              return ({
+                root,
+                get: (key) => root[key],
+                set: (key, value) => root[key] = value,
+                keys: () => Object.keys(root),
+              })};
             const program = Program({connectStore})
             return (n, container) => {
               program[n-1].call(container)
@@ -458,21 +464,15 @@ customElements.define("action-item", ActionItemElement);
   function createStore(eventTarget, initial = {}) {
     let root = Object.assign({}, initial);
 
-    console.log("create Store", JSON.stringify(root));
+    console.log("create Global Store for st-ative", JSON.stringify(root));
 
     return new Proxy(root, {
       get: (target, prop, receiver) => {
         const value = Reflect.get(target, prop, receiver);
-        console.log(`Store['${prop}'] => ${JSON.stringify(value)}`);
         return value;
       },
       set: (target, prop, newValue, receiver) => {
         const oldValue = root[prop];
-        console.log(
-          `Store['${prop}'] <= ${JSON.stringify(
-            newValue
-          )}; was ${JSON.stringify(oldValue)}`
-        );
         const didSet = Reflect.set(target, prop, newValue, receiver);
         if (didSet) {
           eventTarget.dispatchEvent(changeEvent(prop, newValue, oldValue));
