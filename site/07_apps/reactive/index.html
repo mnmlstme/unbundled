@@ -12,7 +12,7 @@
           export function Program ({connectStore, initializeStore}) {
             // JS Definition from scene 1
 class FrpMain extends HTMLElement {
-  constructor(init = {}, update = this.update, msgType = {}) {
+  constructor(init = {}, update = FrpMain.update, msgType = {}) {
     super();
     let content = document.getElementById("frp-main-template").content;
     this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
@@ -87,8 +87,7 @@ class FrpMain extends HTMLElement {
       try {
         const action = fn(this.dispatch.bind(this), this.messageType);
 
-        console.log("frp-main: binding action to model:", action, this._model);
-        resolve(action.bind(null, this._model));
+        resolve(action);
       } catch (error) {
         reject(error);
       }
@@ -114,6 +113,8 @@ class FrpMain extends HTMLElement {
     return model;
   }
 }
+
+customElements.define("frp-main", FrpMain);
 
 // JS Definition from scene 1
 class FrpExample1 extends FrpMain {
@@ -215,15 +216,14 @@ class FrpText extends HTMLElement {
 
     console.log("frp-text: ", view.observers, expr);
 
-    view
-      .observe(renderFn, this)
-      .then((value) => this.update(value))
-      .catch((error) => this.report(error));
+    view.observe(renderFn, this);
   }
 
   update(value) {
+    const slot = this.shadowRoot.firstElementChild;
     const span = this.shadowRoot.getElementById("value");
 
+    slot.className = "filled";
     span.innerText = value;
     span.className = `${typeof value}-value`;
   }
@@ -231,57 +231,102 @@ class FrpText extends HTMLElement {
   report(error) {
     const span = this.shadowRoot.getElementById("value");
 
-    span.innerText = error.toString();
-    span.className = "error-value";
+    slot.className = "error";
   }
 }
 
 customElements.define("frp-text", FrpText);
 
 // JS Definition from scene 5
-class FrpAction extends HTMLElement {
+class FrpBind extends HTMLElement {
   constructor() {
     super();
-    let content = document.getElementById("frp-action-template").content;
+    let content = document.getElementById("frp-bind-template").content;
     this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
   }
 
   connectedCallback() {
-    const expr = this.getAttribute("on-click");
-    const main = FrpMain.closest(this);
+    this.main = FrpMain.closest(this);
     const view = FrpView.closest(this);
-    const actionFn = Function(
-      "__dispatch__",
-      "__Msg__",
-      `const ${view.messages} = __Msg__;
-      return function (${view.observers}, __event__) {
-        const __handler__ = ${expr};
-        __dispatch__(__handler__(__event__));
-      }`
-    ).bind(this);
+    const propNames = this.getAttributeNames().filter((name) => name !== "on");
 
-    main
-      .bind(actionFn)
-      .then((handler) => this.update(handler))
-      .catch((error) => this.report(error));
+    if (propNames) {
+      const assignments = propNames
+        .map((name) => {
+          const expr = this.getAttribute(name);
+          return `["${name}", ${expr}]`;
+        })
+        .join(",\n");
+      const mapFn = Function(
+        "__model__",
+        `const ${view.observers} = __model__;
+        return [ ${assignments} ];
+        `
+      );
+
+      console.log("frp-bind: properties ", view.observers, assignments);
+
+      view.observe(mapFn, this);
+    }
+
+    const onExpr = this.getAttribute("on");
+
+    if (onExpr) {
+      const dispatchFn = Function(
+        "__dispatch__",
+        "__Msg__",
+        `const ${view.messages} = __Msg__;
+         function actions (${view.observers}) {
+           return (${onExpr});
+         }
+         const onevent = (__type__) =>
+          function handler (__model__, __event__) {
+            const fn = actions.call(this, __model__)[__type__];
+            __dispatch__(fn(__event__))
+          };
+         const names = Object.keys(actions({}));
+         return names.map((name) => ['on' + name, onevent(name)]);`
+      );
+
+      console.log("frp-bind: onevent handlers ", view.observers, dispatchFn);
+
+      this.main
+        .bind(dispatchFn)
+        .then((handlers) => this.update(handlers))
+        .catch((reason) => this.report(reason));
+    }
   }
 
-  update(handler) {
-    const target = this.shadowRoot.firstElementChild;
+  update(entries) {
+    const slot = this.shadowRoot.firstElementChild;
+    const model = this.main.model;
 
-    target.onclick = handler;
-    console.log("frp-action: Bound on-click handler", target);
+    for (const target of this.children) {
+      const bound = entries.map(([name, value]) =>
+        // bind `this` and the model to on* functions
+        [
+          name,
+          name.startsWith("on") && typeof value === "function"
+            ? value.bind(target, model)
+            : value,
+        ]
+      );
+      bound.forEach(([name, value]) => {
+        target[name] = value;
+      });
+      console.log("frp-bind: bound", bound, target);
+    }
+    slot.className = "bound";
   }
 
-  report(error) {
-    const target = this.shadowRoot.firstElementChild;
+  report(reason) {
+    const slot = this.shadowRoot.firstElementChild;
 
-    target.onclick = null;
-    console.warn("frp-action: Unable to bind on-click handler", error, target);
+    slot.className = "error";
   }
 }
 
-customElements.define("frp-action", FrpAction);
+customElements.define("frp-bind", FrpBind);
 
 // JS Definition from scene 6
 function createObservable(eventTarget, root) {
@@ -361,21 +406,22 @@ function createObservable(eventTarget, root) {
 </template>
 
 <template id="frp-text-template">
-  <span id="value" class="undefined-value"></span>
-  <slot>Use template literal syntax here.</slot
+  <slot>Use template literal syntax here.</slot>
+  <span id="value" class="undefined-value"></span
   ><style>
-    .string-value + slot {
+    span.undefined-value,
+    slot.filled {
       display: none;
     }
 
-    .error-value,
-    .error-value + ::slotted(*) {
+    span.error-value,
+    slot.error {
       background: red;
       color: white;
     }
   </style></template>
 
-<template id="frp-action-template">
+<template id="frp-bind-template">
   <slot></slot>
 </template>
 
@@ -516,13 +562,13 @@ function createObservable(eventTarget, root) {
 <oper-ative class="wyn4ozqi9"><!-- template --><output class="render">
   <frp-example-1>
   <frp-view>
-    <frp-action on-click="Msg.Decrement">
+    <frp-bind on="{click: Msg.Decrement}">
       <button>Less cowbell</button>
-    </frp-action>
+    </frp-bind>
     <p><frp-text>The sound of ${model.count} cowbells.</frp-text></p>
-    <frp-action on-click="Msg.Increment">
+    <frp-bind on="{click: Msg.Increment}">
       <button>More cowbell</button>
-    </frp-action>
+    </frp-bind>
   </frp-view>
 </frp-example-1>
 
@@ -535,13 +581,13 @@ function createObservable(eventTarget, root) {
   <figcaption></figcaption>
   <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-example-1</span><span class="token punctuation">&gt;</span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-view</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-action</span> <span class="token attr-name">on-click</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Msg.Decrement<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-bind</span> <span class="token attr-name">on</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>{click: Msg.Decrement}<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span><span class="token punctuation">&gt;</span></span>Less cowbell<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-action</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-bind</span><span class="token punctuation">&gt;</span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-text</span><span class="token punctuation">&gt;</span></span>The sound of ${model.count} cowbells.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-text</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-action</span> <span class="token attr-name">on-click</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Msg.Increment<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-bind</span> <span class="token attr-name">on</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>{click: Msg.Increment}<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span><span class="token punctuation">&gt;</span></span>More cowbell<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-action</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-bind</span><span class="token punctuation">&gt;</span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-view</span><span class="token punctuation">&gt;</span></span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-example-1</span><span class="token punctuation">&gt;</span></span>
 </code></pre>
@@ -556,7 +602,7 @@ function createObservable(eventTarget, root) {
 <ide-ative data-language="js" class="wbxffgulu"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">FrpMain</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
-  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token parameter">init <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span> update <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>update<span class="token punctuation">,</span> msgType <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token parameter">init <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span> update <span class="token operator">=</span> FrpMain<span class="token punctuation">.</span>update<span class="token punctuation">,</span> msgType <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword">let</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"frp-main-template"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span>
     <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">"open"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>content<span class="token punctuation">.</span><span class="token function">cloneNode</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -631,8 +677,7 @@ function createObservable(eventTarget, root) {
       <span class="token keyword">try</span> <span class="token punctuation">{</span>
         <span class="token keyword">const</span> action <span class="token operator">=</span> <span class="token function">fn</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">dispatch</span><span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>messageType<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-main: binding action to model:"</span><span class="token punctuation">,</span> action<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>_model<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token function">resolve</span><span class="token punctuation">(</span><span class="token function">action</span><span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span><span class="token keyword">null</span><span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>_model<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+        <span class="token function">resolve</span><span class="token punctuation">(</span>action<span class="token punctuation">)</span><span class="token punctuation">;</span>
       <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">{</span>
         <span class="token function">reject</span><span class="token punctuation">(</span>error<span class="token punctuation">)</span><span class="token punctuation">;</span>
       <span class="token punctuation">}</span>
@@ -658,6 +703,8 @@ function createObservable(eventTarget, root) {
     <span class="token keyword">return</span> model<span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
+
+customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">"frp-main"</span><span class="token punctuation">,</span> FrpMain<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 </figure>
 
@@ -812,13 +859,17 @@ customElements<span class="token punctuation">.</span><span class="token functio
     <p>
       <frp-text>This page has been viewed ${page_views} times.</frp-text>
     </p>
+  </frp-view>
+  <frp-view>
     <p>
-      <frp-action on-click="() => ({page_views: page_views+1})">
+      <frp-bind on="{click: () => ({page_views: model.page_views+1})}">
         <button>Increment View Counter</button>
-      </frp-action>
-      <frp-action on-change="{author: this.value}">
-        <input type="number">
-      </frp-action>
+      </frp-bind>
+    </p>
+    <p>
+      <frp-bind value="(model.author)" on="{change: () => ({author: this.value})}">
+        <input>
+      </frp-bind>
     </p>
   </frp-view>
 </frp-example-2>
@@ -838,13 +889,20 @@ customElements<span class="token punctuation">.</span><span class="token functio
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span>
       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-text</span><span class="token punctuation">&gt;</span></span>This page has been viewed ${page_views} times.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-text</span><span class="token punctuation">&gt;</span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-view</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-view</span><span class="token punctuation">&gt;</span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-action</span> <span class="token attr-name">on-click</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>() =&gt; ({page_views: page_views+1})<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-bind</span> <span class="token attr-name">on</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>{click: () =&gt; ({page_views: model.page_views+1})}<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span><span class="token punctuation">&gt;</span></span>Increment View Counter<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-action</span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-action</span> <span class="token attr-name">on-change</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>{author: this.value}<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>number<span class="token punctuation">"</span></span> <span class="token punctuation">/&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-action</span><span class="token punctuation">&gt;</span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-bind</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-bind</span>
+        <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>(model.author)<span class="token punctuation">"</span></span>
+        <span class="token attr-name">on</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>{change: () =&gt; ({author: this.value})}<span class="token punctuation">"</span></span>
+      <span class="token punctuation">&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token punctuation">/&gt;</span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-bind</span><span class="token punctuation">&gt;</span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-view</span><span class="token punctuation">&gt;</span></span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-example-2</span><span class="token punctuation">&gt;</span></span>
@@ -952,15 +1010,14 @@ customElements<span class="token punctuation">.</span><span class="token functio
 
     console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-text: "</span><span class="token punctuation">,</span> view<span class="token punctuation">.</span>observers<span class="token punctuation">,</span> expr<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-    view
-      <span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span>renderFn<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">)</span>
-      <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">value</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">)</span>
-      <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">error</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">report</span><span class="token punctuation">(</span>error<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    view<span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span>renderFn<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 
   <span class="token function">update</span><span class="token punctuation">(</span><span class="token parameter">value</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> slot <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span>firstElementChild<span class="token punctuation">;</span>
     <span class="token keyword">const</span> span <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"value"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
+    slot<span class="token punctuation">.</span>className <span class="token operator">=</span> <span class="token string">"filled"</span><span class="token punctuation">;</span>
     span<span class="token punctuation">.</span>innerText <span class="token operator">=</span> value<span class="token punctuation">;</span>
     span<span class="token punctuation">.</span>className <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span><span class="token keyword">typeof</span> value<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">-value</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
@@ -968,8 +1025,7 @@ customElements<span class="token punctuation">.</span><span class="token functio
   <span class="token function">report</span><span class="token punctuation">(</span><span class="token parameter">error</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword">const</span> span <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"value"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-    span<span class="token punctuation">.</span>innerText <span class="token operator">=</span> error<span class="token punctuation">.</span><span class="token function">toString</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    span<span class="token punctuation">.</span>className <span class="token operator">=</span> <span class="token string">"error-value"</span><span class="token punctuation">;</span>
+    slot<span class="token punctuation">.</span>className <span class="token operator">=</span> <span class="token string">"error"</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
 
@@ -983,15 +1039,16 @@ customElements<span class="token punctuation">.</span><span class="token functio
 <ide-ative data-language="html" class="wbxffgulu"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>frp-text-template<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>value<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>undefined-value<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">&gt;</span></span>Use template literal syntax here.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">&gt;</span></span>Use template literal syntax here.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>value<span class="token punctuation">"</span></span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>undefined-value<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span>
   <span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">&gt;</span></span><span class="token style"><span class="token language-css">
-    <span class="token selector">.string-value + slot</span> <span class="token punctuation">{</span>
+    <span class="token selector">span.undefined-value,
+    slot.filled</span> <span class="token punctuation">{</span>
       <span class="token property">display</span><span class="token punctuation">:</span> none<span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
 
-    <span class="token selector">.error-value,
-    .error-value + ::slotted(*)</span> <span class="token punctuation">{</span>
+    <span class="token selector">span.error-value,
+    slot.error</span> <span class="token punctuation">{</span>
       <span class="token property">background</span><span class="token punctuation">:</span> red<span class="token punctuation">;</span>
       <span class="token property">color</span><span class="token punctuation">:</span> white<span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
@@ -1026,53 +1083,99 @@ customElements<span class="token punctuation">.</span><span class="token functio
 <!-- /template -->
 </ide-ative>
 <narr-ative class="wgswgsgy9"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>FRP Actions</h2>
+  <h2>Binding element properties and event handlers</h2>
 
 <ide-ative data-language="js" class="wbxffgulu"><!-- template --><figure class="code">
   <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">FrpAction</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
+  <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">FrpBind</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
   <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">let</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"frp-action-template"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span>
+    <span class="token keyword">let</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"frp-bind-template"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span>
     <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">"open"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>content<span class="token punctuation">.</span><span class="token function">cloneNode</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 
   <span class="token function">connectedCallback</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">const</span> expr <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">"on-click"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">const</span> main <span class="token operator">=</span> FrpMain<span class="token punctuation">.</span><span class="token function">closest</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>main <span class="token operator">=</span> FrpMain<span class="token punctuation">.</span><span class="token function">closest</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword">const</span> view <span class="token operator">=</span> FrpView<span class="token punctuation">.</span><span class="token function">closest</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">const</span> actionFn <span class="token operator">=</span> <span class="token function">Function</span><span class="token punctuation">(</span>
-      <span class="token string">"__dispatch__"</span><span class="token punctuation">,</span>
-      <span class="token string">"__Msg__"</span><span class="token punctuation">,</span>
-      <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">const </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>view<span class="token punctuation">.</span>messages<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> = __Msg__;
-      return function (</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>view<span class="token punctuation">.</span>observers<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">, __event__) {
-        const __handler__ = </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>expr<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">;
-        __dispatch__(__handler__(__event__));
-      }</span><span class="token template-punctuation string">`</span></span>
-    <span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> propNames <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getAttributeNames</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">name</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> name <span class="token operator">!==</span> <span class="token string">"on"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-    <span class="token function">main</span>
-      <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>actionFn<span class="token punctuation">)</span>
-      <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">handler</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span>handler<span class="token punctuation">)</span><span class="token punctuation">)</span>
-      <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">error</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">report</span><span class="token punctuation">(</span>error<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>propNames<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">const</span> assignments <span class="token operator">=</span> propNames
+        <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">name</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+          <span class="token keyword">const</span> expr <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+          <span class="token keyword">return</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">["</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>name<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">", </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>expr<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">]</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+        <span class="token punctuation">}</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">",\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">const</span> mapFn <span class="token operator">=</span> <span class="token function">Function</span><span class="token punctuation">(</span>
+        <span class="token string">"__model__"</span><span class="token punctuation">,</span>
+        <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">const </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>view<span class="token punctuation">.</span>observers<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> = __model__;
+        return [ </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>assignments<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> ];
+        </span><span class="token template-punctuation string">`</span></span>
+      <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-bind: properties "</span><span class="token punctuation">,</span> view<span class="token punctuation">.</span>observers<span class="token punctuation">,</span> assignments<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+      view<span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span>mapFn<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+
+    <span class="token keyword">const</span> onExpr <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">"on"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>onExpr<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">const</span> dispatchFn <span class="token operator">=</span> <span class="token function">Function</span><span class="token punctuation">(</span>
+        <span class="token string">"__dispatch__"</span><span class="token punctuation">,</span>
+        <span class="token string">"__Msg__"</span><span class="token punctuation">,</span>
+        <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">const </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>view<span class="token punctuation">.</span>messages<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> = __Msg__;
+         function actions (</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>view<span class="token punctuation">.</span>observers<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">) {
+           return (</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>onExpr<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">);
+         }
+         const onevent = (__type__) =&gt;
+          function handler (__model__, __event__) {
+            const fn = actions.call(this, __model__)[__type__];
+            __dispatch__(fn(__event__))
+          };
+         const names = Object.keys(actions({}));
+         return names.map((name) =&gt; ['on' + name, onevent(name)]);</span><span class="token template-punctuation string">`</span></span>
+      <span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-bind: onevent handlers "</span><span class="token punctuation">,</span> view<span class="token punctuation">.</span>observers<span class="token punctuation">,</span> dispatchFn<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+      <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">main</span>
+        <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>dispatchFn<span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">handlers</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span>handlers<span class="token punctuation">)</span><span class="token punctuation">)</span>
+        <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">reason</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">report</span><span class="token punctuation">(</span>reason<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
   <span class="token punctuation">}</span>
 
-  <span class="token function">update</span><span class="token punctuation">(</span><span class="token parameter">handler</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">const</span> target <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span>firstElementChild<span class="token punctuation">;</span>
+  <span class="token function">update</span><span class="token punctuation">(</span><span class="token parameter">entries</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> slot <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span>firstElementChild<span class="token punctuation">;</span>
+    <span class="token keyword">const</span> model <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>main<span class="token punctuation">.</span>model<span class="token punctuation">;</span>
 
-    target<span class="token punctuation">.</span>onclick <span class="token operator">=</span> handler<span class="token punctuation">;</span>
-    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-action: Bound on-click handler"</span><span class="token punctuation">,</span> target<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> target <span class="token keyword">of</span> <span class="token keyword">this</span><span class="token punctuation">.</span>children<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">const</span> bound <span class="token operator">=</span> entries<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">[</span>name<span class="token punctuation">,</span> value<span class="token punctuation">]</span></span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span>
+        <span class="token comment">// bind `this` and the model to on* functions</span>
+        <span class="token punctuation">[</span>
+          name<span class="token punctuation">,</span>
+          name<span class="token punctuation">.</span><span class="token function">startsWith</span><span class="token punctuation">(</span><span class="token string">"on"</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token keyword">typeof</span> value <span class="token operator">===</span> <span class="token string">"function"</span>
+            <span class="token operator">?</span> <span class="token function">value</span><span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>target<span class="token punctuation">,</span> model<span class="token punctuation">)</span>
+            <span class="token operator">:</span> value<span class="token punctuation">,</span>
+        <span class="token punctuation">]</span>
+      <span class="token punctuation">)</span><span class="token punctuation">;</span>
+      bound<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">[</span>name<span class="token punctuation">,</span> value<span class="token punctuation">]</span></span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+        target<span class="token punctuation">[</span>name<span class="token punctuation">]</span> <span class="token operator">=</span> value<span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-bind: bound"</span><span class="token punctuation">,</span> bound<span class="token punctuation">,</span> target<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    slot<span class="token punctuation">.</span>className <span class="token operator">=</span> <span class="token string">"bound"</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 
-  <span class="token function">report</span><span class="token punctuation">(</span><span class="token parameter">error</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">const</span> target <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span>firstElementChild<span class="token punctuation">;</span>
+  <span class="token function">report</span><span class="token punctuation">(</span><span class="token parameter">reason</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> slot <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span>firstElementChild<span class="token punctuation">;</span>
 
-    target<span class="token punctuation">.</span>onclick <span class="token operator">=</span> <span class="token keyword">null</span><span class="token punctuation">;</span>
-    console<span class="token punctuation">.</span><span class="token function">warn</span><span class="token punctuation">(</span><span class="token string">"frp-action: Unable to bind on-click handler"</span><span class="token punctuation">,</span> error<span class="token punctuation">,</span> target<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    slot<span class="token punctuation">.</span>className <span class="token operator">=</span> <span class="token string">"error"</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
 
-customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">"frp-action"</span><span class="token punctuation">,</span> FrpAction<span class="token punctuation">)</span><span class="token punctuation">;</span>
+customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">"frp-bind"</span><span class="token punctuation">,</span> FrpBind<span class="token punctuation">)</span><span class="token punctuation">;</span>
 </code></pre>
 </figure>
 
@@ -1081,7 +1184,7 @@ customElements<span class="token punctuation">.</span><span class="token functio
 </ide-ative>
 <ide-ative data-language="html" class="wbxffgulu"><!-- template --><figure class="code">
   <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>frp-action-template<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  <pre class="language-markup"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>frp-bind-template<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span>
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
 </code></pre>
@@ -1113,7 +1216,7 @@ customElements<span class="token punctuation">.</span><span class="token functio
 <!-- /template -->
 </ide-ative>
 <narr-ative class="wgswgsgy9"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Using Proxies to implement Observable</h2>
+  <h2>Under the Hood: Proxies implement Observable</h2>
 
 <ide-ative data-language="js" class="wbxffgulu"><!-- template --><figure class="code">
   <figcaption></figcaption>

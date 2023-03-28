@@ -43,20 +43,20 @@ model:
 ```html
 <frp-example-1>
   <frp-view>
-    <frp-action on-click="Msg.Decrement">
+    <frp-bind on="{click: Msg.Decrement}">
       <button>Less cowbell</button>
-    </frp-action>
+    </frp-bind>
     <p><frp-text>The sound of ${model.count} cowbells.</frp-text></p>
-    <frp-action on-click="Msg.Increment">
+    <frp-bind on="{click: Msg.Increment}">
       <button>More cowbell</button>
-    </frp-action>
+    </frp-bind>
   </frp-view>
 </frp-example-1>
 ```
 
 ```js
 class FrpMain extends HTMLElement {
-  constructor(init = {}, update = this.update, msgType = {}) {
+  constructor(init = {}, update = FrpMain.update, msgType = {}) {
     super();
     let content = document.getElementById("frp-main-template").content;
     this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
@@ -131,8 +131,7 @@ class FrpMain extends HTMLElement {
       try {
         const action = fn(this.dispatch.bind(this), this.messageType);
 
-        console.log("frp-main: binding action to model:", action, this._model);
-        resolve(action.bind(null, this._model));
+        resolve(action);
       } catch (error) {
         reject(error);
       }
@@ -158,6 +157,8 @@ class FrpMain extends HTMLElement {
     return model;
   }
 }
+
+customElements.define("frp-main", FrpMain);
 ```
 
 ```js
@@ -264,13 +265,20 @@ customElements.define("frp-view", FrpView);
     <p>
       <frp-text>This page has been viewed ${page_views} times.</frp-text>
     </p>
+  </frp-view>
+  <frp-view>
     <p>
-      <frp-action on-click="() => ({page_views: page_views+1})">
+      <frp-bind on="{click: () => ({page_views: model.page_views+1})}">
         <button>Increment View Counter</button>
-      </frp-action>
-      <frp-action on-change="{author: this.value}">
-        <input type="number" />
-      </frp-action>
+      </frp-bind>
+    </p>
+    <p>
+      <frp-bind
+        value="(model.author)"
+        on="{change: () => ({author: this.value})}"
+      >
+        <input />
+      </frp-bind>
     </p>
   </frp-view>
 </frp-example-2>
@@ -344,15 +352,14 @@ class FrpText extends HTMLElement {
 
     console.log("frp-text: ", view.observers, expr);
 
-    view
-      .observe(renderFn, this)
-      .then((value) => this.update(value))
-      .catch((error) => this.report(error));
+    view.observe(renderFn, this);
   }
 
   update(value) {
+    const slot = this.shadowRoot.firstElementChild;
     const span = this.shadowRoot.getElementById("value");
 
+    slot.className = "filled";
     span.innerText = value;
     span.className = `${typeof value}-value`;
   }
@@ -360,8 +367,7 @@ class FrpText extends HTMLElement {
   report(error) {
     const span = this.shadowRoot.getElementById("value");
 
-    span.innerText = error.toString();
-    span.className = "error-value";
+    slot.className = "error";
   }
 }
 
@@ -370,15 +376,16 @@ customElements.define("frp-text", FrpText);
 
 ```html
 <template id="frp-text-template">
-  <span id="value" class="undefined-value"></span>
-  <slot>Use template literal syntax here.</slot
+  <slot>Use template literal syntax here.</slot>
+  <span id="value" class="undefined-value"></span
   ><style>
-    .string-value + slot {
+    span.undefined-value,
+    slot.filled {
       display: none;
     }
 
-    .error-value,
-    .error-value + ::slotted(*) {
+    span.error-value,
+    slot.error {
       background: red;
       color: white;
     }
@@ -388,63 +395,109 @@ customElements.define("frp-text", FrpText);
 
 ---
 
-## FRP Actions
+## Binding element properties and event handlers
 
 ```js
-class FrpAction extends HTMLElement {
+class FrpBind extends HTMLElement {
   constructor() {
     super();
-    let content = document.getElementById("frp-action-template").content;
+    let content = document.getElementById("frp-bind-template").content;
     this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
   }
 
   connectedCallback() {
-    const expr = this.getAttribute("on-click");
-    const main = FrpMain.closest(this);
+    this.main = FrpMain.closest(this);
     const view = FrpView.closest(this);
-    const actionFn = Function(
-      "__dispatch__",
-      "__Msg__",
-      `const ${view.messages} = __Msg__;
-      return function (${view.observers}, __event__) {
-        const __handler__ = ${expr};
-        __dispatch__(__handler__(__event__));
-      }`
-    ).bind(this);
+    const propNames = this.getAttributeNames().filter((name) => name !== "on");
 
-    main
-      .bind(actionFn)
-      .then((handler) => this.update(handler))
-      .catch((error) => this.report(error));
+    if (propNames) {
+      const assignments = propNames
+        .map((name) => {
+          const expr = this.getAttribute(name);
+          return `["${name}", ${expr}]`;
+        })
+        .join(",\n");
+      const mapFn = Function(
+        "__model__",
+        `const ${view.observers} = __model__;
+        return [ ${assignments} ];
+        `
+      );
+
+      console.log("frp-bind: properties ", view.observers, assignments);
+
+      view.observe(mapFn, this);
+    }
+
+    const onExpr = this.getAttribute("on");
+
+    if (onExpr) {
+      const dispatchFn = Function(
+        "__dispatch__",
+        "__Msg__",
+        `const ${view.messages} = __Msg__;
+         function actions (${view.observers}) {
+           return (${onExpr});
+         }
+         const onevent = (__type__) =>
+          function handler (__model__, __event__) {
+            const fn = actions.call(this, __model__)[__type__];
+            __dispatch__(fn(__event__))
+          };
+         const names = Object.keys(actions({}));
+         return names.map((name) => ['on' + name, onevent(name)]);`
+      );
+
+      console.log("frp-bind: onevent handlers ", view.observers, dispatchFn);
+
+      this.main
+        .bind(dispatchFn)
+        .then((handlers) => this.update(handlers))
+        .catch((reason) => this.report(reason));
+    }
   }
 
-  update(handler) {
-    const target = this.shadowRoot.firstElementChild;
+  update(entries) {
+    const slot = this.shadowRoot.firstElementChild;
+    const model = this.main.model;
 
-    target.onclick = handler;
-    console.log("frp-action: Bound on-click handler", target);
+    for (const target of this.children) {
+      const bound = entries.map(([name, value]) =>
+        // bind `this` and the model to on* functions
+        [
+          name,
+          name.startsWith("on") && typeof value === "function"
+            ? value.bind(target, model)
+            : value,
+        ]
+      );
+      bound.forEach(([name, value]) => {
+        target[name] = value;
+      });
+      console.log("frp-bind: bound", bound, target);
+    }
+    slot.className = "bound";
   }
 
-  report(error) {
-    const target = this.shadowRoot.firstElementChild;
+  report(reason) {
+    const slot = this.shadowRoot.firstElementChild;
 
-    target.onclick = null;
-    console.warn("frp-action: Unable to bind on-click handler", error, target);
+    slot.className = "error";
   }
 }
 
-customElements.define("frp-action", FrpAction);
+customElements.define("frp-bind", FrpBind);
 ```
 
 ```html
-<template id="frp-action-template">
+<template id="frp-bind-template">
   <slot></slot>
 </template>
 ```
 
 ---
 
-## Using Proxies to implement Observable
+## Under the Hood: Proxies implement Observable
 
 ```js
 function createObservable(eventTarget, root) {
