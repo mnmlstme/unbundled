@@ -5,8 +5,8 @@ const path = require("node:path");
 
 module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({
-    "src/scripts": "_scripts",
-    "src/styles": "_styles",
+    "src/scripts": "scripts",
+    "src/styles": "styles",
   });
   eleventyConfig.addPassthroughCopy("src/chapters/**/_files/*.*");
 
