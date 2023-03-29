@@ -1,6 +1,5 @@
 const kram11ty = require("@cre.ative/kram-11ty");
 const pluginWebc = require("@11ty/eleventy-plugin-webc");
-const { EleventyHtmlBasePlugin } = require("@11ty/eleventy");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 
@@ -25,15 +24,11 @@ module.exports = function (eleventyConfig) {
   // Override Markdown parser to Kram
   eleventyConfig.addExtension("md", kram11ty.configure());
 
-  // For gh-pages, which adds the repo name to URL
-  eleventyConfig.addPlugin(EleventyHtmlBasePlugin);
-
   // Return your Object options:
   return {
     dir: {
       input: "src/chapters",
       output: "docs",
     },
-    pathPrefix: "/unbundled/",
   };
 };
