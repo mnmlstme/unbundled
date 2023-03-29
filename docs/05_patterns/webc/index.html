@@ -2,8 +2,8 @@
 <html>
 <head>
 <title>Web Components</title>
-<link rel="stylesheet" href="/unbundled/_styles/prism.css">
-<link rel="stylesheet" href="/unbundled/_styles/theme.css">
+<link rel="stylesheet" href="/_styles/prism.css">
+<link rel="stylesheet" href="/_styles/theme.css">
 <style>/* Kram: CSS in Scene 9 */
 command-group + command-group {
   --command-group-display-top-hr: none;
@@ -278,7 +278,12 @@ customElements.define("action-item", ActionItemElement);
 <template id="arrow-button-template">
   <button>
     <svg viewBox="0 0 24 24">
-      <path fill-rule="evenodd" clip-rule="evenodd" d="M3.5 10.4853L11.9853 2L20.4706 10.4853L17.9706 12.9853L14 9.01472V22H10V8.98528L6 12.9853L3.5 10.4853Z"></path></svg><slot></slot>
+      <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M3.5 10.4853L11.9853 2L20.4706 10.4853L17.9706 12.9853L14 9.01472V22H10V8.98528L6 12.9853L3.5 10.4853Z"
+      /></svg
+    ><slot></slot>
   </button>
 
   <style>
@@ -294,7 +299,7 @@ customElements.define("action-item", ActionItemElement);
 
 <template id="dropdown-menu-template">
 
-  <input type="checkbox" id="is-shown">
+  <input type="checkbox" id="is-shown" />
   <label for="is-shown">
     <slot>Menu</slot>
   </label>
@@ -342,10 +347,10 @@ customElements.define("action-item", ActionItemElement);
       white-space: nowrap;
     }
   </style>
-</slot></slot></template>
+</template>
 
 <template id="dropdown-base-template">
-  <input type="checkbox" id="is-shown">
+  <input type="checkbox" id="is-shown" />
   <label for="is-shown">
     <slot><button onclick="() => null">Menu</button></slot>
   </label>
@@ -357,7 +362,7 @@ customElements.define("action-item", ActionItemElement);
         <action-item>Action Item 3</action-item>
       </command-menu>
     <slot>
-  </slot></slot></div>
+  </div>
 
   <style>
     :host {
@@ -404,7 +409,7 @@ customElements.define("action-item", ActionItemElement);
 </template>
 
 <template id="command-group-template">
-  <hr id="top-hr">
+  <hr id="top-hr" />
   <ul>
     <slot>
       <action-item>Group Item 1</action-item>
@@ -412,7 +417,7 @@ customElements.define("action-item", ActionItemElement);
       <action-item>Group Item 3</action-item>
     </slot>
   </ul>
-  <hr>
+  <hr />
 
   <style>
     :host {
