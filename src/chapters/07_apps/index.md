@@ -11,6 +11,6 @@ In this chapter:
 - Local Storage API
 - MV\* Architecture
 - State Management
-- [Reactive Programming](../reactive)
+- [Reactive Programming](./reactive)
 - Dependency Management
 - Progressive Web Apps

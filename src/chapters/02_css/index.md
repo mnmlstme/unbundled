@@ -7,13 +7,13 @@ platform: none
 
 In this chapter:
 
-- [Style Properties](../props)
-- [Mapping CSS to HTML with Rules](../rules)
-- [CSS Custom Properties (Variables)](../vars)
+- [Style Properties](./props)
+- [Mapping CSS to HTML with Rules](./rules)
+- [CSS Custom Properties (Variables)](./vars)
 - Typography
 - Color
 - Images and Composition
-- [Layout](../layout)
+- [Layout](./layout)
 - Advanced Rules
 - Styling Interactions
 - Generated Content
