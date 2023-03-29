@@ -6,11 +6,11 @@ platform: none
 ## Chapters
 
 - HTML
-- [CSS](./02_css/_intro)
+- [CSS](./02_css)
 - Javascript
 - SVG
-- [Patterns](./05_patterns/_intro)
-- APIs
-- [Application Development](./07_apps/_intro)
+- [Patterns](./05_patterns)
+- Web APIs
+- [Application Development](./07_apps)
 - Server-side Programming
 - Universal Design

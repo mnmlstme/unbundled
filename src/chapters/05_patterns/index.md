@@ -9,6 +9,6 @@ Don't Repeat Yourself
 
 In this chapter:
 
-- [Web Components](../webc)
 - Modular CSS
+- [Web Components](./webc)
 - Javascript (ES6) Modules
