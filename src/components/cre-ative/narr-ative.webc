@@ -4,7 +4,7 @@
 </section>
 
 <style webc:scoped>
-  @import "/_styles/theme.css";
+  @import "/styles/theme.css";
 
   :host {
     grid-column: var(--prose-grid-column);
