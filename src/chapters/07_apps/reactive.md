@@ -38,7 +38,7 @@ model:
         star_5: 95
 ---
 
-# FRP Example
+# Functional Reactive Programming
 
 ```html
 <frp-example-1>
@@ -53,6 +53,48 @@ model:
   </frp-view>
 </frp-example-1>
 ```
+
+While the Observer pattern shows us how all of the copies
+(observers) can stay in sync with the main (observable) data,
+it doesn't tell us where to store the data.
+If two components need the same piece of data, which one is
+the observer and which is the observable?
+Or, should they both be observers?
+In which case, where is the observable data stored?
+
+Every application has to consider these questions.
+In general, data can be needed anywhere in an application,
+and so whatever methodology we choose must be applied at the
+application level.
+We can't have part of our program doing it one way and part
+doing it another way, because invariably they will need to
+share access to some piece of data.
+
+This all leads us to the strategy called Functional
+Reactive Programming (FRP).
+Where there is some level of debate over what aspects of FRP are
+essential, we'll present something of a middle ground.
+For the purposes of this chapter, we'll take FRP to have
+the following four axioms as requirements:
+
+1. All observable data, called the _model_, is maintained
+   at the root of the application in a hierarchical _store_.
+
+2. All UI presentation, or _views_ only depend on data in the _store_.
+   That is, the views are _stateless_ and can be expressed as _pure functions_
+   whose input is the _model_.
+
+3. All mutations to the _store_ are performed by invoking an _update_ function.
+   A queue of _actions_ is usually employed to guarantee the calls to _update_ are
+   serial and ordered.
+
+4. Every observer is responsible for updating any portion of
+   the UI which is dependent on that particular observation of the model.
+   The Observer pattern can be used to ensure all observers are notified
+   whenever the model data they observed is mutated.
+   Note that since all views are functions of the model, one alternative
+   to multiple low-level observer updates is to recalculate
+   the view whenever the model changes.
 
 ```js
 class FrpMain extends HTMLElement {
@@ -294,12 +336,6 @@ To the rest of the code, the store is read-only.
 > dynamic behavior of a value completely at the time of declaration.
 
 Components may get values from the store, and also listen for change events.
-
-All dynamic web pages require code that retrieves data (for example, from an API)
-and inserts it into the HTML or DOM.
-Originally, this was accomplished with templating on the server.
-But if the data changes, we don't want to reload the entire page, just the data that changed.
-Typically, this means using Javascript to fetch the data and then manipulate the DOM.
 
 This is not easy to do. The problem of keeping the DOM in sync with data stored in Javascript
 has given rise to multiple competing frameworks; client-side rendering; a proposed extension to JS to add HTML expressions;
