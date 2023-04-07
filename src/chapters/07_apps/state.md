@@ -18,11 +18,11 @@ model:
   <hr />
   <h3>Travel Dates</h3>
   <schedule-form id="schedule">
-    <label slot="first">
+    <label>
       Check-in on
       <input type="date" name="first-date" />
     </label>
-    <label slot="last">
+    <label>
       Check-out on
       <input type="date" name="last-date" />
     </label>
@@ -96,6 +96,33 @@ We've chosen to have each form manage the data that it collects,
 while the invoice will observe those values, and update itself
 whenever they change.
 
+```js
+class ObservableElement extends HTMLElement {
+  constructor(template, model) {
+    super();
+    this.attachShadow({ mode: "open" }).appendChild(template.cloneNode(true));
+    this._model = createObservable(model, this);
+  }
+
+  get model() {
+    return this._model;
+  }
+
+  observe(prop) {
+    return new Observer(this, prop);
+  }
+
+  attach(listener) {
+    this.addEventListener("observable:change", listener);
+    return listener;
+  }
+
+  detach(listener) {
+    this.removeEventListener("observable:change", listener);
+  }
+}
+```
+
 ---
 
 ## Creating an Observable Model
@@ -129,20 +156,10 @@ which allows us to update all observers of the model
 whenever the `count` property is changed.
 
 ```js
-class Travelers extends HTMLElement {
+class Travelers extends ObservableElement {
   constructor() {
-    super();
-    this.attachShadow({ mode: "open" }).appendChild(
-      Travelers.html_template.cloneNode(true)
-    );
-    this._model = {};
-    Travelers.init(this._model);
-    this._observable = createObservable(this._model, this);
+    super(Travelers.html_template, { count: 2 });
     this.onchange = this.handleChange.bind(this);
-  }
-
-  static init(model) {
-    return Object.assign(model, { count: 2 });
   }
 
   connectedCallback() {
@@ -151,10 +168,6 @@ class Travelers extends HTMLElement {
     if (countInput) {
       countInput.value = this.model.count.toString();
     }
-  }
-
-  get model() {
-    return this._observable;
   }
 
   handleChange(event) {
@@ -174,12 +187,12 @@ customElements.define("travelers-form", Travelers);
 ## A Slightly More Complex Model
 
 ```html
-<schedule-form id="schedule">
-  <label slot="first">
+<schedule-form>
+  <label>
     Check-in on
     <input type="date" name="first-date" />
   </label>
-  <label slot="last">
+  <label>
     Check-out on
     <input type="date" name="last-date" />
   </label>
@@ -209,28 +222,21 @@ We reference the `name` attribute of the event target for this
 purpose.
 
 ```js
-class Schedule extends HTMLElement {
+class Schedule extends ObservableElement {
   constructor() {
-    super();
-    this.attachShadow({ mode: "open" }).appendChild(
-      Schedule.html_template.cloneNode(true)
-    );
-    this._model = {};
-    Schedule.init(this._model);
-    this._observable = createObservable(this._model, this);
-
+    super(Schedule.html_template, Schedule.init());
     this.onchange = this.handleChange.bind(this);
   }
 
-  static init(model) {
+  static init() {
     const duration = 7;
     const firstDate = new Date();
     const lastDate = new Date(firstDate.getTime() + duration * this.msPerDay);
 
-    Object.assign(model, {
+    return {
       first: firstDate.toISOString().substring(0, 10),
       last: lastDate.toISOString().substring(0, 10),
-    });
+    };
   }
 
   connectedCallback() {
@@ -244,10 +250,6 @@ class Schedule extends HTMLElement {
     if (lastInput) {
       lastInput.value = this.model.last;
     }
-  }
-
-  get model() {
-    return this._observable;
   }
 
   handleChange(event) {
@@ -287,8 +289,7 @@ class Schedule extends HTMLElement {
   static msPerDay = 1000 * 60 * 60 * 24;
 
   static html_template = template`<form>
-    <slot name="first"></slot>
-    <slot name="last"></slot>
+    <slot></slot>
   </form>`;
 }
 
@@ -371,23 +372,65 @@ In addition, we can set up an event handler for
 `observable:change` events dispatched on the observable component.
 
 ```js
-class Invoice extends HTMLElement {
-  constructor() {
-    super();
-    this.model = {};
-    Invoice.init(this.model);
-    this.attachShadow({ mode: "open" }).appendChild(
-      Invoice.html_template.cloneNode(true)
-    );
+class Observer {
+  constructor(observable, prop) {
+    this._observable = observable;
+    this._accessor = prop ? (model) => model[prop] : (model) => model;
+    this._listeners = [];
   }
 
-  static init(model) {
-    Object.assign(model, {
+  get value() {
+    return this._accessor(this._observable.model);
+  }
+
+  thenUpdate(update) {
+    this._listeners.push(
+      this._observable.attach((ev) => update(this.value, ev))
+    );
+    update(this.value);
+    return this;
+  }
+
+  detach() {
+    this._listeners.forEach((listener) => observable.detach(listener));
+  }
+}
+```
+
+```js
+class ObserverElement extends HTMLElement {
+  constructor(template, model) {
+    super();
+    this.model = model;
+    this.attachShadow({ mode: "open" }).appendChild(template.cloneNode(true));
+    this._observers = [];
+  }
+
+  disconnectedCallback() {
+    this._observers.forEach((obs) => obs.detach());
+  }
+
+  observe(observable, prop) {
+    const observer = observable.observe(prop);
+    this._observers.push(observer);
+    return observer;
+  }
+}
+```
+
+```js
+class Invoice extends ObserverElement {
+  constructor() {
+    super(Invoice.html_template, Invoice.init());
+  }
+
+  static init() {
+    return {
       rate: 200,
       currency: "€",
       rooms: 1,
       nights: 7,
-    });
+    };
   }
 
   connectedCallback() {
@@ -396,28 +439,18 @@ class Invoice extends HTMLElement {
       this.model.currency
     }`;
 
-    this.observe("travelers", "count", (count) => this.updateGuests(count));
-    this.observe("schedule", "*", (schedule) =>
+    this.observe(this.getObservable("travelers"), "count").thenUpdate((count) =>
+      this.updateGuests(count)
+    );
+
+    this.observe(this.getObservable("schedule")).thenUpdate((schedule) =>
       this.updateNights(Schedule.nights(schedule))
     );
   }
 
-  observe(attrName, prop, callback) {
-    const selector = this.getAttribute(attrName);
-    const observable = document.querySelector(selector);
-    const currentValue =
-      prop === "*" ? () => observable.model : () => observable.model[prop];
-    const value = currentValue();
-
-    if (callback) {
-      callback(value);
-
-      observable.addEventListener("observable:change", () =>
-        callback(currentValue())
-      );
-    }
-
-    return value;
+  getObservable(name) {
+    const selector = this.getAttribute(name);
+    return document.querySelector(selector);
   }
 
   updateGuests(guests) {
