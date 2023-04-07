@@ -7,10 +7,10 @@ platform: none
 
 In this chapter:
 
-- History API
-- Local Storage API
 - MV\* Architecture
-- State Management
+- [State Management](./state)
 - [Reactive Programming](./reactive)
+- Routing
+- Local Storage API
 - Dependency Management
 - Progressive Web Apps

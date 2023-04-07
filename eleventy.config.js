@@ -8,7 +8,7 @@ module.exports = function (eleventyConfig) {
     "src/scripts": "scripts",
     "src/styles": "styles",
   });
-  eleventyConfig.addPassthroughCopy("src/chapters/**/_files/*.*");
+  eleventyConfig.addPassthroughCopy("src/chapters/**/FILES/*.*");
 
   eleventyConfig.addPlugin(pluginWebc, {
     // (The default changed from `false` in Eleventy WebC v0.7.0)
