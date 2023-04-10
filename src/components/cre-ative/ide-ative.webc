@@ -8,9 +8,6 @@
   :host {
     --ide-language: attr(data-language);
 
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
     grid-column: var(--code-grid-column);
   }
 
@@ -25,11 +22,33 @@
     content: var(--ide-language, "code");
   }
 
+  @media screen {
+    :host {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+    }
+  }
+
   @media print {
     :host {
       display: block;
       height: auto;
-      break-inside: avoid;
+      /*break-inside: avoid;*/
+      margin: 0 auto;
+      border: solid var(--colorSubdued);
+      border-width: 0 2px;
+    }
+
+    .code {
+      font-size: 11pt;
+      max-width: 100ch;
+    }
+
+    pre[class*="language-"],
+    code[class*="language-"] {
+      font-size: 10pt;
+      line-height: 1.12em;
     }
   }
 </style>

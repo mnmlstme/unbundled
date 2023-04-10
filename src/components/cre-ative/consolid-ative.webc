@@ -5,11 +5,13 @@
 </main>
 
 <style webc:scoped>
-  :host {
-    --heightViewer: calc(100vh - var(--heightFooter));
-    height: var(--heightViewer);
-    overflow: hidden;
-    position: relative;
+  @media screen {
+    :host {
+      --heightViewer: calc(100vh - var(--heightFooter));
+      height: var(--heightViewer);
+      overflow: hidden;
+      position: relative;
+    }
   }
 
   .layout {
@@ -35,17 +37,17 @@
 
   @media print {
     .layout {
-      --prose-grid-row: unset;
-      --render-grid-row: unset;
-      --code-grid-row: unset;
+      --prose-grid-column: unset;
+      --render-grid-column: unset;
+      --code-grid-column: unset;
 
       position: relative;
       top: auto;
       left: auto;
       height: auto;
       grid-template-columns: initial;
-      grid-template-rows: initial;
-      grid-auto-columns: initial;
+      grid-auto-rows: initial;
+      grid-auto-flow: row;
     }
 
     .layout .render {

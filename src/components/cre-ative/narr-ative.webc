@@ -9,9 +9,6 @@
   :host {
     grid-column: var(--prose-grid-column);
     grid-row-end: span 2;
-    overflow: hidden auto;
-    height: 100%;
-    width: 100%;
   }
 
   .prose {
@@ -196,9 +193,17 @@
     content: "](" attr(href) ")";
   }
 
+  @media screen {
+    :host {
+      overflow: hidden auto;
+      height: 100%;
+      width: 100%;
+    }
+  }
+
   @media print {
     :host {
-      break-before: page;
+      /*break-before: page;*/
     }
 
     .prose {
