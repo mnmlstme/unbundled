@@ -23,8 +23,12 @@
     :host {
       display: block;
       height: auto;
+      width: max-content;
       overflow: hidden;
+      border: 1px dotted black;
+      margin: 2rem auto;
     }
+
     .render {
       min-width: 0;
       min-height: 0;
