@@ -1,8 +1,8 @@
 :root {
-  --fontDisplay: 'Hepta Slab', serif;
-  --fontBody: 'Inter', sans-serif;
-  --fontCode: 'Anonymous Pro', monospace;
-  --fontDisplay: 'Hepta Slab', serif;
+  --fontDisplay: "Hepta Slab", serif;
+  --fontBody: "Inter", sans-serif;
+  --fontCode: "Anonymous Pro", monospace;
+  --fontDisplay: "Hepta Slab", serif;
   --fontControl: var(--fontBody);
   --fontSymbol: var(--fontDisplay);
 
@@ -116,4 +116,14 @@
   --opacityLabel: 0.5;
   --opacityPaneBackground: 0.75;
   --opacityFooterBackground: 0.5;
+}
+
+@media screen {
+  html {
+    overflow: hidden;
+  }
+
+  body {
+    margin: 0;
+  }
 }

@@ -79,7 +79,11 @@
   <slot></slot>
 </article>
 
-<style>
+<style webc:scoped>
+  :host {
+    display: block;
+  }
+
   article {
     display: flex;
     flex-direction: column-reverse;

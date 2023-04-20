@@ -7,31 +7,29 @@
   :host {
     height: 100%;
     width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: auto;
     grid-column: var(--render-grid-column);
   }
 
   .render {
-    min-width: 100%;
-    min-height: 100%;
+    max-width: 100%;
+    max-height: 100%;
     display: block;
     position: relative;
     padding: var(--sizeRenderPadding);
+    box-sizing: border-box;
   }
 
   @media print {
     :host {
       display: block;
       height: auto;
-      width: max-content;
       overflow: hidden;
       border: 1px dotted black;
       margin: 2rem auto;
-    }
-
-    .render {
-      min-width: 0;
-      min-height: 0;
     }
   }
 </style>

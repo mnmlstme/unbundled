@@ -9,6 +9,8 @@
   :host {
     grid-column: var(--prose-grid-column);
     grid-row-end: span 2;
+    box-sizing: border-box;
+    width: 100%;
   }
 
   .prose {
@@ -19,7 +21,11 @@
     color: var(--textColorProse);
     outline: none;
     padding: 10em 0 1em 0;
-    height: min-content;
+    box-sizing: border-box;
+  }
+
+  .prose * {
+    box-sizing: border-box;
   }
 
   .prose > * {
@@ -196,14 +202,12 @@
   @media screen {
     :host {
       overflow: hidden auto;
-      height: 100%;
-      width: 100%;
     }
   }
 
   @media print {
     :host {
-      /*break-before: page;*/
+      break-before: page;
     }
 
     .prose {

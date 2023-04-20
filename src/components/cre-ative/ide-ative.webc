@@ -16,6 +16,11 @@
     max-width: 100%;
     max-height: 100%;
     overflow: auto;
+    margin: 1rem;
+  }
+
+  .code > pre {
+    margin: 0;
   }
 
   figcaption:empty::after {
@@ -34,7 +39,7 @@
     :host {
       display: block;
       height: auto;
-      /*break-inside: avoid;*/
+      break-inside: avoid;
       margin: 0 auto;
       border: solid var(--colorSubdued);
       border-width: 0 2px;

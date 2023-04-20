@@ -43,11 +43,11 @@ model:
 ```html
 <frp-example-1>
   <frp-view>
-    <frp-bind on="{click: Msg.Decrement}">
+    <frp-bind on-click="Msg.Decrement">
       <button>Less cowbell</button>
     </frp-bind>
     <p><frp-text>The sound of ${model.count} cowbells.</frp-text></p>
-    <frp-bind on="{click: Msg.Increment}">
+    <frp-bind on-click="Msg.Increment">
       <button>More cowbell</button>
     </frp-bind>
   </frp-view>
@@ -123,6 +123,7 @@ class FrpMain extends HTMLElement {
     if (available) {
       return Promise.resolve({
         model: available.model,
+        messageType: available.messageType,
         attach: available.attachObserver.bind(available),
       });
     }
@@ -138,6 +139,7 @@ class FrpMain extends HTMLElement {
           if (candidate instanceof FrpMain) {
             resolve({
               model: candidate.model,
+              messageType: candidate.messageType,
               attach: candidate.attachObserver.bind(candidate),
             });
           } else {
@@ -156,7 +158,9 @@ class FrpMain extends HTMLElement {
 
   attachObserver(update) {
     console.log("Setting up event listener for observer.update", this);
-    this.addEventListener("observable:change", () => update(this.model));
+    this.addEventListener("observable:change", () =>
+      update(this.model, this.messageType)
+    );
   }
 
   // main provides the model (readonly)
@@ -168,7 +172,7 @@ class FrpMain extends HTMLElement {
     return this._messageType;
   }
 
-  bind(fn) {
+  bindAction(fn) {
     return new Promise((resolve, reject) => {
       try {
         const action = fn(this.dispatch.bind(this), this.messageType);
@@ -180,12 +184,12 @@ class FrpMain extends HTMLElement {
     });
   }
 
-  dispatch(action) {
-    console.log("frp-main: dispatching action", action);
+  dispatch(action, event) {
+    console.log("frp-main: dispatching action", action, event);
     try {
-      this._update(action, this.model);
+      this._update(action(event), this.model);
     } catch (error) {
-      console.log("frp-main: dispatch failed", error, action);
+      console.log("frp-main: dispatch failed", error, action, event);
     }
   }
 
@@ -216,6 +220,8 @@ class FrpExample1 extends FrpMain {
 
   static update(message, model) {
     const { count } = model;
+
+    console.log("FrpExample1 update:", message);
 
     switch (Object.keys(message)[0]) {
       case "Increment":
@@ -271,16 +277,38 @@ class FrpView extends HTMLElement {
     return this._dispatching || "Msg";
   }
 
+  compile(expr, observer = null) {
+    // observeFn: model -> Any
+    return Function(
+      "__model__",
+      `const ${this.observers} = __model__ || {};
+       return (${expr});`
+    ).bind(observer);
+  }
+
+  prepare(fnExpr) {
+    // actionFn: model -> Msg -> event -> void
+    return Function(
+      "__model__",
+      "__Msg__",
+      "__event__",
+      `const ${this.observers} = __model__ || {};
+       const ${this.messages} = __Msg__ || {};
+       return (${fnExpr}).call(this, __event__);`
+    );
+  }
+
   observe(fn, observer) {
-    const update = (model) => {
-      Promise.resolve(fn(model))
+    const update = (model, msgType) => {
+      console.log("Observing function:", fn);
+      Promise.resolve(fn(model, msgType))
         .then((value) => observer.update(value))
         .catch((error) => observer.report(error));
     };
 
-    this.observable.then(({ model, attach }) => {
+    this.observable.then(({ model, messageType, attach }) => {
       attach(update);
-      update(model);
+      update(model, messageType);
     });
   }
 }
@@ -310,15 +338,12 @@ customElements.define("frp-view", FrpView);
   </frp-view>
   <frp-view>
     <p>
-      <frp-bind on="{click: () => ({page_views: model.page_views+1})}">
+      <frp-bind on-click="() => ({page_views: model.page_views+1})">
         <button>Increment View Counter</button>
       </frp-bind>
     </p>
     <p>
-      <frp-bind
-        value="(model.author)"
-        on="{change: () => ({author: this.value})}"
-      >
+      <frp-bind value="model.author" on-change="() => ({author: this.value})">
         <input />
       </frp-bind>
     </p>
@@ -378,15 +403,9 @@ class FrpText extends HTMLElement {
 
   connectedCallback() {
     const expr = this.textContent.replaceAll(/[`\\]/g, "\\$&");
+    const bq = "`";
     const view = FrpView.closest(this);
-    const renderFn = Function(
-      "__model__",
-      `const ${view.observers} = __model__;
-       return \`${expr}\`;
-      `
-    ).bind(this);
-
-    console.log("frp-text: ", view.observers, expr);
+    const renderFn = view.compile(`${bq}${expr}${bq}`, this);
 
     view.observe(renderFn, this);
   }
@@ -442,9 +461,12 @@ class FrpBind extends HTMLElement {
   }
 
   connectedCallback() {
-    this.main = FrpMain.closest(this);
     const view = FrpView.closest(this);
-    const propNames = this.getAttributeNames().filter((name) => name !== "on");
+    const attrNames = this.getAttributeNames();
+    const propNames = attrNames.filter((name) => !name.startsWith("on-"));
+    const eventNames = attrNames
+      .filter((name) => name.startsWith("on-"))
+      .map((name) => name.substring(3));
 
     if (propNames) {
       const assignments = propNames
@@ -453,66 +475,42 @@ class FrpBind extends HTMLElement {
           return `["${name}", ${expr}]`;
         })
         .join(",\n");
-      const mapFn = Function(
-        "__model__",
-        `const ${view.observers} = __model__;
-        return [ ${assignments} ];
-        `
-      );
-
-      console.log("frp-bind: properties ", view.observers, assignments);
+      const mapFn = view.compile(`[${assignments}]`);
 
       view.observe(mapFn, this);
     }
 
-    const onExpr = this.getAttribute("on");
+    const handlerEntries = eventNames.map((type) => {
+      const name = `on-${type}`;
+      const expr = this.getAttribute(name);
+      const actionFn = view.prepare(expr);
+      return [type, actionFn];
+    });
 
-    if (onExpr) {
-      const dispatchFn = Function(
-        "__dispatch__",
-        "__Msg__",
-        `const ${view.messages} = __Msg__;
-         function actions (${view.observers}) {
-           return (${onExpr});
-         }
-         const onevent = (__type__) =>
-          function handler (__model__, __event__) {
-            const fn = actions.call(this, __model__)[__type__];
-            __dispatch__(fn(__event__))
-          };
-         const names = Object.keys(actions({}));
-         return names.map((name) => ['on' + name, onevent(name)]);`
-      );
-
-      console.log("frp-bind: onevent handlers ", view.observers, dispatchFn);
-
-      this.main
-        .bind(dispatchFn)
-        .then((handlers) => this.update(handlers))
-        .catch((reason) => this.report(reason));
-    }
+    this.updateHandlers(handlerEntries);
   }
 
   update(entries) {
-    const slot = this.shadowRoot.firstElementChild;
-    const model = this.main.model;
+    for (const target of this.children) {
+      for (let [name, value] of entries) {
+        target[name] = value;
+        console.log(`FrpBind: target.${name}:`, value);
+      }
+    }
+  }
+
+  updateHandlers(handlerEntries) {
+    const main = FrpMain.closest(this);
+    const dispatch = main.dispatch.bind(main);
 
     for (const target of this.children) {
-      const bound = entries.map(([name, value]) =>
-        // bind `this` and the model to on* functions
-        [
-          name,
-          name.startsWith("on") && typeof value === "function"
-            ? value.bind(target, model)
-            : value,
-        ]
-      );
-      bound.forEach(([name, value]) => {
-        target[name] = value;
+      handlerEntries.forEach(([type, fn]) => {
+        const name = `on${type}`;
+        const action = fn.bind(target, main.model, main.messageType);
+        target[name] = (event) => dispatch(action, event);
+        console.log(`FrpBind: target.${name}:`, fn);
       });
-      console.log("frp-bind: bound", bound, target);
     }
-    slot.className = "bound";
   }
 
   report(reason) {
