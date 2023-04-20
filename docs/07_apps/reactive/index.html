@@ -37,6 +37,7 @@ class FrpMain extends HTMLElement {
     if (available) {
       return Promise.resolve({
         model: available.model,
+        messageType: available.messageType,
         attach: available.attachObserver.bind(available),
       });
     }
@@ -52,6 +53,7 @@ class FrpMain extends HTMLElement {
           if (candidate instanceof FrpMain) {
             resolve({
               model: candidate.model,
+              messageType: candidate.messageType,
               attach: candidate.attachObserver.bind(candidate),
             });
           } else {
@@ -70,7 +72,9 @@ class FrpMain extends HTMLElement {
 
   attachObserver(update) {
     console.log("Setting up event listener for observer.update", this);
-    this.addEventListener("observable:change", () => update(this.model));
+    this.addEventListener("observable:change", () =>
+      update(this.model, this.messageType)
+    );
   }
 
   // main provides the model (readonly)
@@ -82,7 +86,7 @@ class FrpMain extends HTMLElement {
     return this._messageType;
   }
 
-  bind(fn) {
+  bindAction(fn) {
     return new Promise((resolve, reject) => {
       try {
         const action = fn(this.dispatch.bind(this), this.messageType);
@@ -94,12 +98,12 @@ class FrpMain extends HTMLElement {
     });
   }
 
-  dispatch(action) {
-    console.log("frp-main: dispatching action", action);
+  dispatch(action, event) {
+    console.log("frp-main: dispatching action", action, event);
     try {
-      this._update(action, this.model);
+      this._update(action(event), this.model);
     } catch (error) {
-      console.log("frp-main: dispatch failed", error, action);
+      console.log("frp-main: dispatch failed", error, action, event);
     }
   }
 
@@ -129,6 +133,8 @@ class FrpExample1 extends FrpMain {
 
   static update(message, model) {
     const { count } = model;
+
+    console.log("FrpExample1 update:", message);
 
     switch (Object.keys(message)[0]) {
       case "Increment":
@@ -171,16 +177,38 @@ class FrpView extends HTMLElement {
     return this._dispatching || "Msg";
   }
 
+  compile(expr, observer = null) {
+    // observeFn: model -> Any
+    return Function(
+      "__model__",
+      `const ${this.observers} = __model__ || {};
+       return (${expr});`
+    ).bind(observer);
+  }
+
+  prepare(fnExpr) {
+    // actionFn: model -> Msg -> event -> void
+    return Function(
+      "__model__",
+      "__Msg__",
+      "__event__",
+      `const ${this.observers} = __model__ || {};
+       const ${this.messages} = __Msg__ || {};
+       return (${fnExpr}).call(this, __event__);`
+    );
+  }
+
   observe(fn, observer) {
-    const update = (model) => {
-      Promise.resolve(fn(model))
+    const update = (model, msgType) => {
+      console.log("Observing function:", fn);
+      Promise.resolve(fn(model, msgType))
         .then((value) => observer.update(value))
         .catch((error) => observer.report(error));
     };
 
-    this.observable.then(({ model, attach }) => {
+    this.observable.then(({ model, messageType, attach }) => {
       attach(update);
-      update(model);
+      update(model, messageType);
     });
   }
 }
@@ -206,15 +234,9 @@ class FrpText extends HTMLElement {
 
   connectedCallback() {
     const expr = this.textContent.replaceAll(/[`\\]/g, "\\$&");
+    const bq = "`";
     const view = FrpView.closest(this);
-    const renderFn = Function(
-      "__model__",
-      `const ${view.observers} = __model__;
-       return \`${expr}\`;
-      `
-    ).bind(this);
-
-    console.log("frp-text: ", view.observers, expr);
+    const renderFn = view.compile(`${bq}${expr}${bq}`, this);
 
     view.observe(renderFn, this);
   }
@@ -246,9 +268,12 @@ class FrpBind extends HTMLElement {
   }
 
   connectedCallback() {
-    this.main = FrpMain.closest(this);
     const view = FrpView.closest(this);
-    const propNames = this.getAttributeNames().filter((name) => name !== "on");
+    const attrNames = this.getAttributeNames();
+    const propNames = attrNames.filter((name) => !name.startsWith("on-"));
+    const eventNames = attrNames
+      .filter((name) => name.startsWith("on-"))
+      .map((name) => name.substring(3));
 
     if (propNames) {
       const assignments = propNames
@@ -257,66 +282,42 @@ class FrpBind extends HTMLElement {
           return `["${name}", ${expr}]`;
         })
         .join(",\n");
-      const mapFn = Function(
-        "__model__",
-        `const ${view.observers} = __model__;
-        return [ ${assignments} ];
-        `
-      );
-
-      console.log("frp-bind: properties ", view.observers, assignments);
+      const mapFn = view.compile(`[${assignments}]`);
 
       view.observe(mapFn, this);
     }
 
-    const onExpr = this.getAttribute("on");
+    const handlerEntries = eventNames.map((type) => {
+      const name = `on-${type}`;
+      const expr = this.getAttribute(name);
+      const actionFn = view.prepare(expr);
+      return [type, actionFn];
+    });
 
-    if (onExpr) {
-      const dispatchFn = Function(
-        "__dispatch__",
-        "__Msg__",
-        `const ${view.messages} = __Msg__;
-         function actions (${view.observers}) {
-           return (${onExpr});
-         }
-         const onevent = (__type__) =>
-          function handler (__model__, __event__) {
-            const fn = actions.call(this, __model__)[__type__];
-            __dispatch__(fn(__event__))
-          };
-         const names = Object.keys(actions({}));
-         return names.map((name) => ['on' + name, onevent(name)]);`
-      );
-
-      console.log("frp-bind: onevent handlers ", view.observers, dispatchFn);
-
-      this.main
-        .bind(dispatchFn)
-        .then((handlers) => this.update(handlers))
-        .catch((reason) => this.report(reason));
-    }
+    this.updateHandlers(handlerEntries);
   }
 
   update(entries) {
-    const slot = this.shadowRoot.firstElementChild;
-    const model = this.main.model;
+    for (const target of this.children) {
+      for (let [name, value] of entries) {
+        target[name] = value;
+        console.log(`FrpBind: target.${name}:`, value);
+      }
+    }
+  }
+
+  updateHandlers(handlerEntries) {
+    const main = FrpMain.closest(this);
+    const dispatch = main.dispatch.bind(main);
 
     for (const target of this.children) {
-      const bound = entries.map(([name, value]) =>
-        // bind `this` and the model to on* functions
-        [
-          name,
-          name.startsWith("on") && typeof value === "function"
-            ? value.bind(target, model)
-            : value,
-        ]
-      );
-      bound.forEach(([name, value]) => {
-        target[name] = value;
+      handlerEntries.forEach(([type, fn]) => {
+        const name = `on${type}`;
+        const action = fn.bind(target, main.model, main.messageType);
+        target[name] = (event) => dispatch(action, event);
+        console.log(`FrpBind: target.${name}:`, fn);
       });
-      console.log("frp-bind: bound", bound, target);
     }
-    slot.className = "bound";
   }
 
   report(reason) {
@@ -426,7 +427,7 @@ function createObservable(eventTarget, root) {
 </template>
 
 
-<st-ative><script>
+<st-ative class="wourcuvmv"><script>
   const STORE_CHANGE_EVENT = "store:change";
 
   function createStore(eventTarget, initial = {}) {
@@ -559,14 +560,14 @@ function createObservable(eventTarget, root) {
 </navig-ative>
 <consolid-ative class="wwrpk_ybi"><!-- <template> for consolid-ative --><main class="layout">
   
-<oper-ative class="woa1mlegh"><!-- template --><output class="render">
+<oper-ative class="wl58-zj7r"><!-- template --><output class="render">
   <frp-example-1>
   <frp-view>
-    <frp-bind on="{click: Msg.Decrement}">
+    <frp-bind on-click="Msg.Decrement">
       <button>Less cowbell</button>
     </frp-bind>
     <p><frp-text>The sound of ${model.count} cowbells.</frp-text></p>
-    <frp-bind on="{click: Msg.Increment}">
+    <frp-bind on-click="Msg.Increment">
       <button>More cowbell</button>
     </frp-bind>
   </frp-view>
@@ -574,18 +575,18 @@ function createObservable(eventTarget, root) {
 
 </output>
 
-<style>.woa1mlegh{height:100%;width:100%;overflow:auto;grid-column:var(--render-grid-column)}.woa1mlegh .render{min-width:100%;min-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding)}@media print{.woa1mlegh{display:block;height:auto;width:max-content;overflow:hidden;border:1px dotted black;margin:2rem auto}.woa1mlegh .render{min-width:0;min-height:0}}</style>
+<style>.wl58-zj7r{height:100%;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wl58-zj7r .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wl58-zj7r{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
 <!-- /template -->
 </oper-ative>
-<ide-ative data-language="auto" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="auto" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-example-1</span><span class="token punctuation">&gt;</span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-view</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-bind</span> <span class="token attr-name">on</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>{click: Msg.Decrement}<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-bind</span> <span class="token attr-name">on-click</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Msg.Decrement<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span><span class="token punctuation">&gt;</span></span>Less cowbell<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-bind</span><span class="token punctuation">&gt;</span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-text</span><span class="token punctuation">&gt;</span></span>The sound of ${model.count} cowbells.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-text</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-bind</span> <span class="token attr-name">on</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>{click: Msg.Increment}<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-bind</span> <span class="token attr-name">on-click</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Msg.Increment<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span><span class="token punctuation">&gt;</span></span>More cowbell<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-bind</span><span class="token punctuation">&gt;</span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-view</span><span class="token punctuation">&gt;</span></span>
@@ -593,10 +594,10 @@ function createObservable(eventTarget, root) {
 </code></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
-<narr-ative class="wp41dh74t"><!-- template id="narr-ative" webc:raw --><section class="prose">
+<narr-ative class="w7o20wg4e"><!-- template id="narr-ative" webc:raw --><section class="prose">
   <h1>Functional Reactive Programming</h1>
 
 <p>While the Observer pattern shows us how all of the copies
@@ -646,7 +647,7 @@ the view whenever the model changes.</p>
 </li>
 </ol>
 
-<ide-ative data-language="js" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="js" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">FrpMain</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
   <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token parameter">init <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span> update <span class="token operator">=</span> FrpMain<span class="token punctuation">.</span>update<span class="token punctuation">,</span> msgType <span class="token operator">=</span> <span class="token punctuation">{</span><span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -674,6 +675,7 @@ the view whenever the model changes.</p>
     <span class="token keyword">if</span> <span class="token punctuation">(</span>available<span class="token punctuation">)</span> <span class="token punctuation">{</span>
       <span class="token keyword">return</span> Promise<span class="token punctuation">.</span><span class="token function">resolve</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
         <span class="token literal-property property">model</span><span class="token operator">:</span> available<span class="token punctuation">.</span>model<span class="token punctuation">,</span>
+        <span class="token literal-property property">messageType</span><span class="token operator">:</span> available<span class="token punctuation">.</span>messageType<span class="token punctuation">,</span>
         <span class="token literal-property property">attach</span><span class="token operator">:</span> available<span class="token punctuation">.</span><span class="token function">attachObserver</span><span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>available<span class="token punctuation">)</span><span class="token punctuation">,</span>
       <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
@@ -689,6 +691,7 @@ the view whenever the model changes.</p>
           <span class="token keyword">if</span> <span class="token punctuation">(</span>candidate <span class="token keyword">instanceof</span> <span class="token class-name">FrpMain</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
             <span class="token function">resolve</span><span class="token punctuation">(</span><span class="token punctuation">{</span>
               <span class="token literal-property property">model</span><span class="token operator">:</span> candidate<span class="token punctuation">.</span>model<span class="token punctuation">,</span>
+              <span class="token literal-property property">messageType</span><span class="token operator">:</span> candidate<span class="token punctuation">.</span>messageType<span class="token punctuation">,</span>
               <span class="token literal-property property">attach</span><span class="token operator">:</span> candidate<span class="token punctuation">.</span><span class="token function">attachObserver</span><span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>candidate<span class="token punctuation">)</span><span class="token punctuation">,</span>
             <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
           <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
@@ -707,7 +710,9 @@ the view whenever the model changes.</p>
 
   <span class="token function">attachObserver</span><span class="token punctuation">(</span><span class="token parameter">update</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Setting up event listener for observer.update"</span><span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"observable:change"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token function">update</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>model<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">"observable:change"</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span>
+      <span class="token function">update</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span>model<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>messageType<span class="token punctuation">)</span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 
   <span class="token comment">// main provides the model (readonly)</span>
@@ -719,7 +724,7 @@ the view whenever the model changes.</p>
     <span class="token keyword">return</span> <span class="token keyword">this</span><span class="token punctuation">.</span>_messageType<span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 
-  <span class="token function">bind</span><span class="token punctuation">(</span><span class="token parameter">fn</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">bindAction</span><span class="token punctuation">(</span><span class="token parameter">fn</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword">return</span> <span class="token keyword">new</span> <span class="token class-name">Promise</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">resolve<span class="token punctuation">,</span> reject</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
       <span class="token keyword">try</span> <span class="token punctuation">{</span>
         <span class="token keyword">const</span> action <span class="token operator">=</span> <span class="token function">fn</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">dispatch</span><span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>messageType<span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -731,12 +736,12 @@ the view whenever the model changes.</p>
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 
-  <span class="token function">dispatch</span><span class="token punctuation">(</span><span class="token parameter">action</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-main: dispatching action"</span><span class="token punctuation">,</span> action<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token function">dispatch</span><span class="token punctuation">(</span><span class="token parameter">action<span class="token punctuation">,</span> event</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-main: dispatching action"</span><span class="token punctuation">,</span> action<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword">try</span> <span class="token punctuation">{</span>
-      <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">_update</span><span class="token punctuation">(</span>action<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>model<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">_update</span><span class="token punctuation">(</span><span class="token function">action</span><span class="token punctuation">(</span>event<span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">.</span>model<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span> <span class="token keyword">catch</span> <span class="token punctuation">(</span>error<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-main: dispatch failed"</span><span class="token punctuation">,</span> error<span class="token punctuation">,</span> action<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-main: dispatch failed"</span><span class="token punctuation">,</span> error<span class="token punctuation">,</span> action<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
   <span class="token punctuation">}</span>
 
@@ -755,10 +760,10 @@ customElements<span class="token punctuation">.</span><span class="token functio
 </code></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
-<ide-ative data-language="js" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="js" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">FrpExample1</span> <span class="token keyword">extends</span> <span class="token class-name">FrpMain</span> <span class="token punctuation">{</span>
   <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -773,6 +778,8 @@ customElements<span class="token punctuation">.</span><span class="token functio
   <span class="token keyword">static</span> <span class="token function">update</span><span class="token punctuation">(</span><span class="token parameter">message<span class="token punctuation">,</span> model</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword">const</span> <span class="token punctuation">{</span> count <span class="token punctuation">}</span> <span class="token operator">=</span> model<span class="token punctuation">;</span>
 
+    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"FrpExample1 update:"</span><span class="token punctuation">,</span> message<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
     <span class="token keyword">switch</span> <span class="token punctuation">(</span>Object<span class="token punctuation">.</span><span class="token function">keys</span><span class="token punctuation">(</span>message<span class="token punctuation">)</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
       <span class="token keyword">case</span> <span class="token string">"Increment"</span><span class="token operator">:</span>
         <span class="token keyword">return</span> <span class="token punctuation">(</span>model<span class="token punctuation">.</span>count <span class="token operator">=</span> count <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
@@ -786,10 +793,10 @@ customElements<span class="token punctuation">.</span><span class="token functio
 </code></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
-<ide-ative data-language="html" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="html" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>frp-main-template<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>section</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>frp-main<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
@@ -799,35 +806,35 @@ customElements<span class="token punctuation">.</span><span class="token functio
 </code></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
 </section>
 
-<style>@import "/styles/theme.css";.wp41dh74t{grid-column:var(--prose-grid-column);grid-row-end:span 2}.wp41dh74t .prose{font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;height:min-content}.wp41dh74t .prose>*{margin:1rem;position:relative}.wp41dh74t .prose>ul,.wp41dh74t .prose>ol{margin-left:2rem}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wp41dh74t .prose>figure{margin:0.5rem}.wp41dh74t .prose pre>*:focus{outline:none}.wp41dh74t .prose>h1,.wp41dh74t .prose>h2,.wp41dh74t .prose>h3,.wp41dh74t .prose>h4,.wp41dh74t .prose>h5,.wp41dh74t .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wp41dh74t .prose>h1{font-size:var(--textSizeH1)}.wp41dh74t .prose>h2{font-size:var(--textSizeH2)}.wp41dh74t .prose>h3{font-size:var(--textSizeH3)}.wp41dh74t .prose pre[class*="language-"]{overflow:hidden}.wp41dh74t .prose>*+*{margin-top:0.5em}.wp41dh74t .prose>h1+*{margin-top:2em}.wp41dh74t .prose ul,.wp41dh74t .prose ol{padding-left:1em}.wp41dh74t .prose ul>li,.wp41dh74t .prose ol>li{position:relative}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wp41dh74t .prose>br{margin:0;line-height:0}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wp41dh74t .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wp41dh74t .prose>ul::before,.wp41dh74t .prose>ol::before{display:block;position:absolute;right:100%}.wp41dh74t .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wp41dh74t .prose>*:focus>li[data-mark-before]{list-style:none}.wp41dh74t .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wp41dh74t{overflow:hidden auto;height:100%;width:100%}}@media print{.wp41dh74t{}.wp41dh74t .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
+<style>@import "/styles/theme.css";.w7o20wg4e{grid-column:var(--prose-grid-column);grid-row-end:span 2;box-sizing:border-box;width:100%}.w7o20wg4e .prose{font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.w7o20wg4e .prose *{box-sizing:border-box}.w7o20wg4e .prose>*{margin:1rem;position:relative}.w7o20wg4e .prose>ul,.w7o20wg4e .prose>ol{margin-left:2rem}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.w7o20wg4e .prose>figure{margin:0.5rem}.w7o20wg4e .prose pre>*:focus{outline:none}.w7o20wg4e .prose>h1,.w7o20wg4e .prose>h2,.w7o20wg4e .prose>h3,.w7o20wg4e .prose>h4,.w7o20wg4e .prose>h5,.w7o20wg4e .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.w7o20wg4e .prose>h1{font-size:var(--textSizeH1)}.w7o20wg4e .prose>h2{font-size:var(--textSizeH2)}.w7o20wg4e .prose>h3{font-size:var(--textSizeH3)}.w7o20wg4e .prose pre[class*="language-"]{overflow:hidden}.w7o20wg4e .prose>*+*{margin-top:0.5em}.w7o20wg4e .prose>h1+*{margin-top:2em}.w7o20wg4e .prose ul,.w7o20wg4e .prose ol{padding-left:1em}.w7o20wg4e .prose ul>li,.w7o20wg4e .prose ol>li{position:relative}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.w7o20wg4e .prose>br{margin:0;line-height:0}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.w7o20wg4e .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.w7o20wg4e .prose>ul::before,.w7o20wg4e .prose>ol::before{display:block;position:absolute;right:100%}.w7o20wg4e .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.w7o20wg4e .prose>*:focus>li[data-mark-before]{list-style:none}.w7o20wg4e .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.w7o20wg4e{overflow:hidden auto}}@media print{.w7o20wg4e{break-before:page}.w7o20wg4e .prose{width:100%;display:flex;flex-direction:column;align-items:center}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
 <!-- /template -->
 
 
 </narr-ative>
-<oper-ative class="woa1mlegh"><!-- template --><output class="render">
+<oper-ative class="wl58-zj7r"><!-- template --><output class="render">
   
 </output>
 
-<style>.woa1mlegh{height:100%;width:100%;overflow:auto;grid-column:var(--render-grid-column)}.woa1mlegh .render{min-width:100%;min-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding)}@media print{.woa1mlegh{display:block;height:auto;width:max-content;overflow:hidden;border:1px dotted black;margin:2rem auto}.woa1mlegh .render{min-width:0;min-height:0}}</style>
+<style>.wl58-zj7r{height:100%;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wl58-zj7r .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wl58-zj7r{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
 <!-- /template -->
 </oper-ative>
-<ide-ative data-language="auto" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="auto" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
-<narr-ative class="wp41dh74t"><!-- template id="narr-ative" webc:raw --><section class="prose">
+<narr-ative class="w7o20wg4e"><!-- template id="narr-ative" webc:raw --><section class="prose">
   <h2>View watches for changes to values it needs</h2>
 
-<ide-ative data-language="js" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="js" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">FrpView</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
   <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -858,16 +865,38 @@ customElements<span class="token punctuation">.</span><span class="token functio
     <span class="token keyword">return</span> <span class="token keyword">this</span><span class="token punctuation">.</span>_dispatching <span class="token operator">||</span> <span class="token string">"Msg"</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 
+  <span class="token function">compile</span><span class="token punctuation">(</span><span class="token parameter">expr<span class="token punctuation">,</span> observer <span class="token operator">=</span> <span class="token keyword">null</span></span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// observeFn: model -&gt; Any</span>
+    <span class="token keyword">return</span> <span class="token function">Function</span><span class="token punctuation">(</span>
+      <span class="token string">"__model__"</span><span class="token punctuation">,</span>
+      <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">const </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span><span class="token keyword">this</span><span class="token punctuation">.</span>observers<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> = __model__ || {};
+       return (</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>expr<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">);</span><span class="token template-punctuation string">`</span></span>
+    <span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>observer<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token function">prepare</span><span class="token punctuation">(</span><span class="token parameter">fnExpr</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// actionFn: model -&gt; Msg -&gt; event -&gt; void</span>
+    <span class="token keyword">return</span> <span class="token function">Function</span><span class="token punctuation">(</span>
+      <span class="token string">"__model__"</span><span class="token punctuation">,</span>
+      <span class="token string">"__Msg__"</span><span class="token punctuation">,</span>
+      <span class="token string">"__event__"</span><span class="token punctuation">,</span>
+      <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">const </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span><span class="token keyword">this</span><span class="token punctuation">.</span>observers<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> = __model__ || {};
+       const </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span><span class="token keyword">this</span><span class="token punctuation">.</span>messages<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> = __Msg__ || {};
+       return (</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>fnExpr<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">).call(this, __event__);</span><span class="token template-punctuation string">`</span></span>
+    <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span>
+
   <span class="token function">observe</span><span class="token punctuation">(</span><span class="token parameter">fn<span class="token punctuation">,</span> observer</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">const</span> <span class="token function-variable function">update</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">model</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
-      Promise<span class="token punctuation">.</span><span class="token function">resolve</span><span class="token punctuation">(</span><span class="token function">fn</span><span class="token punctuation">(</span>model<span class="token punctuation">)</span><span class="token punctuation">)</span>
+    <span class="token keyword">const</span> <span class="token function-variable function">update</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">model<span class="token punctuation">,</span> msgType</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Observing function:"</span><span class="token punctuation">,</span> fn<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      Promise<span class="token punctuation">.</span><span class="token function">resolve</span><span class="token punctuation">(</span><span class="token function">fn</span><span class="token punctuation">(</span>model<span class="token punctuation">,</span> msgType<span class="token punctuation">)</span><span class="token punctuation">)</span>
         <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">value</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> observer<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span>value<span class="token punctuation">)</span><span class="token punctuation">)</span>
         <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">error</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> observer<span class="token punctuation">.</span><span class="token function">report</span><span class="token punctuation">(</span>error<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span><span class="token punctuation">;</span>
 
-    <span class="token keyword">this</span><span class="token punctuation">.</span>observable<span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span> model<span class="token punctuation">,</span> attach <span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span>observable<span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span> model<span class="token punctuation">,</span> messageType<span class="token punctuation">,</span> attach <span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
       <span class="token function">attach</span><span class="token punctuation">(</span>update<span class="token punctuation">)</span><span class="token punctuation">;</span>
-      <span class="token function">update</span><span class="token punctuation">(</span>model<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token function">update</span><span class="token punctuation">(</span>model<span class="token punctuation">,</span> messageType<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 <span class="token punctuation">}</span>
@@ -876,10 +905,10 @@ customElements<span class="token punctuation">.</span><span class="token functio
 </code></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
-<ide-ative data-language="html" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="html" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>frp-view-template<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span>
@@ -887,17 +916,17 @@ customElements<span class="token punctuation">.</span><span class="token functio
 </code></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
 </section>
 
-<style>@import "/styles/theme.css";.wp41dh74t{grid-column:var(--prose-grid-column);grid-row-end:span 2}.wp41dh74t .prose{font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;height:min-content}.wp41dh74t .prose>*{margin:1rem;position:relative}.wp41dh74t .prose>ul,.wp41dh74t .prose>ol{margin-left:2rem}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wp41dh74t .prose>figure{margin:0.5rem}.wp41dh74t .prose pre>*:focus{outline:none}.wp41dh74t .prose>h1,.wp41dh74t .prose>h2,.wp41dh74t .prose>h3,.wp41dh74t .prose>h4,.wp41dh74t .prose>h5,.wp41dh74t .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wp41dh74t .prose>h1{font-size:var(--textSizeH1)}.wp41dh74t .prose>h2{font-size:var(--textSizeH2)}.wp41dh74t .prose>h3{font-size:var(--textSizeH3)}.wp41dh74t .prose pre[class*="language-"]{overflow:hidden}.wp41dh74t .prose>*+*{margin-top:0.5em}.wp41dh74t .prose>h1+*{margin-top:2em}.wp41dh74t .prose ul,.wp41dh74t .prose ol{padding-left:1em}.wp41dh74t .prose ul>li,.wp41dh74t .prose ol>li{position:relative}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wp41dh74t .prose>br{margin:0;line-height:0}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wp41dh74t .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wp41dh74t .prose>ul::before,.wp41dh74t .prose>ol::before{display:block;position:absolute;right:100%}.wp41dh74t .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wp41dh74t .prose>*:focus>li[data-mark-before]{list-style:none}.wp41dh74t .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wp41dh74t{overflow:hidden auto;height:100%;width:100%}}@media print{.wp41dh74t{}.wp41dh74t .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
+<style>@import "/styles/theme.css";.w7o20wg4e{grid-column:var(--prose-grid-column);grid-row-end:span 2;box-sizing:border-box;width:100%}.w7o20wg4e .prose{font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.w7o20wg4e .prose *{box-sizing:border-box}.w7o20wg4e .prose>*{margin:1rem;position:relative}.w7o20wg4e .prose>ul,.w7o20wg4e .prose>ol{margin-left:2rem}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.w7o20wg4e .prose>figure{margin:0.5rem}.w7o20wg4e .prose pre>*:focus{outline:none}.w7o20wg4e .prose>h1,.w7o20wg4e .prose>h2,.w7o20wg4e .prose>h3,.w7o20wg4e .prose>h4,.w7o20wg4e .prose>h5,.w7o20wg4e .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.w7o20wg4e .prose>h1{font-size:var(--textSizeH1)}.w7o20wg4e .prose>h2{font-size:var(--textSizeH2)}.w7o20wg4e .prose>h3{font-size:var(--textSizeH3)}.w7o20wg4e .prose pre[class*="language-"]{overflow:hidden}.w7o20wg4e .prose>*+*{margin-top:0.5em}.w7o20wg4e .prose>h1+*{margin-top:2em}.w7o20wg4e .prose ul,.w7o20wg4e .prose ol{padding-left:1em}.w7o20wg4e .prose ul>li,.w7o20wg4e .prose ol>li{position:relative}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.w7o20wg4e .prose>br{margin:0;line-height:0}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.w7o20wg4e .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.w7o20wg4e .prose>ul::before,.w7o20wg4e .prose>ol::before{display:block;position:absolute;right:100%}.w7o20wg4e .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.w7o20wg4e .prose>*:focus>li[data-mark-before]{list-style:none}.w7o20wg4e .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.w7o20wg4e{overflow:hidden auto}}@media print{.w7o20wg4e{break-before:page}.w7o20wg4e .prose{width:100%;display:flex;flex-direction:column;align-items:center}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
 <!-- /template -->
 
 
 </narr-ative>
-<oper-ative class="woa1mlegh"><!-- template --><output class="render">
+<oper-ative class="wl58-zj7r"><!-- template --><output class="render">
   <frp-example-2>
   <frp-view observing="{copyright_year, author, page_views}">
     <p>
@@ -909,12 +938,12 @@ customElements<span class="token punctuation">.</span><span class="token functio
   </frp-view>
   <frp-view>
     <p>
-      <frp-bind on="{click: () => ({page_views: model.page_views+1})}">
+      <frp-bind on-click="() => ({page_views: model.page_views+1})">
         <button>Increment View Counter</button>
       </frp-bind>
     </p>
     <p>
-      <frp-bind value="(model.author)" on="{change: () => ({author: this.value})}">
+      <frp-bind value="model.author" on-change="() => ({author: this.value})">
         <input>
       </frp-bind>
     </p>
@@ -923,10 +952,10 @@ customElements<span class="token punctuation">.</span><span class="token functio
 
 </output>
 
-<style>.woa1mlegh{height:100%;width:100%;overflow:auto;grid-column:var(--render-grid-column)}.woa1mlegh .render{min-width:100%;min-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding)}@media print{.woa1mlegh{display:block;height:auto;width:max-content;overflow:hidden;border:1px dotted black;margin:2rem auto}.woa1mlegh .render{min-width:0;min-height:0}}</style>
+<style>.wl58-zj7r{height:100%;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wl58-zj7r .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wl58-zj7r{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
 <!-- /template -->
 </oper-ative>
-<ide-ative data-language="auto" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="auto" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-example-2</span><span class="token punctuation">&gt;</span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-view</span> <span class="token attr-name">observing</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>{copyright_year, author, page_views}<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
@@ -939,15 +968,12 @@ customElements<span class="token punctuation">.</span><span class="token functio
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-view</span><span class="token punctuation">&gt;</span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-view</span><span class="token punctuation">&gt;</span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-bind</span> <span class="token attr-name">on</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>{click: () =&gt; ({page_views: model.page_views+1})}<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-bind</span> <span class="token attr-name">on-click</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>() =&gt; ({page_views: model.page_views+1})<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span><span class="token punctuation">&gt;</span></span>Increment View Counter<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-bind</span><span class="token punctuation">&gt;</span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-bind</span>
-        <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>(model.author)<span class="token punctuation">"</span></span>
-        <span class="token attr-name">on</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>{change: () =&gt; ({author: this.value})}<span class="token punctuation">"</span></span>
-      <span class="token punctuation">&gt;</span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>frp-bind</span> <span class="token attr-name">value</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>model.author<span class="token punctuation">"</span></span> <span class="token attr-name">on-change</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>() =&gt; ({author: this.value})<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
         <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>input</span> <span class="token punctuation">/&gt;</span></span>
       <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>frp-bind</span><span class="token punctuation">&gt;</span></span>
     <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
@@ -956,10 +982,10 @@ customElements<span class="token punctuation">.</span><span class="token functio
 </code></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
-<narr-ative class="wp41dh74t"><!-- template id="narr-ative" webc:raw --><section class="prose">
+<narr-ative class="w7o20wg4e"><!-- template id="narr-ative" webc:raw --><section class="prose">
   <h2>Exposing parts of a model to a view</h2>
 
 <p>The basis of reactive programming is that all side-effects are sent to
@@ -992,7 +1018,7 @@ What we want is a way, <em data-mark-around="_">from HTML</em>, to say “put th
 <p>So let’s define two components: one that lets us identify a set of data we want to present,
 and one to indicate where to insert each piece.</p>
 
-<ide-ative data-language="js" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="js" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">FrpExample2</span> <span class="token keyword">extends</span> <span class="token class-name">FrpMain</span> <span class="token punctuation">{</span>
   <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -1004,33 +1030,33 @@ customElements<span class="token punctuation">.</span><span class="token functio
 </code></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
 </section>
 
-<style>@import "/styles/theme.css";.wp41dh74t{grid-column:var(--prose-grid-column);grid-row-end:span 2}.wp41dh74t .prose{font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;height:min-content}.wp41dh74t .prose>*{margin:1rem;position:relative}.wp41dh74t .prose>ul,.wp41dh74t .prose>ol{margin-left:2rem}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wp41dh74t .prose>figure{margin:0.5rem}.wp41dh74t .prose pre>*:focus{outline:none}.wp41dh74t .prose>h1,.wp41dh74t .prose>h2,.wp41dh74t .prose>h3,.wp41dh74t .prose>h4,.wp41dh74t .prose>h5,.wp41dh74t .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wp41dh74t .prose>h1{font-size:var(--textSizeH1)}.wp41dh74t .prose>h2{font-size:var(--textSizeH2)}.wp41dh74t .prose>h3{font-size:var(--textSizeH3)}.wp41dh74t .prose pre[class*="language-"]{overflow:hidden}.wp41dh74t .prose>*+*{margin-top:0.5em}.wp41dh74t .prose>h1+*{margin-top:2em}.wp41dh74t .prose ul,.wp41dh74t .prose ol{padding-left:1em}.wp41dh74t .prose ul>li,.wp41dh74t .prose ol>li{position:relative}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wp41dh74t .prose>br{margin:0;line-height:0}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wp41dh74t .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wp41dh74t .prose>ul::before,.wp41dh74t .prose>ol::before{display:block;position:absolute;right:100%}.wp41dh74t .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wp41dh74t .prose>*:focus>li[data-mark-before]{list-style:none}.wp41dh74t .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wp41dh74t{overflow:hidden auto;height:100%;width:100%}}@media print{.wp41dh74t{}.wp41dh74t .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
+<style>@import "/styles/theme.css";.w7o20wg4e{grid-column:var(--prose-grid-column);grid-row-end:span 2;box-sizing:border-box;width:100%}.w7o20wg4e .prose{font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.w7o20wg4e .prose *{box-sizing:border-box}.w7o20wg4e .prose>*{margin:1rem;position:relative}.w7o20wg4e .prose>ul,.w7o20wg4e .prose>ol{margin-left:2rem}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.w7o20wg4e .prose>figure{margin:0.5rem}.w7o20wg4e .prose pre>*:focus{outline:none}.w7o20wg4e .prose>h1,.w7o20wg4e .prose>h2,.w7o20wg4e .prose>h3,.w7o20wg4e .prose>h4,.w7o20wg4e .prose>h5,.w7o20wg4e .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.w7o20wg4e .prose>h1{font-size:var(--textSizeH1)}.w7o20wg4e .prose>h2{font-size:var(--textSizeH2)}.w7o20wg4e .prose>h3{font-size:var(--textSizeH3)}.w7o20wg4e .prose pre[class*="language-"]{overflow:hidden}.w7o20wg4e .prose>*+*{margin-top:0.5em}.w7o20wg4e .prose>h1+*{margin-top:2em}.w7o20wg4e .prose ul,.w7o20wg4e .prose ol{padding-left:1em}.w7o20wg4e .prose ul>li,.w7o20wg4e .prose ol>li{position:relative}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.w7o20wg4e .prose>br{margin:0;line-height:0}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.w7o20wg4e .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.w7o20wg4e .prose>ul::before,.w7o20wg4e .prose>ol::before{display:block;position:absolute;right:100%}.w7o20wg4e .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.w7o20wg4e .prose>*:focus>li[data-mark-before]{list-style:none}.w7o20wg4e .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.w7o20wg4e{overflow:hidden auto}}@media print{.w7o20wg4e{break-before:page}.w7o20wg4e .prose{width:100%;display:flex;flex-direction:column;align-items:center}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
 <!-- /template -->
 
 
 </narr-ative>
-<oper-ative class="woa1mlegh"><!-- template --><output class="render">
+<oper-ative class="wl58-zj7r"><!-- template --><output class="render">
   
 </output>
 
-<style>.woa1mlegh{height:100%;width:100%;overflow:auto;grid-column:var(--render-grid-column)}.woa1mlegh .render{min-width:100%;min-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding)}@media print{.woa1mlegh{display:block;height:auto;width:max-content;overflow:hidden;border:1px dotted black;margin:2rem auto}.woa1mlegh .render{min-width:0;min-height:0}}</style>
+<style>.wl58-zj7r{height:100%;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wl58-zj7r .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wl58-zj7r{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
 <!-- /template -->
 </oper-ative>
-<ide-ative data-language="auto" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="auto" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
-<narr-ative class="wp41dh74t"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <ide-ative data-language="js" class="wrippwbpo"><!-- template --><figure class="code">
+<narr-ative class="w7o20wg4e"><!-- template id="narr-ative" webc:raw --><section class="prose">
+  <ide-ative data-language="js" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">FrpText</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
   <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -1041,15 +1067,9 @@ customElements<span class="token punctuation">.</span><span class="token functio
 
   <span class="token function">connectedCallback</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword">const</span> expr <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>textContent<span class="token punctuation">.</span><span class="token function">replaceAll</span><span class="token punctuation">(</span><span class="token regex"><span class="token regex-delimiter">/</span><span class="token regex-source language-regex">[`\\]</span><span class="token regex-delimiter">/</span><span class="token regex-flags">g</span></span><span class="token punctuation">,</span> <span class="token string">"\\$&amp;"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> bq <span class="token operator">=</span> <span class="token string">"`"</span><span class="token punctuation">;</span>
     <span class="token keyword">const</span> view <span class="token operator">=</span> FrpView<span class="token punctuation">.</span><span class="token function">closest</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">const</span> renderFn <span class="token operator">=</span> <span class="token function">Function</span><span class="token punctuation">(</span>
-      <span class="token string">"__model__"</span><span class="token punctuation">,</span>
-      <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">const </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>view<span class="token punctuation">.</span>observers<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> = __model__;
-       return \`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>expr<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">\`;
-      </span><span class="token template-punctuation string">`</span></span>
-    <span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-text: "</span><span class="token punctuation">,</span> view<span class="token punctuation">.</span>observers<span class="token punctuation">,</span> expr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> renderFn <span class="token operator">=</span> view<span class="token punctuation">.</span><span class="token function">compile</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>bq<span class="token interpolation-punctuation punctuation">}</span></span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>expr<span class="token interpolation-punctuation punctuation">}</span></span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>bq<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
     view<span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span>renderFn<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
@@ -1074,10 +1094,10 @@ customElements<span class="token punctuation">.</span><span class="token functio
 </code></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
-<ide-ative data-language="html" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="html" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>frp-text-template<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">&gt;</span></span>Use template literal syntax here.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span>
@@ -1098,35 +1118,35 @@ customElements<span class="token punctuation">.</span><span class="token functio
 </code></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
 </section>
 
-<style>@import "/styles/theme.css";.wp41dh74t{grid-column:var(--prose-grid-column);grid-row-end:span 2}.wp41dh74t .prose{font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;height:min-content}.wp41dh74t .prose>*{margin:1rem;position:relative}.wp41dh74t .prose>ul,.wp41dh74t .prose>ol{margin-left:2rem}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wp41dh74t .prose>figure{margin:0.5rem}.wp41dh74t .prose pre>*:focus{outline:none}.wp41dh74t .prose>h1,.wp41dh74t .prose>h2,.wp41dh74t .prose>h3,.wp41dh74t .prose>h4,.wp41dh74t .prose>h5,.wp41dh74t .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wp41dh74t .prose>h1{font-size:var(--textSizeH1)}.wp41dh74t .prose>h2{font-size:var(--textSizeH2)}.wp41dh74t .prose>h3{font-size:var(--textSizeH3)}.wp41dh74t .prose pre[class*="language-"]{overflow:hidden}.wp41dh74t .prose>*+*{margin-top:0.5em}.wp41dh74t .prose>h1+*{margin-top:2em}.wp41dh74t .prose ul,.wp41dh74t .prose ol{padding-left:1em}.wp41dh74t .prose ul>li,.wp41dh74t .prose ol>li{position:relative}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wp41dh74t .prose>br{margin:0;line-height:0}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wp41dh74t .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wp41dh74t .prose>ul::before,.wp41dh74t .prose>ol::before{display:block;position:absolute;right:100%}.wp41dh74t .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wp41dh74t .prose>*:focus>li[data-mark-before]{list-style:none}.wp41dh74t .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wp41dh74t{overflow:hidden auto;height:100%;width:100%}}@media print{.wp41dh74t{}.wp41dh74t .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
+<style>@import "/styles/theme.css";.w7o20wg4e{grid-column:var(--prose-grid-column);grid-row-end:span 2;box-sizing:border-box;width:100%}.w7o20wg4e .prose{font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.w7o20wg4e .prose *{box-sizing:border-box}.w7o20wg4e .prose>*{margin:1rem;position:relative}.w7o20wg4e .prose>ul,.w7o20wg4e .prose>ol{margin-left:2rem}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.w7o20wg4e .prose>figure{margin:0.5rem}.w7o20wg4e .prose pre>*:focus{outline:none}.w7o20wg4e .prose>h1,.w7o20wg4e .prose>h2,.w7o20wg4e .prose>h3,.w7o20wg4e .prose>h4,.w7o20wg4e .prose>h5,.w7o20wg4e .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.w7o20wg4e .prose>h1{font-size:var(--textSizeH1)}.w7o20wg4e .prose>h2{font-size:var(--textSizeH2)}.w7o20wg4e .prose>h3{font-size:var(--textSizeH3)}.w7o20wg4e .prose pre[class*="language-"]{overflow:hidden}.w7o20wg4e .prose>*+*{margin-top:0.5em}.w7o20wg4e .prose>h1+*{margin-top:2em}.w7o20wg4e .prose ul,.w7o20wg4e .prose ol{padding-left:1em}.w7o20wg4e .prose ul>li,.w7o20wg4e .prose ol>li{position:relative}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.w7o20wg4e .prose>br{margin:0;line-height:0}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.w7o20wg4e .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.w7o20wg4e .prose>ul::before,.w7o20wg4e .prose>ol::before{display:block;position:absolute;right:100%}.w7o20wg4e .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.w7o20wg4e .prose>*:focus>li[data-mark-before]{list-style:none}.w7o20wg4e .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.w7o20wg4e{overflow:hidden auto}}@media print{.w7o20wg4e{break-before:page}.w7o20wg4e .prose{width:100%;display:flex;flex-direction:column;align-items:center}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
 <!-- /template -->
 
 
 </narr-ative>
-<oper-ative class="woa1mlegh"><!-- template --><output class="render">
+<oper-ative class="wl58-zj7r"><!-- template --><output class="render">
   
 </output>
 
-<style>.woa1mlegh{height:100%;width:100%;overflow:auto;grid-column:var(--render-grid-column)}.woa1mlegh .render{min-width:100%;min-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding)}@media print{.woa1mlegh{display:block;height:auto;width:max-content;overflow:hidden;border:1px dotted black;margin:2rem auto}.woa1mlegh .render{min-width:0;min-height:0}}</style>
+<style>.wl58-zj7r{height:100%;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wl58-zj7r .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wl58-zj7r{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
 <!-- /template -->
 </oper-ative>
-<ide-ative data-language="auto" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="auto" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
-<narr-ative class="wp41dh74t"><!-- template id="narr-ative" webc:raw --><section class="prose">
+<narr-ative class="w7o20wg4e"><!-- template id="narr-ative" webc:raw --><section class="prose">
   <h2>Binding element properties and event handlers</h2>
 
-<ide-ative data-language="js" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="js" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">FrpBind</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
   <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -1136,9 +1156,12 @@ customElements<span class="token punctuation">.</span><span class="token functio
   <span class="token punctuation">}</span>
 
   <span class="token function">connectedCallback</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">this</span><span class="token punctuation">.</span>main <span class="token operator">=</span> FrpMain<span class="token punctuation">.</span><span class="token function">closest</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token keyword">const</span> view <span class="token operator">=</span> FrpView<span class="token punctuation">.</span><span class="token function">closest</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">const</span> propNames <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getAttributeNames</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">name</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> name <span class="token operator">!==</span> <span class="token string">"on"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> attrNames <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getAttributeNames</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> propNames <span class="token operator">=</span> attrNames<span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">name</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token operator">!</span>name<span class="token punctuation">.</span><span class="token function">startsWith</span><span class="token punctuation">(</span><span class="token string">"on-"</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> eventNames <span class="token operator">=</span> attrNames
+      <span class="token punctuation">.</span><span class="token function">filter</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">name</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> name<span class="token punctuation">.</span><span class="token function">startsWith</span><span class="token punctuation">(</span><span class="token string">"on-"</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+      <span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">name</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> name<span class="token punctuation">.</span><span class="token function">substring</span><span class="token punctuation">(</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
     <span class="token keyword">if</span> <span class="token punctuation">(</span>propNames<span class="token punctuation">)</span> <span class="token punctuation">{</span>
       <span class="token keyword">const</span> assignments <span class="token operator">=</span> propNames
@@ -1147,66 +1170,42 @@ customElements<span class="token punctuation">.</span><span class="token functio
           <span class="token keyword">return</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">["</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>name<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">", </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>expr<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">]</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
         <span class="token punctuation">}</span><span class="token punctuation">)</span>
         <span class="token punctuation">.</span><span class="token function">join</span><span class="token punctuation">(</span><span class="token string">",\n"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-      <span class="token keyword">const</span> mapFn <span class="token operator">=</span> <span class="token function">Function</span><span class="token punctuation">(</span>
-        <span class="token string">"__model__"</span><span class="token punctuation">,</span>
-        <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">const </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>view<span class="token punctuation">.</span>observers<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> = __model__;
-        return [ </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>assignments<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> ];
-        </span><span class="token template-punctuation string">`</span></span>
-      <span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-bind: properties "</span><span class="token punctuation">,</span> view<span class="token punctuation">.</span>observers<span class="token punctuation">,</span> assignments<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">const</span> mapFn <span class="token operator">=</span> view<span class="token punctuation">.</span><span class="token function">compile</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">[</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>assignments<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">]</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
       view<span class="token punctuation">.</span><span class="token function">observe</span><span class="token punctuation">(</span>mapFn<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
 
-    <span class="token keyword">const</span> onExpr <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">"on"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> handlerEntries <span class="token operator">=</span> eventNames<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">type</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+      <span class="token keyword">const</span> name <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">on-</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>type<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+      <span class="token keyword">const</span> expr <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span>name<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">const</span> actionFn <span class="token operator">=</span> view<span class="token punctuation">.</span><span class="token function">prepare</span><span class="token punctuation">(</span>expr<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">return</span> <span class="token punctuation">[</span>type<span class="token punctuation">,</span> actionFn<span class="token punctuation">]</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
 
-    <span class="token keyword">if</span> <span class="token punctuation">(</span>onExpr<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-      <span class="token keyword">const</span> dispatchFn <span class="token operator">=</span> <span class="token function">Function</span><span class="token punctuation">(</span>
-        <span class="token string">"__dispatch__"</span><span class="token punctuation">,</span>
-        <span class="token string">"__Msg__"</span><span class="token punctuation">,</span>
-        <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">const </span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>view<span class="token punctuation">.</span>messages<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string"> = __Msg__;
-         function actions (</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>view<span class="token punctuation">.</span>observers<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">) {
-           return (</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>onExpr<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">);
-         }
-         const onevent = (__type__) =&gt;
-          function handler (__model__, __event__) {
-            const fn = actions.call(this, __model__)[__type__];
-            __dispatch__(fn(__event__))
-          };
-         const names = Object.keys(actions({}));
-         return names.map((name) =&gt; ['on' + name, onevent(name)]);</span><span class="token template-punctuation string">`</span></span>
-      <span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-bind: onevent handlers "</span><span class="token punctuation">,</span> view<span class="token punctuation">.</span>observers<span class="token punctuation">,</span> dispatchFn<span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-      <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">main</span>
-        <span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>dispatchFn<span class="token punctuation">)</span>
-        <span class="token punctuation">.</span><span class="token function">then</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">handlers</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span>handlers<span class="token punctuation">)</span><span class="token punctuation">)</span>
-        <span class="token punctuation">.</span><span class="token function">catch</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">reason</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">report</span><span class="token punctuation">(</span>reason<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
+    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">updateHandlers</span><span class="token punctuation">(</span>handlerEntries<span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 
   <span class="token function">update</span><span class="token punctuation">(</span><span class="token parameter">entries</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">const</span> slot <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span>firstElementChild<span class="token punctuation">;</span>
-    <span class="token keyword">const</span> model <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>main<span class="token punctuation">.</span>model<span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> target <span class="token keyword">of</span> <span class="token keyword">this</span><span class="token punctuation">.</span>children<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">let</span> <span class="token punctuation">[</span>name<span class="token punctuation">,</span> value<span class="token punctuation">]</span> <span class="token keyword">of</span> entries<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        target<span class="token punctuation">[</span>name<span class="token punctuation">]</span> <span class="token operator">=</span> value<span class="token punctuation">;</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">FrpBind: target.</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>name<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">:</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span> value<span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+
+  <span class="token function">updateHandlers</span><span class="token punctuation">(</span><span class="token parameter">handlerEntries</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">const</span> main <span class="token operator">=</span> FrpMain<span class="token punctuation">.</span><span class="token function">closest</span><span class="token punctuation">(</span><span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">const</span> dispatch <span class="token operator">=</span> main<span class="token punctuation">.</span><span class="token function">dispatch</span><span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>main<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
     <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">const</span> target <span class="token keyword">of</span> <span class="token keyword">this</span><span class="token punctuation">.</span>children<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-      <span class="token keyword">const</span> bound <span class="token operator">=</span> entries<span class="token punctuation">.</span><span class="token function">map</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">[</span>name<span class="token punctuation">,</span> value<span class="token punctuation">]</span></span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span>
-        <span class="token comment">// bind `this` and the model to on* functions</span>
-        <span class="token punctuation">[</span>
-          name<span class="token punctuation">,</span>
-          name<span class="token punctuation">.</span><span class="token function">startsWith</span><span class="token punctuation">(</span><span class="token string">"on"</span><span class="token punctuation">)</span> <span class="token operator">&amp;&amp;</span> <span class="token keyword">typeof</span> value <span class="token operator">===</span> <span class="token string">"function"</span>
-            <span class="token operator">?</span> <span class="token function">value</span><span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>target<span class="token punctuation">,</span> model<span class="token punctuation">)</span>
-            <span class="token operator">:</span> value<span class="token punctuation">,</span>
-        <span class="token punctuation">]</span>
-      <span class="token punctuation">)</span><span class="token punctuation">;</span>
-      bound<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">[</span>name<span class="token punctuation">,</span> value<span class="token punctuation">]</span></span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
-        target<span class="token punctuation">[</span>name<span class="token punctuation">]</span> <span class="token operator">=</span> value<span class="token punctuation">;</span>
+      handlerEntries<span class="token punctuation">.</span><span class="token function">forEach</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">[</span>type<span class="token punctuation">,</span> fn<span class="token punctuation">]</span></span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token punctuation">{</span>
+        <span class="token keyword">const</span> name <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">on</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>type<span class="token interpolation-punctuation punctuation">}</span></span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span>
+        <span class="token keyword">const</span> action <span class="token operator">=</span> <span class="token function">fn</span><span class="token punctuation">.</span><span class="token function">bind</span><span class="token punctuation">(</span>target<span class="token punctuation">,</span> main<span class="token punctuation">.</span>model<span class="token punctuation">,</span> main<span class="token punctuation">.</span>messageType<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        target<span class="token punctuation">[</span>name<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">event</span><span class="token punctuation">)</span> <span class="token operator">=&gt;</span> <span class="token function">dispatch</span><span class="token punctuation">(</span>action<span class="token punctuation">,</span> event<span class="token punctuation">)</span><span class="token punctuation">;</span>
+        console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token template-string"><span class="token template-punctuation string">`</span><span class="token string">FrpBind: target.</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>name<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">:</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">,</span> fn<span class="token punctuation">)</span><span class="token punctuation">;</span>
       <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-      console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"frp-bind: bound"</span><span class="token punctuation">,</span> bound<span class="token punctuation">,</span> target<span class="token punctuation">)</span><span class="token punctuation">;</span>
     <span class="token punctuation">}</span>
-    slot<span class="token punctuation">.</span>className <span class="token operator">=</span> <span class="token string">"bound"</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
 
   <span class="token function">report</span><span class="token punctuation">(</span><span class="token parameter">reason</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
@@ -1220,10 +1219,10 @@ customElements<span class="token punctuation">.</span><span class="token functio
 </code></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
-<ide-ative data-language="html" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="html" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>frp-bind-template<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
   <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span>
@@ -1231,35 +1230,35 @@ customElements<span class="token punctuation">.</span><span class="token functio
 </code></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
 </section>
 
-<style>@import "/styles/theme.css";.wp41dh74t{grid-column:var(--prose-grid-column);grid-row-end:span 2}.wp41dh74t .prose{font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;height:min-content}.wp41dh74t .prose>*{margin:1rem;position:relative}.wp41dh74t .prose>ul,.wp41dh74t .prose>ol{margin-left:2rem}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wp41dh74t .prose>figure{margin:0.5rem}.wp41dh74t .prose pre>*:focus{outline:none}.wp41dh74t .prose>h1,.wp41dh74t .prose>h2,.wp41dh74t .prose>h3,.wp41dh74t .prose>h4,.wp41dh74t .prose>h5,.wp41dh74t .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wp41dh74t .prose>h1{font-size:var(--textSizeH1)}.wp41dh74t .prose>h2{font-size:var(--textSizeH2)}.wp41dh74t .prose>h3{font-size:var(--textSizeH3)}.wp41dh74t .prose pre[class*="language-"]{overflow:hidden}.wp41dh74t .prose>*+*{margin-top:0.5em}.wp41dh74t .prose>h1+*{margin-top:2em}.wp41dh74t .prose ul,.wp41dh74t .prose ol{padding-left:1em}.wp41dh74t .prose ul>li,.wp41dh74t .prose ol>li{position:relative}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wp41dh74t .prose>br{margin:0;line-height:0}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wp41dh74t .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wp41dh74t .prose>ul::before,.wp41dh74t .prose>ol::before{display:block;position:absolute;right:100%}.wp41dh74t .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wp41dh74t .prose>*:focus>li[data-mark-before]{list-style:none}.wp41dh74t .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wp41dh74t{overflow:hidden auto;height:100%;width:100%}}@media print{.wp41dh74t{}.wp41dh74t .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
+<style>@import "/styles/theme.css";.w7o20wg4e{grid-column:var(--prose-grid-column);grid-row-end:span 2;box-sizing:border-box;width:100%}.w7o20wg4e .prose{font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.w7o20wg4e .prose *{box-sizing:border-box}.w7o20wg4e .prose>*{margin:1rem;position:relative}.w7o20wg4e .prose>ul,.w7o20wg4e .prose>ol{margin-left:2rem}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.w7o20wg4e .prose>figure{margin:0.5rem}.w7o20wg4e .prose pre>*:focus{outline:none}.w7o20wg4e .prose>h1,.w7o20wg4e .prose>h2,.w7o20wg4e .prose>h3,.w7o20wg4e .prose>h4,.w7o20wg4e .prose>h5,.w7o20wg4e .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.w7o20wg4e .prose>h1{font-size:var(--textSizeH1)}.w7o20wg4e .prose>h2{font-size:var(--textSizeH2)}.w7o20wg4e .prose>h3{font-size:var(--textSizeH3)}.w7o20wg4e .prose pre[class*="language-"]{overflow:hidden}.w7o20wg4e .prose>*+*{margin-top:0.5em}.w7o20wg4e .prose>h1+*{margin-top:2em}.w7o20wg4e .prose ul,.w7o20wg4e .prose ol{padding-left:1em}.w7o20wg4e .prose ul>li,.w7o20wg4e .prose ol>li{position:relative}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.w7o20wg4e .prose>br{margin:0;line-height:0}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.w7o20wg4e .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.w7o20wg4e .prose>ul::before,.w7o20wg4e .prose>ol::before{display:block;position:absolute;right:100%}.w7o20wg4e .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.w7o20wg4e .prose>*:focus>li[data-mark-before]{list-style:none}.w7o20wg4e .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.w7o20wg4e{overflow:hidden auto}}@media print{.w7o20wg4e{break-before:page}.w7o20wg4e .prose{width:100%;display:flex;flex-direction:column;align-items:center}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
 <!-- /template -->
 
 
 </narr-ative>
-<oper-ative class="woa1mlegh"><!-- template --><output class="render">
+<oper-ative class="wl58-zj7r"><!-- template --><output class="render">
   
 </output>
 
-<style>.woa1mlegh{height:100%;width:100%;overflow:auto;grid-column:var(--render-grid-column)}.woa1mlegh .render{min-width:100%;min-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding)}@media print{.woa1mlegh{display:block;height:auto;width:max-content;overflow:hidden;border:1px dotted black;margin:2rem auto}.woa1mlegh .render{min-width:0;min-height:0}}</style>
+<style>.wl58-zj7r{height:100%;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wl58-zj7r .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wl58-zj7r{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
 <!-- /template -->
 </oper-ative>
-<ide-ative data-language="auto" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="auto" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
-<narr-ative class="wp41dh74t"><!-- template id="narr-ative" webc:raw --><section class="prose">
+<narr-ative class="w7o20wg4e"><!-- template id="narr-ative" webc:raw --><section class="prose">
   <h2>Under the Hood: Proxies implement Observable</h2>
 
-<ide-ative data-language="js" class="wrippwbpo"><!-- template --><figure class="code">
+<ide-ative data-language="js" class="wg6bosan3"><!-- template --><figure class="code">
   <figcaption></figcaption>
   <pre class="language-markup"><code class="language-js"><span class="token keyword">function</span> <span class="token function">createObservable</span><span class="token punctuation">(</span><span class="token parameter">eventTarget<span class="token punctuation">,</span> root</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token keyword">const</span> <span class="token constant">OBSERVABLE_CHANGE_EVENT</span> <span class="token operator">=</span> <span class="token string">"observable:change"</span><span class="token punctuation">;</span>
@@ -1303,12 +1302,12 @@ customElements<span class="token punctuation">.</span><span class="token functio
 </code></pre>
 </figure>
 
-<style>.wrippwbpo{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wrippwbpo .code{height:max-content;max-width:100%;max-height:100%;overflow:auto}.wrippwbpo figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wrippwbpo{height:100%;width:100%;overflow:hidden}}@media print{.wrippwbpo{display:block;height:auto;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wrippwbpo .code{font-size:11pt;max-width:100ch}.wrippwbpo pre[class*="language-"],.wrippwbpo code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
+<style>.wg6bosan3{--ide-language: attr(data-language);grid-column:var(--code-grid-column)}.wg6bosan3 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem}.wg6bosan3 .code>pre{margin:0}.wg6bosan3 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wg6bosan3{height:100%;width:100%;overflow:hidden}}@media print{.wg6bosan3{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wg6bosan3 .code{font-size:11pt;max-width:100ch}.wg6bosan3 pre[class*="language-"],.wg6bosan3 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
 <!-- /template -->
 </ide-ative>
 </section>
 
-<style>@import "/styles/theme.css";.wp41dh74t{grid-column:var(--prose-grid-column);grid-row-end:span 2}.wp41dh74t .prose{font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;height:min-content}.wp41dh74t .prose>*{margin:1rem;position:relative}.wp41dh74t .prose>ul,.wp41dh74t .prose>ol{margin-left:2rem}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wp41dh74t .prose>figure{margin:0.5rem}.wp41dh74t .prose pre>*:focus{outline:none}.wp41dh74t .prose>h1,.wp41dh74t .prose>h2,.wp41dh74t .prose>h3,.wp41dh74t .prose>h4,.wp41dh74t .prose>h5,.wp41dh74t .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wp41dh74t .prose>h1{font-size:var(--textSizeH1)}.wp41dh74t .prose>h2{font-size:var(--textSizeH2)}.wp41dh74t .prose>h3{font-size:var(--textSizeH3)}.wp41dh74t .prose pre[class*="language-"]{overflow:hidden}.wp41dh74t .prose>*+*{margin-top:0.5em}.wp41dh74t .prose>h1+*{margin-top:2em}.wp41dh74t .prose ul,.wp41dh74t .prose ol{padding-left:1em}.wp41dh74t .prose ul>li,.wp41dh74t .prose ol>li{position:relative}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wp41dh74t .prose>br{margin:0;line-height:0}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wp41dh74t .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wp41dh74t .prose>ul::before,.wp41dh74t .prose>ol::before{display:block;position:absolute;right:100%}.wp41dh74t .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wp41dh74t .prose>*:focus>li[data-mark-before]{list-style:none}.wp41dh74t .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wp41dh74t{overflow:hidden auto;height:100%;width:100%}}@media print{.wp41dh74t{}.wp41dh74t .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wp41dh74t .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
+<style>@import "/styles/theme.css";.w7o20wg4e{grid-column:var(--prose-grid-column);grid-row-end:span 2;box-sizing:border-box;width:100%}.w7o20wg4e .prose{font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.w7o20wg4e .prose *{box-sizing:border-box}.w7o20wg4e .prose>*{margin:1rem;position:relative}.w7o20wg4e .prose>ul,.w7o20wg4e .prose>ol{margin-left:2rem}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.w7o20wg4e .prose>figure{margin:0.5rem}.w7o20wg4e .prose pre>*:focus{outline:none}.w7o20wg4e .prose>h1,.w7o20wg4e .prose>h2,.w7o20wg4e .prose>h3,.w7o20wg4e .prose>h4,.w7o20wg4e .prose>h5,.w7o20wg4e .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.w7o20wg4e .prose>h1{font-size:var(--textSizeH1)}.w7o20wg4e .prose>h2{font-size:var(--textSizeH2)}.w7o20wg4e .prose>h3{font-size:var(--textSizeH3)}.w7o20wg4e .prose pre[class*="language-"]{overflow:hidden}.w7o20wg4e .prose>*+*{margin-top:0.5em}.w7o20wg4e .prose>h1+*{margin-top:2em}.w7o20wg4e .prose ul,.w7o20wg4e .prose ol{padding-left:1em}.w7o20wg4e .prose ul>li,.w7o20wg4e .prose ol>li{position:relative}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.w7o20wg4e .prose>br{margin:0;line-height:0}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.w7o20wg4e .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.w7o20wg4e .prose>ul::before,.w7o20wg4e .prose>ol::before{display:block;position:absolute;right:100%}.w7o20wg4e .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.w7o20wg4e .prose>*:focus>li[data-mark-before]{list-style:none}.w7o20wg4e .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.w7o20wg4e{overflow:hidden auto}}@media print{.w7o20wg4e{break-before:page}.w7o20wg4e .prose{width:100%;display:flex;flex-direction:column;align-items:center}.w7o20wg4e .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
 <!-- /template -->
 
 
@@ -1344,28 +1343,11 @@ customElements<span class="token punctuation">.</span><span class="token functio
 
 </article>
 
-<style>
-  article {
-    display: flex;
-    flex-direction: column-reverse;
-  }
-
-  @media screen {
-    position: fixed;
+<style>.wourcuvmv{display:block}.wourcuvmv article{display:flex;flex-direction:column-reverse}@media screen{position: fixed;
     top: 0;
     bottom: 0;
     left: 0;
-    right: 0;
-  }
-
-  @media print {
-    article {
-      position: static;
-      height: auto;
-      width: 100%;
-    }
-  }
-</style>
+    right: 0;}@media print{.wourcuvmv article{position:static;height:auto;width:100%}}</style>
 <!-- /template -->
 </st-ative>
 <script type="module">
