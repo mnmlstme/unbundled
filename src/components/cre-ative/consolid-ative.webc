@@ -9,23 +9,21 @@
     :host {
       --heightViewer: calc(100vh - var(--heightFooter));
       height: var(--heightViewer);
-      overflow: hidden;
+      overflow: hidden auto;
       position: relative;
     }
   }
 
   .layout {
-    --render-grid-column: 1;
-    --code-grid-column: 1;
-    --prose-grid-column: 2;
+    --render-grid-column: 1 / span 3;
+    --code-grid-column: 1 / span 2;
+    --prose-grid-column: 2 / span 2;
 
     display: grid;
     position: relative;
     top: calc(var(--heightViewer) * (1 - var(--current-scene, 1)));
-    grid-template-columns: 60vw 40vw;
-    grid-auto-rows: calc(0.6 * var(--heightViewer))
-      calc(0.4 * var(--heightViewer));
-    grid-auto-flow: column;
+    grid-template-columns: 1fr 65ch 1fr;
+    grid-auto-flow: row;
     justify-items: start;
     transition: top 0.5s ease-in-out;
     pointer-events: none;

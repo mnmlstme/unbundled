@@ -7,13 +7,13 @@
   @import "/styles/theme.css";
 
   :host {
-    grid-column: var(--prose-grid-column);
-    grid-row-end: span 2;
+    display: contents;
     box-sizing: border-box;
     width: 100%;
   }
 
   .prose {
+    display: contents;
     font-family: var(--fontBody);
     font-size: var(--textSizeProse);
     font-weight: var(--textWeightProse);
@@ -31,6 +31,7 @@
   .prose > * {
     margin: 1rem;
     position: relative;
+    grid-column: var(--prose-grid-column);
   }
 
   .prose > ul,
