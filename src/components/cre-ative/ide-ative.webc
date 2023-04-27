@@ -8,7 +8,7 @@
   :host {
     --ide-language: attr(data-language);
 
-    grid-column: var(--code-grid-column);
+    display: contents;
   }
 
   .code {
@@ -17,6 +17,7 @@
     max-height: 100%;
     overflow: auto;
     margin: 1rem;
+    grid-column: var(--code-grid-column);
   }
 
   .code > pre {

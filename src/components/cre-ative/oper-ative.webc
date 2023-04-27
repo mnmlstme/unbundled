@@ -5,7 +5,7 @@
 
 <style webc:scoped>
   :host {
-    height: 100%;
+    height: min-content;
     width: 100%;
     display: flex;
     align-items: center;
