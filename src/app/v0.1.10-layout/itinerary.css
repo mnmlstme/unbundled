@@ -1,0 +1,11 @@
+.itinerary {
+  display: grid;
+  grid-template-columns: [date] auto [destination] 1fr;
+  gap: var(--size-spacing-medium) var(--size-spacing-large);
+  align-items: baseline;
+  padding: var(--size-spacing-small);
+}
+
+.itinerary > dd + dt {
+  border-top: var(--lineweight-rule) solid var(--color-accent);
+}

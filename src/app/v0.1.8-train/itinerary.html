@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      :root {
+        /* Design Tokens */
+        --color-accent: rgb(42 143 42);
+        --color-background-header: var(--color-accent);
+        --color-background-page: rgb(237 233 217);
+        --color-link-inverted: rgb(255 208 0);
+        --color-link: var(--color-accent);
+        --color-text: rgb(51 51 51);
+        --color-text-heading: var(--color-accent);
+        --color-text-inverted: rgb(255 255 255);
+        --lineweight-rule: 1px;
+      }
+    </style>
+    <style>
+      body {
+        background: var(--color-background-page);
+        color: var(--color-text);
+      }
+      header {
+        background: var(--color-background-header);
+        color: var(--color-text-inverted);
+      }
+      header a {
+        color: var(--color-link-inverted);
+      }
+      h2 {
+        color: var(--color-text-heading);
+      }
+      a {
+        color: var(--color-link);
+      }
+      .itinerary > dd + dt {
+        border-top: var(--lineweight-rule) solid var(--color-accent);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Blazing Travels</h1>
+      <p>12 days in <a href="#">Italy</a></p>
+    </header>
+    <dl class="itinerary">
+      <dt>13 Oct - 14 Oct</dt>
+      <dd>
+        <h2>Outbound Flight</h2>
+        <details>
+          <summary>United UA926</summary>
+          <dl>
+            <dt>Depart</dt>
+            <dd>San Francisco (SFO)</dd>
+            <dd>7:05 PM</dd>
+            <dt>Arrive</dt>
+            <dd>Frankfurt (FRA)</dd>
+            <dd>2:55 PM<sub>+1 day</sub></dd>
+          </dl>
+        </details>
+        <details>
+          <summary>Lufthansa LH330</summary>
+          <dl>
+            <dt>Depart</dt>
+            <dd>Frankfurt (FRA)</dd>
+            <dd>5:15 PM</dd>
+            <dt>Arrive</dt>
+            <dd>Venice (VCE)</dd>
+            <dd>6:30 PM</dd>
+          </dl>
+        </details>
+      </dd>
+      <dt>14 Oct - 18 Oct</dt>
+      <dd>
+        <h2>Venice</h2>
+        <p>4 nights at <a href="#">Locanda San Barnaba</a></p>
+      </dd>
+      <dt>18 Oct</dt>
+      <dd>
+        <h2>to Florence by Train</h2>
+        <details>
+          <summary>9407 Frecciarossa</summary>
+          <dl class="timings">
+            <dt>Depart</dt>
+            <dd>Venezia S. Lucia</dd>
+            <dd>9:25 AM</dd>
+            <dt>Arrive</dt>
+            <dd>Firenze S.M.N.</dd>
+            <dd>11:30 AM</dd>
+          </dl>
+        </details>
+      </dd>
+      <dt>18 Oct - 21 Oct</dt>
+      <dd>
+        <h2>Florence</h2>
+        <p>3 nights at <a href="#">Hotel Perseo</a></p>
+      </dd>
+      <dt>21 Oct</dt>
+      <dd>
+        <h2>to Rome by Train</h2>
+        <details>
+          <summary>9435 Frecciarossa</summary>
+          <dl class="timings">
+            <dt>Depart</dt>
+            <dd>Firenze S.M.N.</dd>
+            <dd>3:38 PM</dd>
+            <dt>Arrive</dt>
+            <dd>Roma Termini</dd>
+            <dd>5:10 PM</dd>
+          </dl>
+        </details>
+      </dd>
+      <dt>21 Oct - 25 Oct</dt>
+      <dd>
+        <h2>Rome</h2>
+        <p>4 nights at <a href="#">La Piccola Maison</a></p>
+      </dd>
+      <dt>25 Oct</dt>
+      <dd>
+        <h2>Return Flight</h2>
+        <details>
+          <summary>Lufthansa LH233</summary>
+          <dl>
+            <dt>Depart</dt>
+            <dd>Rome (FCO)</dd>
+            <dd>1:25 PM</dd>
+            <dt>Arrive</dt>
+            <dd>Frankfurt (FRA)</dd>
+            <dd>3:20 PM</dd>
+          </dl>
+        </details>
+        <details>
+          <summary>United UA927</summary>
+          <dl>
+            <dt>Depart</dt>
+            <dd>Frankfurt (FRA)</dd>
+            <dd>5:25 PM</dd>
+            <dt>Arrive</dt>
+            <dd>San Francisco (SFO)</dd>
+            <dd>7:45 PM</dd>
+          </dl>
+        </details>
+      </dd>
+    </dl>
+  </body>
+</html>
