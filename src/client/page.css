@@ -22,7 +22,7 @@ header {
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  padding: 0 var(--size-spacing-small);
+  padding: var(--size-spacing-small);
   background: var(--color-background-header);
   color: var(--color-text);
 }
