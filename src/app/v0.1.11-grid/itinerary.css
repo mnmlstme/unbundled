@@ -1,0 +1,30 @@
+.itinerary {
+  display: grid;
+  grid-template-columns: [start] auto [header] auto [info] 1fr [end];
+  gap: var(--size-spacing-medium) var(--size-spacing-large);
+  align-items: baseline;
+  margin: var(--size-spacing-small);
+}
+
+.itinerary > dt {
+  grid-column: start;
+}
+
+.itinerary > dd {
+  grid-column: header / end;
+}
+
+.itinerary > .transportation h2 {
+  font-weight: var(--weight-font-title-muted);
+  color: inherit;
+}
+
+.itinerary > .destination {
+  display: contents;
+}
+
+.itinerary > .destination header {
+  flex-direction: column;
+  align-self: stretch;
+  padding: 0 var(--size-spacing-small);
+}
