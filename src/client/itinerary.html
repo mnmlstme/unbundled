@@ -1,6 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,200;0,400;0,700;1,700&family=Merriweather:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
     <style>
       :root {
         /* Design Tokens */
@@ -12,7 +19,14 @@
         --color-text: rgb(51 51 51);
         --color-text-heading: var(--color-accent);
         --color-text-inverted: rgb(255 255 255);
+        --font-body: Merriweather, Baskerville, Cambria, "Noto Serif",
+          "Bitstream Charter", serif;
+        --font-display: Kanit, "Trebuchet MS", Calibri, Roboto, "Segoe UI",
+          Ubuntu, sans-serif;
         --lineweight-rule: 1px;
+        --size-font-body: 0.875rem;
+        --size-font-title: 2.5rem;
+        --style-font-title: italic;
       }
     </style>
     <style>
@@ -37,6 +51,23 @@
         border-top: var(--lineweight-rule) solid var(--color-accent);
       }
     </style>
+    <style>
+      body {
+        font: var(--size-font-body) var(--font-body);
+      }
+      header,
+      h1,
+      h2,
+      h3,
+      summary,
+      dt {
+        font-family: var(--font-display);
+      }
+      h1 {
+        font-size: var(--size-font-title);
+        font-style: var(--style-font-title);
+      }
+    </style>
   </head>
   <body>
     <header>
@@ -49,7 +80,7 @@
         <h2>Outbound Flight</h2>
         <details>
           <summary>United UA926</summary>
-          <dl>
+          <dl class="timings">
             <dt>Depart</dt>
             <dd>San Francisco (SFO)</dd>
             <dd>7:05 PM</dd>
