@@ -1,12 +1,48 @@
-<h1>Chapter 5. Patterns for Reuse</h1>
-<p>Don't Repeat Yourself</p>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Patterns for Reuse</title>
+<script type="importmap">
+{ "imports": {"@cre.ative/kram-11ty/runtime":"/modules/@cre.ative/kram-11ty/runtime.mjs","@cre.ative/kram-11ty/styles":"/modules/@cre.ative/kram-11ty/styles.css"} }
+</script>
+<link rel="stylesheet" href="/modules/@cre.ative/kram-11ty/styles.css">
+<script type="module">
+import {init, register} from "@cre.ative/kram-11ty/runtime";
+init({});
+
+</script>
+</head>
+<body>
+<kram-main>
+<h1 slot="title">Patterns for Reuse</h1>
+<kram-toc slot="nav"><ol>
+<li data-idref="scene-1">Chapter 5. Patterns for Reuse</li>
+</ol></kram-toc>
+<kram-flow><kram-scene 
+        scene="1" 
+        language="null" 
+        norender><h1 slot="title">Chapter 5. Patterns for Reuse</h1>
+
+<p>Don&rsquo;t Repeat Yourself</p>
+
 <p>In this chapter:</p>
-<ul>
-<li>Modular CSS</li>
-<li><a href="./webc">Web Components</a></li>
-<li>Javascript (ES6) Modules</li>
+
+<ul><li><p>Modular CSS</p>
+</li>
+
+<li><p><a href="./webc">Web Components</a></p>
+</li>
+
+<li><p>Javascript (ES6) Modules</p>
+</li>
 </ul>
+
 <p>Examples:</p>
-<ul>
-<li><a href="./itinerary">Itinerary Custom Element</a></li>
+
+<ul><li><p><a href="./itinerary">Itinerary Custom Element</a></p>
+</li>
 </ul>
+</kram-scene></kram-flow>
+</kram-main>
+</body>
+</html>

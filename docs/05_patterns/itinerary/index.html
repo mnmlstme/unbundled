@@ -1,675 +1,167 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
 <title>Itinerary Custom Element</title>
-<link rel="stylesheet" href="/styles/prism.css">
-<link rel="stylesheet" href="/styles/theme.css">
-<style>/* Kram: CSS in Scene 5 */
-:root {
-  /* Design Tokens */
-  --color-accent: rgb(42 143 42);
-  --color-background-header: var(--color-accent);
-  --color-background-page: rgb(237 233 217);
-  --color-background-section: rgb(248 250 2248);
-  --color-border-section: var(--color-accent);
-  --color-link-inverted: rgb(255 208 0);
-  --color-link: var(--color-accent);
-  --color-text: rgb(51 51 51);
-  --color-text-heading: var(--color-accent);
-  --color-text-inverted: rgb(255 255 255);
-
-  --font-body: Merriweather, Baskerville, Cambria, "Noto Serif",
-    "Bitstream Charter", serif;
-  --font-display: Kanit, "Trebuchet MS", Calibri, Roboto, "Segoe UI", Ubuntu,
-    sans-serif;
-
-  --lineweight-border-thin: 1px;
-  --lineweight-rule: 1px;
-
-  --size-font-body: 0.875rem;
-  --size-font-title: 2.5rem;
-  --size-radius-medium: 0.5rem;
-  --size-spacing-small: 0.25rem;
-  --size-spacing-medium: 0.5rem;
-  --size-spacing-large: 1rem;
-
-  --style-font-title: italic;
-
-  --weight-font-body: 400;
-  --weight-font-title: 700;
-  --weight-font-title-muted: 200;
-}
-
-/* Kram: CSS in Scene 5 */
-* {
-  margin: 0;
-}
-body {
-  background: var(--color-background-page);
-  color: var(--color-text);
-  font: var(--size-font-body) var(--font-body);
-}
-a {
-  color: var(--color-link);
-}
-</style>
-<script type="module">// module Kram_f4bdd842_itinerary (ES6)
-          import { register } from "/scripts/oper.ative.js"
-          
-          console.log('Loading module "Kram_f4bdd842_itinerary"')
-          export function Program ({connectStore, initializeStore}) {
-            // JS Definition from scene 1
-class BlzAccommodation extends HTMLElement {
-  constructor() {
-    super();
-    let content = document.getElementById("blz-accommodation-template").content;
-    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
-  }
-}
-
-customElements.define("blz-accommodation", BlzAccommodation);
-
-// JS Definition from scene 2
-class BlzDestination extends HTMLElement {
-  constructor() {
-    super();
-    let content = document.getElementById("blz-destination-template").content;
-    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
-  }
-}
-
-customElements.define("blz-destination", BlzDestination);
-
-// JS Definition from scene 3
-class BlzExcursion extends HTMLElement {
-  constructor() {
-    super();
-    const content = document.getElementById("blz-excursion-template").content;
-    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
-  }
-
-  connectedCallback() {
-    const type = this.getAttribute("type");
-
-    console.log("Excursion:", type, this);
-
-    if (type) {
-      this._updateMessage(type);
-    }
-  }
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (name === "type") {
-      this._updateMessage(newValue);
-    }
-  }
-
-  _updateMessage(type) {
-    let message = this.shadowRoot.getElementById("message");
-    let place = this.shadowRoot.getElementById("place");
-
-    switch (type) {
-      case "walking-tour":
-        message.replaceChildren("Walking tour of ", place);
-        break;
-      default:
-        message.replaceChildren("Visit ", place);
-        break;
-    }
-  }
-}
-
-customElements.define("blz-excursion", BlzExcursion);
-
-// JS Definition from scene 4
-class BlzItinerary extends HTMLElement {
-  constructor() {
-    super();
-    let content = document.getElementById("blz-itinerary-template").content;
-    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
-  }
-}
-
-customElements.define("blz-itinerary", BlzItinerary);
-
-            return ({
-              
-            })
-          }
-          export function mount (mountpoint, initial) {
-            let Store = {
-              root: Object.assign({}, initial),
-            };
-            const connectStore = (path = ["root"]) => {
-              let root = Store;
-              path.forEach((key) => root = root[key]);
-              return ({
-                root,
-                get: (key) => root[key],
-                set: (key, value) => root[key] = value,
-                keys: () => Object.keys(root),
-              })};
-            const program = Program({connectStore})
-            return (n, container) => {
-              program[n-1].call(container)
+<script type="importmap">
+{ "imports": {"@cre.ative/kram-11ty/runtime":"/modules/@cre.ative/kram-11ty/runtime.mjs","@cre.ative/kram-11ty/styles":"/modules/@cre.ative/kram-11ty/styles.css"} }
+</script>
+<link rel="stylesheet" href="/modules/@cre.ative/kram-11ty/styles.css">
+<script type="module">
+import {init, register} from "@cre.ative/kram-11ty/runtime";
+init({});
+import("./templates.html")
+          .then((mod) => register(mod, "undefined", "html", (resource, container) => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(resource.default, 'text/html');
+            const body = doc.body;
+            for ( let def = body.firstElementChild; def; def=body.firstElementChild ) {
+              container.appendChild(def); }
+          }))
+import("./scenes.html")
+          .then((mod) => register(mod, "undefined", "html", (resource, container) => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(resource.default, 'text/html');
+            const body = doc.body;
+            const scenes = Object.fromEntries(
+              Array.prototype.map.call(body.children, (node) => [
+              node && node.dataset.scene, node ])
+              .filter(([num]) => Boolean(num)));
+            return function render (n, container) {
+              const scene = scenes[n]
+              if( scene ) {
+                for( let child = scene.firstElementChild; child; child = scene.firstElementChild ) {
+                  if ( child.tagName === 'SCRIPT' ) {
+                    const text = child.firstChild
+                    scene.removeChild(child)
+                    child = document.createElement('script')
+                    child.appendChild(text)
+                  } 
+                  container.appendChild(child) 
+                }
+              } 
             }
-          }
-          register("Kram_f4bdd842_itinerary", {Program, mount})
-        </script>
+          }))
+import("./styles.css")
+          .then((mod) => register(mod, "undefined", "css", (resource, container) => {
+          let sheet = document.createElement("style");
+          sheet.innerHTML = resource.default;
+          container.appendChild(sheet);
+        }))
+import("./module.js")
+          .then((mod) => register(mod, "Kram_a9f90145_itinerary", "js", function(resource, container, initial) {
+      if ( typeof (resource && resource.mount) === 'function' ) {
+        return resource.mount(container, initial)
+      }}))
+</script>
 </head>
 <body>
-<template id="blz-accommodation-template">
-  <p>Stay at <slot>*** Accommodation Name Goes HERE ***</slot></p>
-  <style>
-    * {
-      margin: 0;
-    }
-  </style>
-</template>
+<kram-main>
+<h1 slot="title">Itinerary Custom Element</h1>
+<kram-toc slot="nav"><ol>
+<li data-idref="scene-1">Itinerary with Custom Element Markup</li>
+<li data-idref="scene-2">Assembling Parts of the Destination</li>
+<li data-idref="scene-3">Specific Semantics with Custom Attributes</li>
+<li data-idref="scene-4">Container Controls Layout</li>
+<li data-idref="scene-5">Design Tokens</li>
+</ol></kram-toc>
+<kram-flow><kram-scene 
+        scene="1" 
+        language="html" 
+        ><kram-code slot="scenecode" data-language="html"><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-itinerary</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-destination</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>nights<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>name<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Venice<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dates<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>14 Oct - 18 Oct<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-accommodation</span><span class="token punctuation">></span></span><br>      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Locanda San Barnaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-accommodation</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span><span class="token punctuation">></span></span><br>      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Murano<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>walking<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Piazza San Marco<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-destination</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-itinerary</span><span class="token punctuation">></span></span></code></pre></kram-code><h1 slot="title">Itinerary with Custom Element Markup</h1>
 
-<template id="blz-destination-template">
-  <p><slot name="dates">*** Date Range ***</slot></p>
-  <header>
-    <h2><slot name="name">*** Name of Destination ***</slot></h2>
-    <p><slot name="nights">##</slot> nights</p>
-  </header>
-  <div class="list">
-    <slot>*** Accommodations and Excursions Go HERE ***</slot>
-  </div>
-  <style>
-    * {
-      margin: 0;
-    }
-    :host {
-      display: grid;
-      grid-template-columns: min-content auto 1fr;
-      gap: var(--size-spacing-medium) var(--size-spacing-large);
-    }
-    header {
-      --color-text: var(--color-text-inverted);
-      --color-text-heading: var(--color-text-inverted);
-      --color-link: var(--color-link-inverted);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: var(--size-spacing-small);
-      background: var(--color-background-header);
-      color: var(--color-text);
-    }
-    h2 {
-      color: var(--color-text-heading);
-      font-family: var(--font-display);
-    }
-    .list {
-      display: flex;
-      flex-direction: column;
-    }
-  </style>
-</template>
-
-<template id="blz-excursion-template">
-  <p id="message">
-    Visit <slot id="place">*** Place Visited Goes HERE ***</slot>
-  </p>
-  <style>
-    * {
-      margin: 0;
-    }
-  </style>
-</template>
-
-<template id="blz-itinerary-template">
-  <div class="itinerary">
-    <slot>*** Destinations and Transportation Go HERE ***</slot>
-  </div>
-  <style>
-    .itinerary {
-      display: grid;
-      grid-template-columns:
-        [start] auto [header] auto
-        [info] 1fr 2fr 1fr 2fr [end];
-      gap: var(--size-spacing-medium) var(--size-spacing-large);
-      align-items: baseline;
-      margin: var(--size-spacing-small);
-    }
-
-    ::slotted(*) {
-      display: subgrid;
-    }
-  </style>
-</template>
-
-
-<st-ative class="wourcuvmv"><script>
-  const STORE_CHANGE_EVENT = "store:change";
-
-  function createStore(eventTarget, initial = {}) {
-    let root = Object.assign({}, initial);
-
-    console.log("create Global Store for st-ative", JSON.stringify(root));
-
-    return new Proxy(root, {
-      get: (target, prop, receiver) => {
-        const value = Reflect.get(target, prop, receiver);
-        return value;
-      },
-      set: (target, prop, newValue, receiver) => {
-        const oldValue = root[prop];
-        const didSet = Reflect.set(target, prop, newValue, receiver);
-        if (didSet) {
-          eventTarget.dispatchEvent(changeEvent(prop, newValue, oldValue));
-        }
-        return didSet;
-      },
-    });
-  }
-
-  function changeEvent(prop, newValue, oldValue) {
-    // ref: https://infrequently.org/2021/03/reactive-data-modern-js/
-    let evt = new CustomEvent(STORE_CHANGE_EVENT, {
-      bubbles: true,
-      cancelable: true,
-    });
-    evt.oldValue = oldValue;
-    evt.value = newValue;
-    evt.property = prop;
-
-    return evt;
-  }
-
-  customElements.define(
-    "st-ative",
-    class extends HTMLElement {
-      constructor() {
-        super();
-
-        const storeRoot = [];
-        let Store = createStore(this, {
-          "current-scene": 1,
-        });
-
-        this.dataset.provider = JSON.stringify(storeRoot);
-
-        this.observe = (key, watcher) => {
-          if (watcher) {
-            this.addEventListener(STORE_CHANGE_EVENT, (evt) => {
-              if (evt.property === key) {
-                watcher(evt.value, evt.oldValue);
-              }
-            });
-          }
-          return { value: Store[key] };
-        };
-
-        this.bind = (key, watcher) => {
-          const observation = this.observe(key, watcher);
-          return {
-            get: () => Store[key],
-            set: (newValue) => (Store[key] = newValue),
-            ...observation,
-          };
-        };
-
-        console.log("Store provider constructed");
-      }
-    }
-  );
-</script>
-
-<!-- template -->
-<article>
-  
-<navig-ative class="wguho-1wx"><!-- template --><footer>
-  <h6><span>Itinerary Custom Element
-</span></h6>
-  <span>
-    <button name="previous">Previous</button>
-    <input width="6" type="number" min="1" value="1">
-    <button name="next">Next</button>
-  </span>
-</footer>
-
-<style>.wguho-1wx{height:var(--heightFooter)}.wguho-1wx footer{display:flex;flex-direction:row;padding:0.5rem;gap:0.5rem;justify-content:space-between;align-items:baseline}.wguho-1wx footer>*{margin:0}@media print{.wguho-1wx footer{display:none}}</style>
-<!-- /template -->
-
-<script>
-  console.log("Defining navig-ative...");
-
-  customElements.define(
-    "navig-ative",
-    class extends HTMLElement {
-      connectedCallback() {
-        let provider = this.closest("[data-provider]");
-        let numberInput = this.querySelector(':scope input[type="number"]');
-        let previousButton = this.querySelector(
-          ':scope button[name="previous"]'
-        );
-        let nextButton = this.querySelector(':scope button[name="next"]');
-
-        console.log("Navig-ative attempting to connect...", provider);
-
-        if (provider) {
-          const { get, set } = provider.bind(
-            "current-scene",
-            (newValue) => (numberInput.value = newValue)
-          );
-
-          numberInput.value = get();
-
-          numberInput.addEventListener("change", () => set(numberInput.value));
-
-          previousButton.addEventListener("click", () => set(get() - 1));
-
-          nextButton.addEventListener("click", () => {
-            set(get() + 1);
-          });
-
-          console.log("Consolid-ative (webc)");
-        }
-      }
-    }
-  );
-</script>
-</navig-ative>
-<consolid-ative class="wqa5gi5a4"><!-- <template> for consolid-ative --><main class="layout">
-  
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <blz-itinerary>
-  <blz-destination>
-    <span slot="nights">4</span>
-    <span slot="name">Venice</span>
-    <span slot="dates">14 Oct - 18 Oct</span>
-    <blz-accommodation>
-      <a href="#">Locanda San Barnaba</a>
-    </blz-accommodation>
-    <blz-excursion>
-      <a href="#">Murano</a>
-    </blz-excursion>
-    <blz-excursion type="walking-tour">
-      <a href="#">Piazza San Marco</a>
-    </blz-excursion>
-  </blz-destination>
-</blz-itinerary>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-itinerary</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-destination</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>nights<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>name<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Venice<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dates<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>14 Oct - 18 Oct<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-accommodation</span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Locanda San Barnaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-accommodation</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Murano<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>walking-tour<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Piazza San Marco<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-destination</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-itinerary</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h1>Itinerary with Custom Element Markup</h1>
-
-<p>Here’s how you might mark up the first destination of the itinerary
+<p>Here&rsquo;s how you might mark up the first destination of the itinerary
 with much greater precision than you were able to do in HTML
-I’ve created some new tag names so I can later define very semantics.
-And because those semantics are specific to our application, Blazing Travels, I’ve put
+I&rsquo;ve created some new tag names so I can later define very semantics.
+And because those semantics are specific to our application, Blazing Travels, I&rsquo;ve put
 a prefix of <code data-mark-around="`">blz-</code> on each of the tag names.
-This way, there is no ambiguity, either with standard HTML tags—which are guaranteed to
-never include a hyphen—or the information architecture of some other project.</p>
+This way, there is no ambiguity, either with standard HTML tags&mdash;which are guaranteed to
+never include a hyphen&mdash;or custom elements in other projects.</p>
 
-<p>Try loading this markup into a browser, and you will just see the place names.
+<p>Try loading this markup into a browser, and you will just see the text in the three <code data-mark-around="`">&lt;span&gt;</code>
+elements and the three links, all one one line.
 If you inspect the page in Developer Tools, though, you will see the element hierarchy.
 For any element with an unrecognized tag name, the browser just displays its contents.
-Since the <code data-mark-around="`">&lt;blz-place&gt;</code> elements contain text—which the browser is able to present—that text
-is displayed.</p>
+That&rsquo;s why only the <code data-mark-around="`">&lt;span&gt;</code> elements and <code data-mark-around="`">&lt;a&gt;</code> elements are displayed.</p>
 
-<p>If you want to do anything else—you need to <em data-mark-around="_">register</em> the tag name as a custom element.
+<p>If you want to do anything else&mdash;you need to <em data-mark-around="_">register</em> the tag name as a custom element.
 And that must be done using Javascript.</p>
 
 <p>So you have to learn Javascript. Yeah, not only that, you need to learn Javascript classes,
 which are nothing like the <code data-mark-around="`">class</code> attribute in HTML.
 But the good part of this, is that much of the code that defines each of these custom
 elements can be written in HTML/CSS.
-You will actually end up re-using a lot of the HTML and CSS that you wrote previously.</p>
+You will actually end up re-using a lot of the HTML and CSS that you wrote previously.
+Before getting to Javascript, I&rsquo;ll show you the HTML and CSS required to define
+your own custom element.</p>
 
-<ide-ative data-language="html" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>blz-accommodation-template<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span>Stay at <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">&gt;</span></span>*** Accommodation Name Goes HERE ***<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">&gt;</span></span><span class="token style"><span class="token language-css">
-    <span class="token selector">*</span> <span class="token punctuation">{</span>
-      <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-  </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<p>HTML <code data-mark-around="`">&lt;template&gt;</code> elements can be put almost anywhere, but putting them in the <code data-mark-around="`">&lt;head&gt;</code> keeps
+<kram-code data-language="html"><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>blz-accommodation-template<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span>Stay at <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">></span></span>*** Accommodation Name Goes HERE ***<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">></span></span><span class="token style"><span class="token language-css"><br>    <span class="token selector">*</span> <span class="token punctuation">{</span><br>      <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br>  </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">></span></span></code></pre></kram-code>
+<p>Custom elements are defined in HTML using the <code data-mark-around="`">&lt;template&gt;</code> element.
+HTML <code data-mark-around="`">&lt;template&gt;</code> elements can be put almost anywhere, but putting them in the <code data-mark-around="`">&lt;head&gt;</code> keeps
 them separate from content.</p>
 
-<p>The <code data-mark-around="`">&lt;slot&gt;</code> element is a placeholder. The contents of the <code data-mark-around="`">&lt;blz-place&gt;</code> element will be
-inserted there. The text “Some Place Name” will only appear if <code data-mark-around="`">&lt;blz-place&gt;</code> is empty.</p>
+<p>The <code data-mark-around="`">&lt;slot&gt;</code> element is a placeholder. The contents of the <code data-mark-around="`">&lt;blz-accommodation&gt;</code> element will be
+inserted there. The text &ldquo;<strong data-mark-around="**">_ &mldr; _</strong>&rdquo; will only appear if <code data-mark-around="`">&lt;blz-accommodation&gt;</code> is empty.</p>
 
-<p>Now for the Javascript code to register the <code data-mark-around="`">blz-place</code> element and connect it to
-the <code data-mark-around="`">&lt;template&gt;</code>.
+<p>The template also contains a <code data-mark-around="`">&lt;style&gt;</code> element, which, like the <code data-mark-around="`">&lt;style&gt;</code> element within a <code data-mark-around="`">&lt;head&gt;</code>
+element, contains CSS code.
+The difference, when <code data-mark-around="`">&lt;style&gt;</code> is used within a template, is that the CSS rules <em data-mark-around="_">only</em>
+affect the elements in the template.
+Moreover, the elements in the template are <em data-mark-around="_">not</em> affected by any CSS anywhere else in the document,
+including <code data-mark-around="`">&lt;style&gt;</code> elements, and linked stylesheets.</p>
+
+<aside>Shadow DOM vs light DOM. CSS properties not inherited across shadow DOM boundary.</aside>
+
+<p>Now for the Javascript code to register the tag name <code data-mark-around="`">blz-accommodation</code> and connect
+it with the <code data-mark-around="`">&lt;template&gt;</code>.
 All Javascript goes in a <code data-mark-around="`">&lt;script&gt;</code> element.
-For now, we’ll keep all <code data-mark-around="`">&lt;script&gt;</code> element in the <code data-mark-around="`">&lt;head&gt;</code>.
+For now, we&rsquo;ll keep all <code data-mark-around="`">&lt;script&gt;</code> element in the <code data-mark-around="`">&lt;head&gt;</code>.
 First, you need to define a <code data-mark-around="`">class</code>.</p>
 
-<ide-ative data-language="js" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">BlzAccommodation</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
-  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">let</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"blz-accommodation-template"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span>
-    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">"open"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>content<span class="token punctuation">.</span><span class="token function">cloneNode</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
+<kram-code data-language="js"><pre class="language-js"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">BlzAccommodation</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span><br>  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token keyword">let</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"blz-accommodation-template"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span><br>    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">"open"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>content<span class="token punctuation">.</span><span class="token function">cloneNode</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><br><br>customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">"blz-accommodation"</span><span class="token punctuation">,</span> BlzAccommodation<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></kram-code>
+<aside>Need some basic Javascript syntax  here</aside>
 
-customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">"blz-accommodation"</span><span class="token punctuation">,</span> BlzAccommodation<span class="token punctuation">)</span><span class="token punctuation">;</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
 <p>The class must extend the standard Javascript class <code data-mark-around="`">HTMLElement</code>, which means it
 has all the capabilities of any other HTML element.</p>
 
-<p>By registering the tag name <code data-mark-around="`">blz-place</code> and linking it to class <code data-mark-around="`">BlzPlace</code>,
-you are going to tell the browser to use class <code data-mark-around="`">BlzPlace</code> instead of <code data-mark-around="`">HTMLElement</code>
-to construct a new element node in the <em data-mark-around="_">DOM</em>—the Document Object Model.
+<p>By registering the tag name <code data-mark-around="`">blz-accommodation</code> and linking it to class <code data-mark-around="`">BlzPlace</code>,
+you are going to tell the browser to use class <code data-mark-around="`">BlzAccommodation</code> instead of <code data-mark-around="`">HTMLElement</code>
+to construct a new element node in the <em data-mark-around="_">DOM</em>&mdash;the Document Object Model.
 For now, this line can go in the same <code data-mark-around="`">&lt;script&gt;</code> tag as the class definition above.</p>
 
-</section>
+<aside>Need to know about the DOM.</aside>
+</kram-scene>
+<kram-scene 
+        scene="2" 
+        language="html" 
+        ><kram-code slot="scenecode" data-language="html"><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-destination</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>nights<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>name<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Venice<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dates<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>14 Oct - 18 Oct<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-accommodation</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Locanda San Barnaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-accommodation</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Murano<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>walking<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Piazza San Marco<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-destination</span><span class="token punctuation">></span></span></code></pre></kram-code><h2>Assembling Parts of the Destination</h2>
 
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <blz-destination>
-  <span slot="nights">4</span>
-  <span slot="name">Venice</span>
-  <span slot="dates">14 Oct - 18 Oct</span>
-  <blz-accommodation><a href="#">Locanda San Barnaba</a></blz-accommodation>
-  <blz-excursion><a href="#">Murano</a></blz-excursion>
-  <blz-excursion type="walking-tour"><a href="#">Piazza San Marco</a></blz-excursion>
-</blz-destination>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-destination</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>nights<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>name<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Venice<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dates<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>14 Oct - 18 Oct<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-accommodation</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Locanda San Barnaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-accommodation</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Murano<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>walking-tour<span class="token punctuation">"</span></span>
-    <span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Piazza San Marco<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span>
-  <span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-destination</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Assembling Parts of the Destination</h2>
-
-<p>This <code data-mark-around="`">blz-destination</code> contains four elements, the first of which has a <code data-mark-around="`">slot="name"</code>
+<p>This <code data-mark-around="`">blz-destination</code> contains six elements, the first three of which have a <code data-mark-around="`">slot</code>
 attribute.
-This is a <em data-mark-around="_">named slot</em>, and there is a matching <code data-mark-around="`">&lt;slot name="name"&gt;</code> in the template.
-There is another named slot, <code data-mark-around="`">nights</code>.
-Note that the template has switched the order in which these values are displayed.</p>
+These are <em data-mark-around="_">named slots</em>.
+When a direct descendent of a custom element has a <code data-mark-around="`">slot</code> attribute,
+that element will be used as the contents of the <code data-mark-around="`">&lt;slot&gt;</code>
+in the template that has the same name.
+For example, the <code data-mark-around="`">&lt;span slot=&quot;name&quot;&gt;</code> element will become the
+content of the <code data-mark-around="`">&lt;slot name=&quot;name&quot;&gt;</code> slot.</p>
 
-<ide-ative data-language="html" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>blz-destination-template<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dates<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>*** Date Range ***<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>header</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>name<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>*** Name of Destination ***<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>nights<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>##<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span> nights<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>header</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>list<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">&gt;</span></span>*** Accommodations and Excursions Go HERE ***<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">&gt;</span></span><span class="token style"><span class="token language-css">
-    <span class="token selector">*</span> <span class="token punctuation">{</span>
-      <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token selector">:host</span> <span class="token punctuation">{</span>
-      <span class="token property">display</span><span class="token punctuation">:</span> grid<span class="token punctuation">;</span>
-      <span class="token property">grid-template-columns</span><span class="token punctuation">:</span> min-content auto 1fr<span class="token punctuation">;</span>
-      <span class="token property">gap</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-spacing-medium<span class="token punctuation">)</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-spacing-large<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token selector">header</span> <span class="token punctuation">{</span>
-      <span class="token property">--color-text</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-text-inverted<span class="token punctuation">)</span><span class="token punctuation">;</span>
-      <span class="token property">--color-text-heading</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-text-inverted<span class="token punctuation">)</span><span class="token punctuation">;</span>
-      <span class="token property">--color-link</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-link-inverted<span class="token punctuation">)</span><span class="token punctuation">;</span>
-      <span class="token property">display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span>
-      <span class="token property">flex-direction</span><span class="token punctuation">:</span> column<span class="token punctuation">;</span>
-      <span class="token property">justify-content</span><span class="token punctuation">:</span> space-between<span class="token punctuation">;</span>
-      <span class="token property">padding</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-spacing-small<span class="token punctuation">)</span><span class="token punctuation">;</span>
-      <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-background-header<span class="token punctuation">)</span><span class="token punctuation">;</span>
-      <span class="token property">color</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-text<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token selector">h2</span> <span class="token punctuation">{</span>
-      <span class="token property">color</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-text-heading<span class="token punctuation">)</span><span class="token punctuation">;</span>
-      <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--font-display<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-    <span class="token selector">.list</span> <span class="token punctuation">{</span>
-      <span class="token property">display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span>
-      <span class="token property">flex-direction</span><span class="token punctuation">:</span> column<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-  </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
+<p>Take a look at the following template for this <code data-mark-around="`">&lt;blz-destination&gt;</code> custom element.
+Note that it contains four <code data-mark-around="`">&lt;slot&gt;</code> elements, three of which have <code data-mark-around="`">name</code> attributes.</p>
 
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
+<kram-code data-language="html"><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>blz-destination-template<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dates<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>*** Date Range ***<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>header</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>name<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>*** Name of Destination ***<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span> <span class="token attr-name">name</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>nights<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>##<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">></span></span> nights<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>header</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>list<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">></span></span>*** Accommodations and Excursions Go HERE ***<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">></span></span><span class="token style"><span class="token language-css"><br>    <span class="token selector">*</span> <span class="token punctuation">{</span><br>      <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br>    <span class="token selector">:host</span> <span class="token punctuation">{</span><br>      <span class="token property">display</span><span class="token punctuation">:</span> grid<span class="token punctuation">;</span><br>      <span class="token property">grid-template-columns</span><span class="token punctuation">:</span> [dates] auto [header] 1fr [info] 3fr [info-end]<span class="token punctuation">;</span><br>      <span class="token property">gap</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-spacing-medium<span class="token punctuation">)</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-spacing-large<span class="token punctuation">)</span><span class="token punctuation">;</span><br>      <span class="token property">align-items</span><span class="token punctuation">:</span> baseline<span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br>    <span class="token selector">header</span> <span class="token punctuation">{</span><br>      <span class="token property">--color-text</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-text-inverted<span class="token punctuation">)</span><span class="token punctuation">;</span><br>      <span class="token property">--color-text-heading</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-text-inverted<span class="token punctuation">)</span><span class="token punctuation">;</span><br>      <span class="token property">--color-link</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-link-inverted<span class="token punctuation">)</span><span class="token punctuation">;</span><br>      <span class="token property">display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span><br>      <span class="token property">flex-direction</span><span class="token punctuation">:</span> column<span class="token punctuation">;</span><br>      <span class="token property">justify-content</span><span class="token punctuation">:</span> space-between<span class="token punctuation">;</span><br>      <span class="token property">height</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span><br>      <span class="token property">box-sizing</span><span class="token punctuation">:</span> border-box<span class="token punctuation">;</span><br>      <span class="token property">padding</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-spacing-small<span class="token punctuation">)</span><span class="token punctuation">;</span><br>      <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-background-header<span class="token punctuation">)</span><span class="token punctuation">;</span><br>      <span class="token property">color</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-text<span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br>    <span class="token selector">h2</span> <span class="token punctuation">{</span><br>      <span class="token property">color</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-text-heading<span class="token punctuation">)</span><span class="token punctuation">;</span><br>      <span class="token property">font-family</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--font-display<span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br>    <span class="token selector">.list</span> <span class="token punctuation">{</span><br>      <span class="token property">display</span><span class="token punctuation">:</span> flex<span class="token punctuation">;</span><br>      <span class="token property">flex-direction</span><span class="token punctuation">:</span> column<span class="token punctuation">;</span><br>      <span class="token property">grid-column</span><span class="token punctuation">:</span> info / info-end<span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br>  </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">></span></span></code></pre></kram-code>
 <p>We need to bring in the reset and some of <code data-mark-around="`">page.css</code> because CSS declarations
 are not inherited from the light DOM to the shadow DOM.</p>
 
-<p>When you created the <code data-mark-around="`">&lt;blz-destination&gt;</code> element, you supplied an attribute,
-<code data-mark-around="`">nights="4"</code>.
-This attribute is not part of the HTML standard—it is a <em data-mark-around="_">custom</em> attribute.
-You will need to write some code in the <code data-mark-around="`">BlzDestination</code> class to copy that value
-into the <code data-mark-around="`">&lt;p&gt;</code> element provided for it.
-This is similar to using a slot.</p>
-
-<ide-ative data-language="js" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">BlzDestination</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
-  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">let</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"blz-destination-template"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span>
-    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">"open"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>content<span class="token punctuation">.</span><span class="token function">cloneNode</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-
-customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">"blz-destination"</span><span class="token punctuation">,</span> BlzDestination<span class="token punctuation">)</span><span class="token punctuation">;</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <blz-destination>
-  <span slot="nights">4</span>
-  <span slot="name">Venice</span>
-  <span slot="dates">14 Oct - 18 Oct</span>
-  <blz-accommodation><a href="#">Locanda San Barnaba</a></blz-accommodation>
-  <blz-excursion><a href="#">Murano</a></blz-excursion>
-  <blz-excursion type="walking-tour"><a href="#">Piazza San Marco</a></blz-excursion>
-</blz-destination>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-destination</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>nights<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>name<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Venice<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dates<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>14 Oct - 18 Oct<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-accommodation</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Locanda San Barnaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-accommodation</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Murano<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>walking-tour<span class="token punctuation">"</span></span>
-    <span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Piazza San Marco<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span>
-  <span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-destination</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Specific Semantics with Custom Attributes</h2>
+<kram-code data-language="js"><pre class="language-js"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">BlzDestination</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span><br>  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token keyword">let</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"blz-destination-template"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span><br>    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">"open"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>content<span class="token punctuation">.</span><span class="token function">cloneNode</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><br><br>customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">"blz-destination"</span><span class="token punctuation">,</span> BlzDestination<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></kram-code></kram-scene>
+<kram-scene 
+        scene="3" 
+        language="html" 
+        ><kram-code slot="scenecode" data-language="html"><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-destination</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>nights<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>name<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Venice<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dates<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>14 Oct - 18 Oct<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-accommodation</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Locanda San Barnaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-accommodation</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Murano<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>walking<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Piazza San Marco<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-destination</span><span class="token punctuation">></span></span></code></pre></kram-code><h2>Specific Semantics with Custom Attributes</h2>
 
 <p>There are different types of excursions that we want to represent differently.
-In the prototype, the text “Walking tour of” was part of the content.
+In the prototype, the text &ldquo;Walking tour of&rdquo; was part of the content.
 But you would like all walking tours to use the same text,
 or perhaps, eventually, an icon.
-This text could also be translated into a persons’ preferred language.
+This text could also be translated into a persons&rsquo; preferred language.
 In short, this text should not be part of the data, but the interface.</p>
 
 <p>One way to remove this text from the data of the app and make part of the interface,
@@ -679,308 +171,32 @@ is categorize excursions by type and specify the type through a custom attribute
 The difference is that the <code data-mark-around="`">&lt;p&gt;</code> has an <code data-mark-around="`">id</code>, which will allow us to access it easily from
 Javascript.</p>
 
-<ide-ative data-language="html" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>blz-excursion-template<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>message<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-    Visit <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>place<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>*** Place Visited Goes HERE ***<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">&gt;</span></span><span class="token style"><span class="token language-css">
-    <span class="token selector">*</span> <span class="token punctuation">{</span>
-      <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-  </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
+<kram-code data-language="html"><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>blz-excursion-template<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>message<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>    Visit <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>place<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>*** Place Visited Goes HERE ***<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">></span></span><span class="token style"><span class="token language-css"><br>    <span class="token selector">*</span> <span class="token punctuation">{</span><br>      <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br>  </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">></span></span></code></pre></kram-code>
+<p>There&rsquo;s no feature for pulling attribute values into an HTML template,
+like <code data-mark-around="`">&lt;slot&gt;</code> does for contents.
+This must be done by Javascript code in the custom element&rsquo;s class.</p>
 
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<p>There’s no feature in HTML templates for accessing attributes, like <code data-mark-around="`">&lt;slot&gt;</code> provides for contents.
-This must be done by Javascript code in the custom element’s class.</p>
+<kram-code data-language="js"><pre class="language-js"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">BlzExcursion</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span><br>  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token keyword">const</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"blz-excursion-template"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span><br>    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">"open"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>content<span class="token punctuation">.</span><span class="token function">cloneNode</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><br><br>  <span class="token function">connectedCallback</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">const</span> type <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>    <span class="token keyword">if</span> <span class="token punctuation">(</span>type<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>      <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">_updateMessage</span><span class="token punctuation">(</span>type<span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><br><br>  <span class="token function">attributeChangedCallback</span><span class="token punctuation">(</span><span class="token parameter">name<span class="token punctuation">,</span> oldValue<span class="token punctuation">,</span> newValue</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">if</span> <span class="token punctuation">(</span>name <span class="token operator">===</span> <span class="token string">"type"</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>      <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">_updateMessage</span><span class="token punctuation">(</span>newValue<span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><br><br>  <span class="token function">_updateMessage</span><span class="token punctuation">(</span><span class="token parameter">type</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">let</span> message <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token keyword">let</span> place <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"place"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>    <span class="token keyword">switch</span> <span class="token punctuation">(</span>type<span class="token punctuation">)</span> <span class="token punctuation">{</span><br>      <span class="token keyword">case</span> <span class="token string">"bus"</span><span class="token operator">:</span><br>        message<span class="token punctuation">.</span><span class="token function">replaceChildren</span><span class="token punctuation">(</span><span class="token string">"Take a city bus to "</span><span class="token punctuation">,</span> place<span class="token punctuation">)</span><span class="token punctuation">;</span><br>        <span class="token keyword">break</span><span class="token punctuation">;</span><br>      <span class="token keyword">case</span> <span class="token string">"metro"</span><span class="token operator">:</span><br>        message<span class="token punctuation">.</span><span class="token function">replaceChildren</span><span class="token punctuation">(</span><span class="token string">"Travel to "</span><span class="token punctuation">,</span> place<span class="token punctuation">,</span> <span class="token string">" via Metro"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>        <span class="token keyword">break</span><span class="token punctuation">;</span><br>      <span class="token keyword">case</span> <span class="token string">"train"</span><span class="token operator">:</span><br>        message<span class="token punctuation">.</span><span class="token function">replaceChildren</span><span class="token punctuation">(</span>place<span class="token punctuation">,</span> <span class="token string">" by train"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>        <span class="token keyword">break</span><span class="token punctuation">;</span><br>      <span class="token keyword">case</span> <span class="token string">"walking"</span><span class="token operator">:</span><br>        message<span class="token punctuation">.</span><span class="token function">replaceChildren</span><span class="token punctuation">(</span><span class="token string">"Tour "</span><span class="token punctuation">,</span> place<span class="token punctuation">,</span> <span class="token string">" on foot"</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>        <span class="token keyword">break</span><span class="token punctuation">;</span><br>      <span class="token keyword">default</span><span class="token operator">:</span><br>        message<span class="token punctuation">.</span><span class="token function">replaceChildren</span><span class="token punctuation">(</span><span class="token string">"Visit "</span><span class="token punctuation">,</span> place<span class="token punctuation">)</span><span class="token punctuation">;</span><br>        <span class="token keyword">break</span><span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><br><br>customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">"blz-excursion"</span><span class="token punctuation">,</span> BlzExcursion<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></kram-code>
+<p>You shouldn&rsquo;t normally hard-code messages like this.
+In later chapters, you&rsquo;ll learn how to store interface copy so that it can be
+easily updated and localized.</p>
+</kram-scene>
+<kram-scene 
+        scene="4" 
+        language="html" 
+        ><kram-code slot="scenecode" data-language="html"><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-itinerary</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-destination</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>nights<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>name<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Venice<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dates<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>14 Oct - 18 Oct<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-accommodation</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Locanda San Barnaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-accommodation</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Murano<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>walking<span class="token punctuation">"</span></span><br>      <span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Piazza San Marco<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><br>    <span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-destination</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-destination</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>nights<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>3<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>name<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Florence<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dates<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>18 Oct - 21 Oct<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-accommodation</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Hotel Perseo<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-accommodation</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>walking<span class="token punctuation">"</span></span><br>      <span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Duomo, Campanile<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><br>    <span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>train<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Lucca<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>bus<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Fiesole<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-destination</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-destination</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>nights<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>name<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Rome<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dates<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>21 Oct - 25 Oct<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-accommodation</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>La Piccola Maison<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-accommodation</span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>metro<span class="token punctuation">"</span></span><br>      <span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Forum, Colosseum, Palatino Hill<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><br>    <span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>metro<span class="token punctuation">"</span></span><br>      <span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Vatican, St Peter's<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><br>    <span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-destination</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-itinerary</span><span class="token punctuation">></span></span></code></pre></kram-code><h2>Container Controls Layout</h2>
 
-<ide-ative data-language="js" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">BlzExcursion</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
-  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">const</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"blz-excursion-template"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span>
-    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">"open"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>content<span class="token punctuation">.</span><span class="token function">cloneNode</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token punctuation">}</span>
+<kram-code data-language="html"><pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>blz-itinerary-template<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>itinerary<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><br>    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">></span></span>*** Destinations and Transportation Go HERE ***<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span><br>  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">></span></span><span class="token style"><span class="token language-css"><br>    <span class="token selector">.itinerary</span> <span class="token punctuation">{</span><br>      <span class="token property">display</span><span class="token punctuation">:</span> grid<span class="token punctuation">;</span><br>      <span class="token property">grid-template-columns</span><span class="token punctuation">:</span><br>        [start] auto [header] auto<br>        [info] 1fr 2fr 1fr 2fr [end]<span class="token punctuation">;</span><br>      <span class="token property">gap</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-spacing-medium<span class="token punctuation">)</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-spacing-large<span class="token punctuation">)</span><span class="token punctuation">;</span><br>      <span class="token property">align-items</span><span class="token punctuation">:</span> baseline<span class="token punctuation">;</span><br>      <span class="token property">margin</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-spacing-small<span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br><br>    <span class="token selector">::slotted(*)</span> <span class="token punctuation">{</span><br>      <span class="token property">grid-column</span><span class="token punctuation">:</span> start / end<span class="token punctuation">;</span><br>      <span class="token property">grid-template-columns</span><span class="token punctuation">:</span> subgrid<span class="token punctuation">;</span><br>    <span class="token punctuation">}</span><br>  </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">></span></span><br><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">></span></span></code></pre></kram-code>
+<kram-code data-language="js"><pre class="language-js"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">BlzItinerary</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span><br>  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>    <span class="token keyword">let</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"blz-itinerary-template"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span><br>    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">"open"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>content<span class="token punctuation">.</span><span class="token function">cloneNode</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token punctuation">}</span><br><span class="token punctuation">}</span><br><br>customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">"blz-itinerary"</span><span class="token punctuation">,</span> BlzItinerary<span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre></kram-code></kram-scene>
+<kram-scene 
+        scene="5" 
+        language="null" 
+        norender><h2>Design Tokens</h2>
 
-  <span class="token function">connectedCallback</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">const</span> type <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">getAttribute</span><span class="token punctuation">(</span><span class="token string">"type"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-    console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">"Excursion:"</span><span class="token punctuation">,</span> type<span class="token punctuation">,</span> <span class="token keyword">this</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-    <span class="token keyword">if</span> <span class="token punctuation">(</span>type<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-      <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">_updateMessage</span><span class="token punctuation">(</span>type<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-  <span class="token punctuation">}</span>
-
-  <span class="token function">attributeChangedCallback</span><span class="token punctuation">(</span><span class="token parameter">name<span class="token punctuation">,</span> oldValue<span class="token punctuation">,</span> newValue</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">if</span> <span class="token punctuation">(</span>name <span class="token operator">===</span> <span class="token string">"type"</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-      <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">_updateMessage</span><span class="token punctuation">(</span>newValue<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-  <span class="token punctuation">}</span>
-
-  <span class="token function">_updateMessage</span><span class="token punctuation">(</span><span class="token parameter">type</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">let</span> message <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"message"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">let</span> place <span class="token operator">=</span> <span class="token keyword">this</span><span class="token punctuation">.</span>shadowRoot<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"place"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-    <span class="token keyword">switch</span> <span class="token punctuation">(</span>type<span class="token punctuation">)</span> <span class="token punctuation">{</span>
-      <span class="token keyword">case</span> <span class="token string">"walking-tour"</span><span class="token operator">:</span>
-        message<span class="token punctuation">.</span><span class="token function">replaceChildren</span><span class="token punctuation">(</span><span class="token string">"Walking tour of "</span><span class="token punctuation">,</span> place<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">break</span><span class="token punctuation">;</span>
-      <span class="token keyword">default</span><span class="token operator">:</span>
-        message<span class="token punctuation">.</span><span class="token function">replaceChildren</span><span class="token punctuation">(</span><span class="token string">"Visit "</span><span class="token punctuation">,</span> place<span class="token punctuation">)</span><span class="token punctuation">;</span>
-        <span class="token keyword">break</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-
-customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">"blz-excursion"</span><span class="token punctuation">,</span> BlzExcursion<span class="token punctuation">)</span><span class="token punctuation">;</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-    <blz-itinerary>
-    <blz-destination>
-      <span slot="nights">4</span>
-      <span slot="name">Venice</span>
-      <span slot="dates">14 Oct - 18 Oct</span>
-      <blz-accommodation><a href="#">Locanda San Barnaba</a></blz-accommodation>
-      <blz-excursion><a href="#">Murano</a></blz-excursion>
-      <blz-excursion type="walking-tour"><a href="#">Piazza San Marco</a></blz-excursion>
-    </blz-destination>
-  </blz-itinerary>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html">  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-itinerary</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-destination</span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>nights<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>4<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>name<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Venice<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">slot</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>dates<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>14 Oct - 18 Oct<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-accommodation</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Locanda San Barnaba<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-accommodation</span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Murano<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">&gt;</span></span>
-      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>blz-excursion</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>walking-tour<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>#<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Piazza San Marco<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-excursion</span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-destination</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>blz-itinerary</span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Container Controls Layout</h2>
-
-<ide-ative data-language="html" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>template</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>blz-itinerary-template<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>itinerary<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>slot</span><span class="token punctuation">&gt;</span></span>*** Destinations and Transportation Go HERE ***<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>slot</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>style</span><span class="token punctuation">&gt;</span></span><span class="token style"><span class="token language-css">
-    <span class="token selector">.itinerary</span> <span class="token punctuation">{</span>
-      <span class="token property">display</span><span class="token punctuation">:</span> grid<span class="token punctuation">;</span>
-      <span class="token property">grid-template-columns</span><span class="token punctuation">:</span>
-        [start] auto [header] auto
-        [info] 1fr 2fr 1fr 2fr [end]<span class="token punctuation">;</span>
-      <span class="token property">gap</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-spacing-medium<span class="token punctuation">)</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-spacing-large<span class="token punctuation">)</span><span class="token punctuation">;</span>
-      <span class="token property">align-items</span><span class="token punctuation">:</span> baseline<span class="token punctuation">;</span>
-      <span class="token property">margin</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-spacing-small<span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-
-    <span class="token selector">::slotted(*)</span> <span class="token punctuation">{</span>
-      <span class="token property">display</span><span class="token punctuation">:</span> subgrid<span class="token punctuation">;</span>
-    <span class="token punctuation">}</span>
-  </span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>style</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>template</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<ide-ative data-language="js" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-js"><span class="token keyword">class</span> <span class="token class-name">BlzItinerary</span> <span class="token keyword">extends</span> <span class="token class-name">HTMLElement</span> <span class="token punctuation">{</span>
-  <span class="token function">constructor</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
-    <span class="token keyword">super</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-    <span class="token keyword">let</span> content <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">getElementById</span><span class="token punctuation">(</span><span class="token string">"blz-itinerary-template"</span><span class="token punctuation">)</span><span class="token punctuation">.</span>content<span class="token punctuation">;</span>
-    <span class="token keyword">this</span><span class="token punctuation">.</span><span class="token function">attachShadow</span><span class="token punctuation">(</span><span class="token punctuation">{</span> <span class="token literal-property property">mode</span><span class="token operator">:</span> <span class="token string">"open"</span> <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">appendChild</span><span class="token punctuation">(</span>content<span class="token punctuation">.</span><span class="token function">cloneNode</span><span class="token punctuation">(</span><span class="token boolean">true</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token punctuation">}</span>
-<span class="token punctuation">}</span>
-
-customElements<span class="token punctuation">.</span><span class="token function">define</span><span class="token punctuation">(</span><span class="token string">"blz-itinerary"</span><span class="token punctuation">,</span> BlzItinerary<span class="token punctuation">)</span><span class="token punctuation">;</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Design Tokens</h2>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span>
-  <span class="token comment">/* Design Tokens */</span>
-  <span class="token property">--color-accent</span><span class="token punctuation">:</span> <span class="token function">rgb</span><span class="token punctuation">(</span>42 143 42<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token property">--color-background-header</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-accent<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token property">--color-background-page</span><span class="token punctuation">:</span> <span class="token function">rgb</span><span class="token punctuation">(</span>237 233 217<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token property">--color-background-section</span><span class="token punctuation">:</span> <span class="token function">rgb</span><span class="token punctuation">(</span>248 250 2248<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token property">--color-border-section</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-accent<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token property">--color-link-inverted</span><span class="token punctuation">:</span> <span class="token function">rgb</span><span class="token punctuation">(</span>255 208 0<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token property">--color-link</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-accent<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token property">--color-text</span><span class="token punctuation">:</span> <span class="token function">rgb</span><span class="token punctuation">(</span>51 51 51<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token property">--color-text-heading</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-accent<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token property">--color-text-inverted</span><span class="token punctuation">:</span> <span class="token function">rgb</span><span class="token punctuation">(</span>255 255 255<span class="token punctuation">)</span><span class="token punctuation">;</span>
-
-  <span class="token property">--font-body</span><span class="token punctuation">:</span> Merriweather<span class="token punctuation">,</span> Baskerville<span class="token punctuation">,</span> Cambria<span class="token punctuation">,</span> <span class="token string">"Noto Serif"</span><span class="token punctuation">,</span>
-    <span class="token string">"Bitstream Charter"</span><span class="token punctuation">,</span> serif<span class="token punctuation">;</span>
-  <span class="token property">--font-display</span><span class="token punctuation">:</span> Kanit<span class="token punctuation">,</span> <span class="token string">"Trebuchet MS"</span><span class="token punctuation">,</span> Calibri<span class="token punctuation">,</span> Roboto<span class="token punctuation">,</span> <span class="token string">"Segoe UI"</span><span class="token punctuation">,</span> Ubuntu<span class="token punctuation">,</span>
-    sans-serif<span class="token punctuation">;</span>
-
-  <span class="token property">--lineweight-border-thin</span><span class="token punctuation">:</span> 1px<span class="token punctuation">;</span>
-  <span class="token property">--lineweight-rule</span><span class="token punctuation">:</span> 1px<span class="token punctuation">;</span>
-
-  <span class="token property">--size-font-body</span><span class="token punctuation">:</span> 0.875rem<span class="token punctuation">;</span>
-  <span class="token property">--size-font-title</span><span class="token punctuation">:</span> 2.5rem<span class="token punctuation">;</span>
-  <span class="token property">--size-radius-medium</span><span class="token punctuation">:</span> 0.5rem<span class="token punctuation">;</span>
-  <span class="token property">--size-spacing-small</span><span class="token punctuation">:</span> 0.25rem<span class="token punctuation">;</span>
-  <span class="token property">--size-spacing-medium</span><span class="token punctuation">:</span> 0.5rem<span class="token punctuation">;</span>
-  <span class="token property">--size-spacing-large</span><span class="token punctuation">:</span> 1rem<span class="token punctuation">;</span>
-
-  <span class="token property">--style-font-title</span><span class="token punctuation">:</span> italic<span class="token punctuation">;</span>
-
-  <span class="token property">--weight-font-body</span><span class="token punctuation">:</span> 400<span class="token punctuation">;</span>
-  <span class="token property">--weight-font-title</span><span class="token punctuation">:</span> 700<span class="token punctuation">;</span>
-  <span class="token property">--weight-font-title-muted</span><span class="token punctuation">:</span> 200<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
+<kram-code data-language="css"><pre class="language-css"><code class="language-css"><span class="token selector">:root</span> <span class="token punctuation">{</span><br>  <span class="token comment">/* Design Tokens */</span><br>  <span class="token property">--color-accent</span><span class="token punctuation">:</span> <span class="token function">rgb</span><span class="token punctuation">(</span>42 143 42<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token property">--color-background-header</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-accent<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token property">--color-background-page</span><span class="token punctuation">:</span> <span class="token function">rgb</span><span class="token punctuation">(</span>237 233 217<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token property">--color-background-section</span><span class="token punctuation">:</span> <span class="token function">rgb</span><span class="token punctuation">(</span>248 250 2248<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token property">--color-border-section</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-accent<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token property">--color-link-inverted</span><span class="token punctuation">:</span> <span class="token function">rgb</span><span class="token punctuation">(</span>255 208 0<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token property">--color-link</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-accent<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token property">--color-text</span><span class="token punctuation">:</span> <span class="token function">rgb</span><span class="token punctuation">(</span>51 51 51<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token property">--color-text-heading</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-accent<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token property">--color-text-inverted</span><span class="token punctuation">:</span> <span class="token function">rgb</span><span class="token punctuation">(</span>255 255 255<span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>  <span class="token property">--font-body</span><span class="token punctuation">:</span> Merriweather<span class="token punctuation">,</span> Baskerville<span class="token punctuation">,</span> Cambria<span class="token punctuation">,</span> <span class="token string">"Noto Serif"</span><span class="token punctuation">,</span><br>    <span class="token string">"Bitstream Charter"</span><span class="token punctuation">,</span> serif<span class="token punctuation">;</span><br>  <span class="token property">--font-display</span><span class="token punctuation">:</span> Kanit<span class="token punctuation">,</span> <span class="token string">"Trebuchet MS"</span><span class="token punctuation">,</span> Calibri<span class="token punctuation">,</span> Roboto<span class="token punctuation">,</span> <span class="token string">"Segoe UI"</span><span class="token punctuation">,</span> Ubuntu<span class="token punctuation">,</span><br>    sans-serif<span class="token punctuation">;</span><br><br>  <span class="token property">--lineweight-border-thin</span><span class="token punctuation">:</span> 1px<span class="token punctuation">;</span><br>  <span class="token property">--lineweight-rule</span><span class="token punctuation">:</span> 1px<span class="token punctuation">;</span><br><br>  <span class="token property">--size-font-body</span><span class="token punctuation">:</span> 0.875rem<span class="token punctuation">;</span><br>  <span class="token property">--size-font-title</span><span class="token punctuation">:</span> 2.5rem<span class="token punctuation">;</span><br>  <span class="token property">--size-radius-medium</span><span class="token punctuation">:</span> 0.5rem<span class="token punctuation">;</span><br>  <span class="token property">--size-spacing-small</span><span class="token punctuation">:</span> 0.25rem<span class="token punctuation">;</span><br>  <span class="token property">--size-spacing-medium</span><span class="token punctuation">:</span> 0.5rem<span class="token punctuation">;</span><br>  <span class="token property">--size-spacing-large</span><span class="token punctuation">:</span> 1rem<span class="token punctuation">;</span><br><br>  <span class="token property">--style-font-title</span><span class="token punctuation">:</span> italic<span class="token punctuation">;</span><br><br>  <span class="token property">--weight-font-body</span><span class="token punctuation">:</span> 400<span class="token punctuation">;</span><br>  <span class="token property">--weight-font-title</span><span class="token punctuation">:</span> 700<span class="token punctuation">;</span><br>  <span class="token property">--weight-font-title-muted</span><span class="token punctuation">:</span> 200<span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre></kram-code>
 <h2>Page CSS</h2>
 
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">*</span> <span class="token punctuation">{</span>
-  <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-<span class="token selector">body</span> <span class="token punctuation">{</span>
-  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-background-page<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token property">color</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-text<span class="token punctuation">)</span><span class="token punctuation">;</span>
-  <span class="token property">font</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-font-body<span class="token punctuation">)</span> <span class="token function">var</span><span class="token punctuation">(</span>--font-body<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-<span class="token selector">a</span> <span class="token punctuation">{</span>
-  <span class="token property">color</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-link<span class="token punctuation">)</span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-
-</main>
-
-<style>@media screen{.wqa5gi5a4{--heightViewer: calc(100vh - var(--heightFooter));height:var(--heightViewer);overflow:hidden auto;position:relative}}.wqa5gi5a4 .layout{--render-grid-column: 1 / span 3;--code-grid-column: 1 / span 2;--prose-grid-column: 2 / span 2;display:grid;position:relative;top:calc(var(--heightViewer)*(1 - var(--current-scene, 1)));grid-template-columns:1fr 65ch 1fr;grid-auto-flow:row;justify-items:start;transition:top 0.5s ease-in-out;pointer-events:none}.wqa5gi5a4 .layout>*{pointer-events:all}@media print{.wqa5gi5a4 .layout{--prose-grid-column: unset;--render-grid-column: unset;--code-grid-column: unset;position:relative;top:auto;left:auto;height:auto;grid-template-columns:initial;grid-auto-rows:initial;grid-auto-flow:row}.wqa5gi5a4 .layout .render{break-before:page;break-inside:avoid;border:1px dotted black}.wqa5gi5a4 .layout .code{overflow:visible}}</style>
-
-<script>
-  customElements.define(
-    "consolid-ative",
-    class extends HTMLElement {
-      connectedCallback() {
-        let provider = this.closest("[data-provider]");
-
-        if (provider) {
-          const { value: currentScene } = provider.observe(
-            "current-scene",
-            (newValue) => {
-              console.log("Setting layout to scene", newValue);
-              this.style = `--current-scene: ${newValue}`;
-            }
-          );
-
-          console.log("Consolid-ative (webc)");
-        }
-      }
-    }
-  );
-</script>
-</consolid-ative>
-
-</article>
-
-<style>.wourcuvmv{display:block}.wourcuvmv article{display:flex;flex-direction:column-reverse}@media screen{position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;}@media print{.wourcuvmv article{position:static;height:auto;width:100%}}</style>
-<!-- /template -->
-</st-ative>
-<script type="module">
-
-import { mount } from "/scripts/oper.ative.js";
-console.log("Mounting Operative");
-const mountpoint = document.getElementById("lets-be-oper-ative");
-const initial = undefined;
-const moduleNames = ["Kram_f4bdd842_itinerary"];
-moduleNames.forEach((name) => mount(name, mountpoint, initial));
-
-</script>
-
-
+<kram-code data-language="css"><pre class="language-css"><code class="language-css"><span class="token selector">*</span> <span class="token punctuation">{</span><br>  <span class="token property">margin</span><span class="token punctuation">:</span> 0<span class="token punctuation">;</span><br><span class="token punctuation">}</span><br><span class="token selector">body</span> <span class="token punctuation">{</span><br>  <span class="token property">background</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-background-page<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token property">color</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-text<span class="token punctuation">)</span><span class="token punctuation">;</span><br>  <span class="token property">font</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--size-font-body<span class="token punctuation">)</span> <span class="token function">var</span><span class="token punctuation">(</span>--font-body<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><br><span class="token selector">a</span> <span class="token punctuation">{</span><br>  <span class="token property">color</span><span class="token punctuation">:</span> <span class="token function">var</span><span class="token punctuation">(</span>--color-link<span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre></kram-code></kram-scene></kram-flow>
+</kram-main>
 </body>
 </html>

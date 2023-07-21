@@ -1,287 +1,44 @@
-<!doctype html>
-<html>
-<head>
-<title>Mapping CSS Styles to HTML with Rules</title>
-<link rel="stylesheet" href="/styles/prism.css">
-<link rel="stylesheet" href="/styles/theme.css">
-<style>/* Kram: CSS in Scene 1 */
-h1 {
-  font-size: 32px;
-  font-family: sans-serif;
-  font-weight: normal;
-}
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Selected by tag name<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
-/* Kram: CSS in Scene 1 */
-.fancy {
-  color: darkOrange;
-  font-style: italic;
-  font-family: Georgia, serif;
-}
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Selected by class name<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
-/* Kram: CSS in Scene 1 */
-#Chapter01 {
-  font-style: normal;
-  font-size: 48px;
-  font-family: Georgia, serif;
-}
-
-/* Kram: CSS in Scene 3 */
-h2 {
-  color: fireBrick;
-  font-family: sans-serif;
-  font-size: 100%;
-  font-weight: bold;
-}
-
-/* Kram: CSS in Scene 3 */
-.fancy2 {
-  font-family: Georgia;
-  font-size: 24px;
-  font-weight: normal;
-}
-
-/* Kram: CSS in Scene 4 */
-.schmancy {
-  font-family: Georgia, serif;
-  font-style: italic;
-}
-
-h1.schmancy {
-  color: darkOrange;
-}
-
-h2.schmancy {
-  font-size: 24px;
-  font-weight: normal;
-  font-style: normal;
-}
-
-/* Kram: CSS in Scene 4 */
-.fancy {
-  color: darkOrange;
-  font-style: italic;
-  font-family: Georgia, serif;
-}
-
-/* Kram: CSS in Scene 4 */
-.fancy2 {
-  font-family: Georgia;
-  font-size: 24px;
-  font-weight: normal;
-}
-</style>
-
-</head>
-<body>
-
-
-<st-ative class="wourcuvmv"><script>
-  const STORE_CHANGE_EVENT = "store:change";
-
-  function createStore(eventTarget, initial = {}) {
-    let root = Object.assign({}, initial);
-
-    console.log("create Global Store for st-ative", JSON.stringify(root));
-
-    return new Proxy(root, {
-      get: (target, prop, receiver) => {
-        const value = Reflect.get(target, prop, receiver);
-        return value;
-      },
-      set: (target, prop, newValue, receiver) => {
-        const oldValue = root[prop];
-        const didSet = Reflect.set(target, prop, newValue, receiver);
-        if (didSet) {
-          eventTarget.dispatchEvent(changeEvent(prop, newValue, oldValue));
-        }
-        return didSet;
-      },
-    });
-  }
-
-  function changeEvent(prop, newValue, oldValue) {
-    // ref: https://infrequently.org/2021/03/reactive-data-modern-js/
-    let evt = new CustomEvent(STORE_CHANGE_EVENT, {
-      bubbles: true,
-      cancelable: true,
-    });
-    evt.oldValue = oldValue;
-    evt.value = newValue;
-    evt.property = prop;
-
-    return evt;
-  }
-
-  customElements.define(
-    "st-ative",
-    class extends HTMLElement {
-      constructor() {
-        super();
-
-        const storeRoot = [];
-        let Store = createStore(this, {
-          "current-scene": 1,
-        });
-
-        this.dataset.provider = JSON.stringify(storeRoot);
-
-        this.observe = (key, watcher) => {
-          if (watcher) {
-            this.addEventListener(STORE_CHANGE_EVENT, (evt) => {
-              if (evt.property === key) {
-                watcher(evt.value, evt.oldValue);
-              }
-            });
-          }
-          return { value: Store[key] };
-        };
-
-        this.bind = (key, watcher) => {
-          const observation = this.observe(key, watcher);
-          return {
-            get: () => Store[key],
-            set: (newValue) => (Store[key] = newValue),
-            ...observation,
-          };
-        };
-
-        console.log("Store provider constructed");
-      }
-    }
-  );
-</script>
-
-<!-- template -->
-<article>
-  
-<navig-ative class="wguho-1wx"><!-- template --><footer>
-  <h6><span>Mapping CSS Styles to HTML with Rules
-</span></h6>
-  <span>
-    <button name="previous">Previous</button>
-    <input width="6" type="number" min="1" value="1">
-    <button name="next">Next</button>
-  </span>
-</footer>
-
-<style>.wguho-1wx{height:var(--heightFooter)}.wguho-1wx footer{display:flex;flex-direction:row;padding:0.5rem;gap:0.5rem;justify-content:space-between;align-items:baseline}.wguho-1wx footer>*{margin:0}@media print{.wguho-1wx footer{display:none}}</style>
-<!-- /template -->
-
-<script>
-  console.log("Defining navig-ative...");
-
-  customElements.define(
-    "navig-ative",
-    class extends HTMLElement {
-      connectedCallback() {
-        let provider = this.closest("[data-provider]");
-        let numberInput = this.querySelector(':scope input[type="number"]');
-        let previousButton = this.querySelector(
-          ':scope button[name="previous"]'
-        );
-        let nextButton = this.querySelector(':scope button[name="next"]');
-
-        console.log("Navig-ative attempting to connect...", provider);
-
-        if (provider) {
-          const { get, set } = provider.bind(
-            "current-scene",
-            (newValue) => (numberInput.value = newValue)
-          );
-
-          numberInput.value = get();
-
-          numberInput.addEventListener("change", () => set(numberInput.value));
-
-          previousButton.addEventListener("click", () => set(get() - 1));
-
-          nextButton.addEventListener("click", () => {
-            set(get() + 1);
-          });
-
-          console.log("Consolid-ative (webc)");
-        }
-      }
-    }
-  );
-</script>
-</navig-ative>
-<consolid-ative class="wqa5gi5a4"><!-- <template> for consolid-ative --><main class="layout">
-  
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <h1>Selected by tag name</h1>
-
-<h1 class="fancy">Selected by class name</h1>
-
-<h1 id="Chapter01">Selected by ID</h1>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">&gt;</span></span>Selected by tag name<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Selected by class name<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Chapter01<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Selected by ID<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Mapping CSS Styles to HTML with Rules</h2>
-
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Chapter01<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Selected by ID<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span></code></pre>
+<h2>Mapping CSS Styles to HTML with Rules</h2>
 <p>In the previous section, we learned that we can add styling
-to any element in our HTML by using the <code data-mark-around="`">style</code> attribute.
+to any element in our HTML by using the <code>style</code> attribute.
 However, doing so means repeating the same CSS declarations
 for every element that we want to style.</p>
-
-<p>In general, we don’t want to mix content and presentation like
+<p>In general, we don't want to mix content and presentation like
 this.
 If we do, then modifying the presentation will be very tedious
 and error-prone.
-Also, whenever we add new content, we’d have to be careful to
+Also, whenever we add new content, we'd have to be careful to
 be consistent and match the existing styles.</p>
-
 <p>To keep presentation separate from content,
 we should put our CSS style declarations
 in a separate file from our HTML,
-or at least a separate <code data-mark-around="`">&lt;style&gt;</code> section of our HTML.
+or at least a separate <code>&lt;style&gt;</code> section of our HTML.
 But once we have our CSS and HTML separated,
 we need to have a way to indicate how they relate to each other.
-To that end, every CSS file is a list of <em data-mark-around="_">rules</em> that indicate
+To that end, every CSS file is a list of <em>rules</em> that indicate
 how to apply styles to HTML elements.</p>
-
-<p>We start each rule with a <em data-mark-around="_">selector</em>, which identifies
+<p>We start each rule with a <em>selector</em>, which identifies
 one or more HTML elements in our document.
 You can think of a selector as a pattern that identifies
 a set of matching elements.
 The three most common types of selectors are:</p>
-
-<ul><li><p>select all elements with a given tag name</p>
-</li>
-
-<li><p>select all elements with given class name in their <code data-mark-around="`">class</code> attribute</p>
-</li>
-
-<li><p>select the one element with a given <code data-mark-around="`">id</code> attribute</p>
-</li>
+<ul>
+<li>select all elements with a given tag name</li>
+<li>select all elements with given class name in their <code>class</code> attribute</li>
+<li>select the one element with a given <code>id</code> attribute</li>
 </ul>
-
 <p>The style part of the rule is a list of property declarations,
-surrounded by curly brackets (<code data-mark-around="`">{</code> … <code data-mark-around="`">}</code>).
-As with the <code data-mark-around="`">style</code> attribute,
+surrounded by curly brackets (<code>{</code> … <code>}</code>).
+As with the <code>style</code> attribute,
 we must separate the declarations using a semi-colon.
 It is also customary to put each declaration on its own line
 and add a semi-colon after the last declaration.</p>
-
 <h3>Type selector</h3>
-
 <p>Type selectors allow us to apply very general styling rules
 to an entire document.
 They require no changes to the HTML and also apply
@@ -290,280 +47,220 @@ as long as it follows the same semantic HTML conventions.
 Because they apply to an entire document (or even an entire site),
 type selectors allow us to establish a baseline style
 which we can specialize as need be.</p>
-
 <p>Every element in a document has a type,
 which is name that appears in the HTML start and end tags for the element.
 To write a type selector,
 we just write the name of the type we want to match, without the angle brackets.
-For example, here is a rule that matches all <code data-mark-around="`">&lt;h1&gt;</code> elements
-in the document, setting the <code data-mark-around="`">font</code> property.</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">h1</span> <span class="token punctuation">{</span>
+For example, here is a rule that matches all <code>&lt;h1&gt;</code> elements
+in the document, setting the <code>font</code> property.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">h1</span> <span class="token punctuation">{</span>
   <span class="token property">font-size</span><span class="token punctuation">:</span> 32px<span class="token punctuation">;</span>
   <span class="token property">font-family</span><span class="token punctuation">:</span> sans-serif<span class="token punctuation">;</span>
   <span class="token property">font-weight</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
+<span class="token punctuation">}</span></code></pre>
 <h3>Class selector</h3>
-
 <p>Though the type selector is convenient for styling many elements
 at once,
 we often require more control.
-What we’d like to do is group the elements into named sets, or classes,
+What we'd like to do is group the elements into named sets, or classes,
 and then write rules that apply a style to all elements in the class.</p>
-
-<p>First we pick a name for our class, such as “fancy” in our example.
-In our HTML, we will then add that name to the <code data-mark-around="`">class</code> attribute
+<p>First we pick a name for our class, such as &quot;fancy&quot; in our example.
+In our HTML, we will then add that name to the <code>class</code> attribute
 on any element we wish to add to our class.
 The same class name may be applied to many elements,
-and an element’s <code data-mark-around="`">class</code> attribute may include multiple class
+and an element's <code>class</code> attribute may include multiple class
 names (separated by spaces).</p>
-
-<p>Then to write our CSS rule, we will place a dot (<code data-mark-around="`">.</code>) immediately before
+<p>Then to write our CSS rule, we will place a dot (<code>.</code>) immediately before
 the class name:</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">.fancy</span> <span class="token punctuation">{</span>
+<pre class="language-css"><code class="language-css"><span class="token selector">.fancy</span> <span class="token punctuation">{</span>
   <span class="token property">color</span><span class="token punctuation">:</span> darkOrange<span class="token punctuation">;</span>
   <span class="token property">font-style</span><span class="token punctuation">:</span> italic<span class="token punctuation">;</span>
   <span class="token property">font-family</span><span class="token punctuation">:</span> Georgia<span class="token punctuation">,</span> serif<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
+<span class="token punctuation">}</span></code></pre>
 <h3>ID selector</h3>
-
 <p>There are times when we have a style that will only be used once
 in a document.
-What we want to do in those cases is <em data-mark-around="_">identify</em> the particular element
+What we want to do in those cases is <em>identify</em> the particular element
 in our HTML.
-The HTML <code data-mark-around="`">id</code> attribute was designed for just this purpose.</p>
-
+The HTML <code>id</code> attribute was designed for just this purpose.</p>
 <p>The HTML standard prohibits more than one element in a document
-with the same <code data-mark-around="`">id</code>, so an <code data-mark-around="`">id</code> rule is guaranteed to only match
+with the same <code>id</code>, so an <code>id</code> rule is guaranteed to only match
 one element.
 In this respect, it is similar to using the style attribute,
 but it allows us to keep all the styles together in the CSS
 file for easier maintenance.</p>
-
 <p>In writing CSS rule, we then refer to that element by placing a
-hash <code data-mark-around="`">#</code> character in front of it.</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">#Chapter01</span> <span class="token punctuation">{</span>
+hash <code>#</code> character in front of it.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">#Chapter01</span> <span class="token punctuation">{</span>
   <span class="token property">font-style</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
   <span class="token property">font-size</span><span class="token punctuation">:</span> 48px<span class="token punctuation">;</span>
   <span class="token property">font-family</span><span class="token punctuation">:</span> Georgia<span class="token punctuation">,</span> serif<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
+<span class="token punctuation">}</span></code></pre>
+<hr>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Type rule <span class="token entity named-entity" title="&gt;">&amp;gt;</span> built-in style<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-</section>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Class rule <span class="token entity named-entity" title="&gt;">&amp;gt;</span> Type rule<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Chapter01<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>ID rule <span class="token entity named-entity" title="&gt;">&amp;gt;</span> Class rule <span class="token entity named-entity" title="&gt;">&amp;gt;</span> Type rule<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <h1>Type rule &gt; built-in style</h1>
-
-<h1 class="fancy">Class rule &gt; Type rule</h1>
-
-<h1 id="Chapter01" class="fancy">ID rule &gt; Class rule &gt; Type rule</h1>
-
-<h1 style="font: italic 16px monospace" class="fancy">
-  Inline style &gt; class rule &gt; type rule
-</h1>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">&gt;</span></span>Type rule <span title=">" class="token entity named-entity">&amp;gt;</span> built-in style<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Class rule <span title=">" class="token entity named-entity">&amp;gt;</span> Type rule<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Chapter01<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>ID rule <span title=">" class="token entity named-entity">&amp;gt;</span> Class rule <span title=">" class="token entity named-entity">&amp;gt;</span> Type rule<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">font</span><span class="token punctuation">:</span> italic 16px monospace</span><span class="token punctuation">"</span></span></span><span class="token punctuation">&gt;</span></span>
-  Inline style <span title=">" class="token entity named-entity">&amp;gt;</span> class rule <span title=">" class="token entity named-entity">&amp;gt;</span> type rule
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Handling Conflicts between Rules</h2>
-
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">font</span><span class="token punctuation">:</span> italic 16px monospace</span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span>
+  Inline style <span class="token entity named-entity" title="&gt;">&amp;gt;</span> class rule <span class="token entity named-entity" title="&gt;">&amp;gt;</span> type rule
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span></code></pre>
+<h2>Handling Conflicts between Rules</h2>
 <p>Declarations are assigned a precedence based on
-whether they were applied inline (with <code data-mark-around="`">style=</code>),
+whether they were applied inline (with <code>style=</code>),
 by a CSS rule,
-or as part of the browser’s default stylesheet.
+or as part of the browser's default stylesheet.
 When two or more declarations on the same element conflict,
 that conflict is then resolved by taking the one with
 the highest precedence.</p>
-
 <p>The order of precedence for applying styles is as follows:</p>
-
-<ol><li><p>Inline styles have the highest precedence.</p>
-</li>
-
-<li><p>CSS rules are next.</p>
-</li>
-
-<li><p>Browser defaults have the lowest precedence.</p>
-</li>
+<ol>
+<li>Inline styles have the highest precedence.</li>
+<li>CSS rules are next.</li>
+<li>Browser defaults have the lowest precedence.</li>
 </ol>
-
 <p>Among CSS rules,
 the precedence is determined by the selector that matched the element
 and caused the style to be applied.
-The term for this selector-based calculation is <em data-mark-around="_">specificity</em>, which we will
+The term for this selector-based calculation is <em>specificity</em>, which we will
 look at in more detail later.
 But for the basic selectors we have seen so far, the following
 rules are sufficient:</p>
-
-<ol><li><p>Id rules are the most specific.</p>
-</li>
-
-<li><p>Class rules are next.</p>
-</li>
-
-<li><p>type name rules are the least specific.</p>
-</li>
+<ol>
+<li>Id rules are the most specific.</li>
+<li>Class rules are next.</li>
+<li>type name rules are the least specific.</li>
 </ol>
-
-<p>Let’s take a closer look at how these precedence rules work with the three
+<p>Let's take a closer look at how these precedence rules work with the three
 selectors we defined earlier.
-Above are several <code data-mark-around="`">&lt;h1&gt;</code> elements with different combinations of
-<code data-mark-around="`">style</code>, <code data-mark-around="`">class</code>, and <code data-mark-around="`">id</code> attributes applied.</p>
-
-<p>On the first element, only the <code data-mark-around="`">h1</code> type name selector matches.
-That rule includes declarations for <code data-mark-around="`">font-size</code> and <code data-mark-around="`">font-family</code> properties,
-which potentially conflict with the browser’s built-in rules.
+Above are several <code>&lt;h1&gt;</code> elements with different combinations of
+<code>style</code>, <code>class</code>, and <code>id</code> attributes applied.</p>
+<p>On the first element, only the <code>h1</code> type name selector matches.
+That rule includes declarations for <code>font-size</code> and <code>font-family</code> properties,
+which potentially conflict with the browser's built-in rules.
 Since any CSS rule has higher precedence than built-in rules,
 the style declarations are applied.</p>
-
-<p>On the second element, both the <code data-mark-around="`">h1</code> and <code data-mark-around="`">.fancy</code> selectors match.
+<p>On the second element, both the <code>h1</code> and <code>.fancy</code> selectors match.
 Here we have a conflict between two CSS rules.
-Let’s look at them side-by-side.</p>
-
-<table><thead><tr><th>Property</th><th><code data-mark-around="`">h1 {...}</code></th><th><code data-mark-around="`">.fancy {...}</code></th></tr></thead><tbody><tr><td><code data-mark-around="`">color</code></td><td></td><td><code data-mark-around="`">darkOrange</code></td></tr><tr><td><code data-mark-around="`">font-size</code></td><td><code data-mark-around="`">32px</code></td><td></td></tr><tr><td><code data-mark-around="`">font-style</code></td><td></td><td><code data-mark-around="`">italic</code></td></tr><tr><td><code data-mark-around="`">font-family</code></td><td><code data-mark-around="`">sans-serif</code></td><td><code data-mark-around="`">Georgia</code></td></tr></tbody></table>
-
+Let's look at them side-by-side.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Property</th>
+<th style="text-align:center"><code>h1 {...}</code></th>
+<th style="text-align:center"><code>.fancy {...}</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>color</code></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"><code>darkOrange</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>font-size</code></td>
+<td style="text-align:center"><code>32px</code></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>font-style</code></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"><code>italic</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>font-family</code></td>
+<td style="text-align:center"><code>sans-serif</code></td>
+<td style="text-align:center"><code>Georgia</code></td>
+</tr>
+</tbody>
+</table>
 <p>From the table, we can see that the first three properties are
 only specified in one rule or the other.
 They can all be applied without conflicting.</p>
-
-<p>However, the property <code data-mark-around="`">font-family</code> is specified in both rules.
+<p>However, the property <code>font-family</code> is specified in both rules.
 In this case, we need to look at the specificity of those two rules
 to determine which one will be applied.
 Since class rules are more specific than type name rules,
-the declaration <code data-mark-around="`">font-family: Georgia</code> is applied.</p>
-
+the declaration <code>font-family: Georgia</code> is applied.</p>
 <p>The third element has three selectors that match:
-<code data-mark-around="`">h1</code>, <code data-mark-around="`">.fancy</code>, and <code data-mark-around="`">#Chapter01</code>.
+<code>h1</code>, <code>.fancy</code>, and <code>#Chapter01</code>.
 We need to look at each declaration to determine which ones
 to apply.
-Again we’ll look at the rules in a table.
-Note that we’ve arranged the selectors in order of their specificity,
+Again we'll look at the rules in a table.
+Note that we've arranged the selectors in order of their specificity,
 with the most specific at the right.</p>
-
-<p>| | <code data-mark-around="`">h1</code> | <code data-mark-around="`">.fancy</code> | <code data-mark-around="`">#Chapter01</code> |</p>
-
-<table><thead><tr><th>Property</th><th><code data-mark-around="`">{...}</code></th><th><code data-mark-around="`">{...}</code></th><th><code data-mark-around="`">{...}</code></th></tr></thead><tbody><tr><td><code data-mark-around="`">color</code></td><td></td><td><code data-mark-around="`">darkOrange</code></td><td></td></tr><tr><td><code data-mark-around="`">font-size</code></td><td><code data-mark-around="`">32px</code></td><td></td><td><code data-mark-around="`">48px</code></td></tr><tr><td><code data-mark-around="`">font-style</code></td><td></td><td><code data-mark-around="`">italic</code></td><td><code data-mark-around="`">normal</code></td></tr><tr><td><code data-mark-around="`">font-family</code></td><td><code data-mark-around="`">sans-serif</code></td><td><code data-mark-around="`">Georgia</code></td><td></td></tr></tbody></table>
-
-<p>There is only one <code data-mark-around="`">color</code> declaration, so it will be applied.
-Of the two declarations for <code data-mark-around="`">font-size</code>, the one from the
-<code data-mark-around="`">#Chapter01</code> rule is more specific, so <code data-mark-around="`">48px</code> gets applied.
-Similarly, for <code data-mark-around="`">font-style</code>, the id rule is more specific,
-so <code data-mark-around="`">normal</code> is applied.
-Finally, since <code data-mark-around="`">font-family</code> is not modified by the id rule,
-the <code data-mark-around="`">.fancy</code> rule is most specific, and
-the <code data-mark-around="`">Georgia</code> value is applied.</p>
-
+<p>| | <code>h1</code> | <code>.fancy</code> | <code>#Chapter01</code> |</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Property</th>
+<th style="text-align:center"><code>{...}</code></th>
+<th style="text-align:center"><code>{...}</code></th>
+<th style="text-align:center"><code>{...}</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>color</code></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"><code>darkOrange</code></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>font-size</code></td>
+<td style="text-align:center"><code>32px</code></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"><code>48px</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>font-style</code></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"><code>italic</code></td>
+<td style="text-align:center"><code>normal</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>font-family</code></td>
+<td style="text-align:center"><code>sans-serif</code></td>
+<td style="text-align:center"><code>Georgia</code></td>
+<td style="text-align:center"></td>
+</tr>
+</tbody>
+</table>
+<p>There is only one <code>color</code> declaration, so it will be applied.
+Of the two declarations for <code>font-size</code>, the one from the
+<code>#Chapter01</code> rule is more specific, so <code>48px</code> gets applied.
+Similarly, for <code>font-style</code>, the id rule is more specific,
+so <code>normal</code> is applied.
+Finally, since <code>font-family</code> is not modified by the id rule,
+the <code>.fancy</code> rule is most specific, and
+the <code>Georgia</code> value is applied.</p>
 <p>In the final line, all the font properties declared in the
-inline <code data-mark-around="`">style</code> take precedence over any of our CSS rules.
-But since the <code data-mark-around="`">color</code> property is not declared inline,
+inline <code>style</code> take precedence over any of our CSS rules.
+But since the <code>color</code> property is not declared inline,
 the value provided by the class rule is applied.</p>
-
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <h1>Just an H1</h1>
-
-<h2>Just an H2</h2>
 <hr>
-<h1 class="fancy">A fancy H1</h1>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>Just an H1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
-<h2 class="fancy">A fancy H2 doesn't look right</h2>
-<hr>
-<h2 class="fancy2">Our designer gave us this</h2>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span>Just an H2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>hr</span> <span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>A fancy H1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
-<h1 class="fancy2">But we can't use that with an H1</h1>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>A fancy H2 doesn't look right<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>hr</span> <span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy2<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Our designer gave us this<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
 
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">&gt;</span></span>Just an H1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">&gt;</span></span>Just an H2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>hr</span> <span class="token punctuation">/&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>A fancy H1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>A fancy H2 doesn't look right<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>hr</span> <span class="token punctuation">/&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy2<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Our designer gave us this<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy2<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>But we can't use that with an H1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>The Cascade</h2>
-
-<p>Cascade is what the “C” in “CSS” stands for;
-it’s fundamental to how CSS works.
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>fancy2<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>But we can't use that with an H1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span></code></pre>
+<h2>The Cascade</h2>
+<p>Cascade is what the &quot;C&quot; in &quot;CSS&quot; stands for;
+it's fundamental to how CSS works.
 And yet, even senior developers continue to be frustrated by the cascade,
 spending too much of their time to try to defeat it.
-Therefore, we’re going to take the time to learn why the cascade was
+Therefore, we're going to take the time to learn why the cascade was
 invented in the first place, and why it still makes sense over 25 years later.
 Along the way,
-we’ll learn how to work <em data-mark-around="_">with</em> specificity to better express the design
+we'll learn how to work <em>with</em> specificity to better express the design
 intent and prioritize between conflicting demands.</p>
-
 <p>The cascade was a a key part of the CSS language as proposed in October 1994 by
 Håkon Wium Lie.
 The newly-formed W3C was very interested in standardizing style sheets for the
@@ -571,217 +268,179 @@ web, and convened a committee to develop the CSS standard.
 The CSS Level 1 Specification was released by the W3C in December 1996,
 and soon after adopted (incompletely and incompatibly) by the warring
 browsers, Microsoft Internet Explorer and Netscape Navigator.</p>
-
 <p>Prior to CSS, the presentation of web pages was set by browser vendors,
 so web pages looked different between browsers.
 The original browser written by Tim Berners-Lee made use
 of an internal stylesheet, but did not give users the ability to customize it.
 Some browsers gave users access to this stylesheet, allowing users to override
-the browser’s styles, in much the same way that Microsoft Word allows the
+the browser's styles, in much the same way that Microsoft Word allows the
 default paragraph, heading, and list styles to be redefined.
 These early examples of stylesheets were by necessity very general,
 as they would be applied to every web page the user visited.</p>
-
 <p>Meanwhile, web designers and publishers, expected to be able to
 control how their content was presented on the web.
 After all, this is what they were used to in print media,
 and PDF afforded them this capability.
-Brands especially didn’t want
+Brands especially didn't want
 browser vendors or users changing the styling
 of their pages, and would resort to converting type to images
 for publishing to the web.</p>
-
 <p>In response to the demand for publisher control of page styling,
-Netscape added the HTML <code data-mark-around="`">&lt;font&gt;</code> element type in 1995.
+Netscape added the HTML <code>&lt;font&gt;</code> element type in 1995.
 While it gave publishers control over the color, face, and size of type
 this element had to be inserted into the HTML at every place where
 the designer wanted to change the font.
-Nevertheless, the <code data-mark-around="`">&lt;font&gt;</code> element type made its way to the HTML 3.2 standard,
+Nevertheless, the <code>&lt;font&gt;</code> element type made its way to the HTML 3.2 standard,
 and though deprecated, is still a part of standard HTML.</p>
-
 <p>So when the W3C released the CSS1 standard at the end of 1996,
 there was an expectation that both publishers and consumers would have
 control over presentation.
 In addition, Netscape was pushing to add more presentation elements to HTML
-to fend off pressure from Adobe’s PDF.
+to fend off pressure from Adobe's PDF.
 But the W3C, led Tim Berners-Lee, were insistent
 that presentation remain separate from content,
 and later HTML standards would not allow any more elements like
-<code data-mark-around="`">&lt;center&gt;</code> and <code data-mark-around="`">&lt;font&gt;</code>.
+<code>&lt;center&gt;</code> and <code>&lt;font&gt;</code>.
 How was CSS going to satisfy these conflicting requirements?</p>
-
 <p>The answer was the cascade.</p>
-
-<blockquote><p>Cascading allows several style sheets to
-influence the presentation of a document.</p><p>— Håkon Wium Lie,
-in <a href="https://www.wiumlie.no/2006/phd/css.pdf">his thesis dissertation</a></p></blockquote>
-
+<blockquote>
+<p>Cascading allows several style sheets to
+influence the presentation of a document.</p>
+<p>— Håkon Wium Lie,
+in <a href="https://www.wiumlie.no/2006/phd/css.pdf">his thesis dissertation</a></p>
+</blockquote>
 <p>The solution was to allow CSS stylesheets to come from multiple sources.
-They could be embedded in the HTML page using a <code data-mark-around="`">&lt;style&gt;</code> element.
+They could be embedded in the HTML page using a <code>&lt;style&gt;</code> element.
 Stylesheets served as separate files can be linked to multiple HTML pages on
 the same site.
 Users could also provide a stylesheet, either generally, or per-site.
 And browser vendors would still provide the base styling for every element,
 also expressible as CSS rules.</p>
-
-<p>We’ve already seen how conflicts arise between rules in the same stylesheet.
+<p>We've already seen how conflicts arise between rules in the same stylesheet.
 When rules are coming from multiple stylesheets, developed independently
 by people with different, or even competing, motivations, conflicts
 become inevitable.
 The cascade provides a mechanism for deciding how conflicts between
 stylesheets are resolved.</p>
-
 <p>Today, user stylesheets are not very commonly used or well supported,
 despite the improvements they can make to accessibility.
 Browser stylesheets have been fairly standardized, and many sites
-apply a <em data-mark-around="_">reset</em> to reduce dependency on browser styles anyway.
+apply a <em>reset</em> to reduce dependency on browser styles anyway.
 So do we still need the cascade even though 99.9% of the styles
 are written by the developers or under their control?</p>
-
-<p>The answer is yes, for reasons of <em data-mark-around="_">scaling</em>.
-Very rarely does one developer write <em data-mark-around="_">all</em> the CSS for a web site.
-And even then, they don’t write it at all at once, and it’s
+<p>The answer is yes, for reasons of <em>scaling</em>.
+Very rarely does one developer write <em>all</em> the CSS for a web site.
+And even then, they don't write it at all at once, and it's
 never all in their head at the same time.
 In reality, CSS is written and modified by many people over
 years and years.
 And in the era of Open-Source Software, CSS can be coming
 from developers who never worked on our project at all.</p>
-
-<p>Let’s take a look at a problem that often arises
+<p>Let's take a look at a problem that often arises
 new rules are added to a style sheet.
-Continuing with our example of <code data-mark-around="`">h1</code> and <code data-mark-around="`">.fancy</code>,
-let’s add a rule for <code data-mark-around="`">h2</code>:</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">h2</span> <span class="token punctuation">{</span>
+Continuing with our example of <code>h1</code> and <code>.fancy</code>,
+let's add a rule for <code>h2</code>:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">h2</span> <span class="token punctuation">{</span>
   <span class="token property">color</span><span class="token punctuation">:</span> fireBrick<span class="token punctuation">;</span>
   <span class="token property">font-family</span><span class="token punctuation">:</span> sans-serif<span class="token punctuation">;</span>
   <span class="token property">font-size</span><span class="token punctuation">:</span> 100%<span class="token punctuation">;</span>
   <span class="token property">font-weight</span><span class="token punctuation">:</span> bold<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<p>Our designer has decides that all <code data-mark-around="`">h2</code> elements should
-have <code data-mark-around="`">color: fireBrick</code>.
-It should be <code data-mark-around="`">sans-serif</code>, like the <code data-mark-around="`">h1</code>,
+<span class="token punctuation">}</span></code></pre>
+<p>Our designer has decides that all <code>h2</code> elements should
+have <code>color: fireBrick</code>.
+It should be <code>sans-serif</code>, like the <code>h1</code>,
 but since we have the color to make it noticeable,
-it doesn’t need to be any larger than our body text.
+it doesn't need to be any larger than our body text.
 It should also be bold to make the color more obvious.</p>
-
-<p>We also want to have a fancy version of our <code data-mark-around="`">h2</code> element.
-Ideally, we would just add <code data-mark-around="`">class="fancy"</code> to our <code data-mark-around="`">&lt;h2&gt;</code>
+<p>We also want to have a fancy version of our <code>h2</code> element.
+Ideally, we would just add <code>class=&quot;fancy&quot;</code> to our <code>&lt;h2&gt;</code>
 and have it all work out.
-But let’s see what happens.
-We’ll make our table again to see what style declarations
-result from combining our <code data-mark-around="`">h2</code> and <code data-mark-around="`">.fancy</code> rules.</p>
-
-<table><thead><tr><th>Property</th><th><code data-mark-around="`">h2</code></th><th><code data-mark-around="`">.fancy</code></th></tr></thead><tbody><tr><td><code data-mark-around="`">color</code></td><td><code data-mark-around="`">fireBrick</code></td><td><code data-mark-around="`">darkOrange</code></td></tr><tr><td><code data-mark-around="`">font-size</code></td><td><code data-mark-around="`">16px</code></td><td></td></tr><tr><td><code data-mark-around="`">font-style</code></td><td></td><td><code data-mark-around="`">italic</code></td></tr><tr><td><code data-mark-around="`">font-family</code></td><td><code data-mark-around="`">sans-serif</code></td><td><code data-mark-around="`">Georgia</code></td></tr></tbody></table>
-
+But let's see what happens.
+We'll make our table again to see what style declarations
+result from combining our <code>h2</code> and <code>.fancy</code> rules.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Property</th>
+<th style="text-align:center"><code>h2</code></th>
+<th style="text-align:center"><code>.fancy</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>color</code></td>
+<td style="text-align:center"><code>fireBrick</code></td>
+<td style="text-align:center"><code>darkOrange</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>font-size</code></td>
+<td style="text-align:center"><code>16px</code></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>font-style</code></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"><code>italic</code></td>
+</tr>
+<tr>
+<td style="text-align:left"><code>font-family</code></td>
+<td style="text-align:center"><code>sans-serif</code></td>
+<td style="text-align:center"><code>Georgia</code></td>
+</tr>
+</tbody>
+</table>
 <p>Taking the right-most value in each row gives us
-<code data-mark-around="`">darkOrange</code>, <code data-mark-around="`">16px</code>, <code data-mark-around="`">italic</code>, <code data-mark-around="`">Georgia</code>.
+<code>darkOrange</code>, <code>16px</code>, <code>italic</code>, <code>Georgia</code>.
 Unfortunately, this is not what our designer had in mind.
-At this size and weight, the color, and italic make our <code data-mark-around="`">h2</code>
+At this size and weight, the color, and italic make our <code>h2</code>
 difficult to read.
-The designer gave us this style instead, for every fancy <code data-mark-around="`">h2</code>:</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">.fancy2</span> <span class="token punctuation">{</span>
+The designer gave us this style instead, for every fancy <code>h2</code>:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.fancy2</span> <span class="token punctuation">{</span>
   <span class="token property">font-family</span><span class="token punctuation">:</span> Georgia<span class="token punctuation">;</span>
   <span class="token property">font-size</span><span class="token punctuation">:</span> 24px<span class="token punctuation">;</span>
   <span class="token property">font-weight</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<p>If we put this <code data-mark-around="`">fancy2</code> class on an <code data-mark-around="`">h2</code> we get the styling we want,
-but now we have to tell our HTML authors that they can use <code data-mark-around="`">fancy</code> for <code data-mark-around="`">h1</code> elements,
-but they must use <code data-mark-around="`">fancy2</code> for <code data-mark-around="`">h2</code> elements because otherwise it won’t match
+<span class="token punctuation">}</span></code></pre>
+<p>If we put this <code>fancy2</code> class on an <code>h2</code> we get the styling we want,
+but now we have to tell our HTML authors that they can use <code>fancy</code> for <code>h1</code> elements,
+but they must use <code>fancy2</code> for <code>h2</code> elements because otherwise it won't match
 the design.
-Oh, and also, they can’t use <code data-mark-around="`">fancy2</code> for <code data-mark-around="`">h1</code> because that’s also an invalid
+Oh, and also, they can't use <code>fancy2</code> for <code>h1</code> because that's also an invalid
 combination.</p>
-
-<p>What we really want is one class name that we can use for <code data-mark-around="`">h1</code> and <code data-mark-around="`">h2</code>,
+<p>What we really want is one class name that we can use for <code>h1</code> and <code>h2</code>,
 and maybe others.
-But its effect needs to change, depending on the element it’s applied to.
-Moreover, we’d like there to be no unintended effects if the class is
-added to an element which we haven’t yet considered.</p>
-
-<p>To put it another way, <code data-mark-around="`">fancy</code>-ness means something different for <code data-mark-around="`">h1</code>
-and <code data-mark-around="`">h2</code> elements, and we’re not even sure yet what it means for other
+But its effect needs to change, depending on the element it's applied to.
+Moreover, we'd like there to be no unintended effects if the class is
+added to an element which we haven't yet considered.</p>
+<p>To put it another way, <code>fancy</code>-ness means something different for <code>h1</code>
+and <code>h2</code> elements, and we're not even sure yet what it means for other
 elements.</p>
-
-<p>The simple class selectors we’ve written match <em data-mark-around="_">all</em> elements with that class name,
+<p>The simple class selectors we've written match <em>all</em> elements with that class name,
 but we are not able to compose a single style which can be applied
 to all the matches.
 Instead, we want to write two different rules that match different subsets
 of all the elements with the class name.
-To do that, we’ll need compound selectors.</p>
+To do that, we'll need compound selectors.</p>
+<hr>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>schmancy<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>This is a schmancy H1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
-</section>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>schmancy<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>This is a schmancy H2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
 
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>schmancy<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>For any other schmancy element, we can changes.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
 
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <h1 class="schmancy">This is a schmancy H1</h1>
-
-<h2 class="schmancy">This is a schmancy H2</h2>
-
-<p class="schmancy">For any other schmancy element, we can changes.</p>
-
-<h1 id="Chapter01" class="schmancy">The ID rule still works with schmancy</h1>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>schmancy<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>This is a schmancy H1<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>schmancy<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>This is a schmancy H2<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>schmancy<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>For any other schmancy element, we can changes.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>schmancy<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Chapter01<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>The ID rule still works with schmancy<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Compound Selectors</h2>
-
-<p>Let’s rewrite our CSS rules, being careful that each selector matches <em data-mark-around="_">specifically</em>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>schmancy<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>Chapter01<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>The ID rule still works with schmancy<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span></code></pre>
+<h2>Compound Selectors</h2>
+<p>Let's rewrite our CSS rules, being careful that each selector matches <em>specifically</em>
 those elements to which we the corresponding style applies.
 To re-terate, we want to use a single class name in our HTML files,
-but apply difference styles when combined with <code data-mark-around="`">h1</code> and <code data-mark-around="`">h2</code> elements.</p>
-
-<p>To make sure we’ve got a clean slate, we’ll use a new class name, <code data-mark-around="`">schmancy</code>.
-And we’ve checked with the designer to see if there’s anything they
-can say in general about what <code data-mark-around="`">schmancy</code>-ness means.
-They said, we can assume that everything <code data-mark-around="`">schmancy</code> will use the <code data-mark-around="`">Georgia</code> font,
-and–with some exceptions such as <code data-mark-around="`">h2</code>–be <code data-mark-around="`">italic</code>.</p>
-
+but apply difference styles when combined with <code>h1</code> and <code>h2</code> elements.</p>
+<p>To make sure we've got a clean slate, we'll use a new class name, <code>schmancy</code>.
+And we've checked with the designer to see if there's anything they
+can say in general about what <code>schmancy</code>-ness means.
+They said, we can assume that everything <code>schmancy</code> will use the <code>Georgia</code> font,
+and--with some exceptions such as <code>h2</code>--be <code>italic</code>.</p>
 <p>With this greater understanding of the design intent,
 we can refactor our previous two class rules into three rules:</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">.schmancy</span> <span class="token punctuation">{</span>
+<pre class="language-css"><code class="language-css"><span class="token selector">.schmancy</span> <span class="token punctuation">{</span>
   <span class="token property">font-family</span><span class="token punctuation">:</span> Georgia<span class="token punctuation">,</span> serif<span class="token punctuation">;</span>
   <span class="token property">font-style</span><span class="token punctuation">:</span> italic<span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
@@ -794,193 +453,140 @@ we can refactor our previous two class rules into three rules:</p>
   <span class="token property">font-size</span><span class="token punctuation">:</span> 24px<span class="token punctuation">;</span>
   <span class="token property">font-weight</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
   <span class="token property">font-style</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<p>We can verify that this CSS gives us the correct result by replacing the <code data-mark-around="`">fancy</code> class
-in the HTML with <code data-mark-around="`">schmancy</code>.
+<span class="token punctuation">}</span></code></pre>
+<p>We can verify that this CSS gives us the correct result by replacing the <code>fancy</code> class
+in the HTML with <code>schmancy</code>.
 Note that even without touching our ID rule, it still works as intended.</p>
-
-<p>The first rule is a class rule <code data-mark-around="`">.schmancy</code>.
-We know that the style declarations will be applied to any element with <code data-mark-around="`">schmancy</code>
-in its <code data-mark-around="`">class</code> attribute, so long as there isn’t a conflict with a declaration
+<p>The first rule is a class rule <code>.schmancy</code>.
+We know that the style declarations will be applied to any element with <code>schmancy</code>
+in its <code>class</code> attribute, so long as there isn't a conflict with a declaration
 in a rule with higher specificity.
 Note how this clearly communicates what we now know about the design intent:
-everything <code data-mark-around="`">schmancy</code> (with a few exceptions) will be <code data-mark-around="`">italic Georgia</code>.</p>
-
+everything <code>schmancy</code> (with a few exceptions) will be <code>italic Georgia</code>.</p>
 <p>The next rule is our first rule with a compound selector.
-We know which elements the <code data-mark-around="`">h1</code> and <code data-mark-around="`">.schmancy</code> selectors match.
+We know which elements the <code>h1</code> and <code>.schmancy</code> selectors match.
 When we write two or more selectors next to each other, with no space in between,
-the new selector will only match elements which match <em data-mark-around="_">all</em> of the selectors.
-So the selector <code data-mark-around="`">h1.schmancy</code> will match any element
-whose tag name is <code data-mark-around="`">h1</code> and has the class name <code data-mark-around="`">schmancy</code> in its <code data-mark-around="`">class</code> attribute.</p>
-
-<p>The only declaration we need in this rule is to set the color to <code data-mark-around="`">darkOrange</code>.
+the new selector will only match elements which match <em>all</em> of the selectors.
+So the selector <code>h1.schmancy</code> will match any element
+whose tag name is <code>h1</code> and has the class name <code>schmancy</code> in its <code>class</code> attribute.</p>
+<p>The only declaration we need in this rule is to set the color to <code>darkOrange</code>.
 This is because any element that matches this rule also matches the
-rules for <code data-mark-around="`">h1</code> and <code data-mark-around="`">.schmancy</code>, so we don’t need to repeat anything we had there.</p>
-
-<p>Let’s compare these two rules to our original <code data-mark-around="`">.fancy</code> rule:</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">.fancy</span> <span class="token punctuation">{</span>
+rules for <code>h1</code> and <code>.schmancy</code>, so we don't need to repeat anything we had there.</p>
+<p>Let's compare these two rules to our original <code>.fancy</code> rule:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.fancy</span> <span class="token punctuation">{</span>
   <span class="token property">color</span><span class="token punctuation">:</span> darkOrange<span class="token punctuation">;</span>
   <span class="token property">font-style</span><span class="token punctuation">:</span> italic<span class="token punctuation">;</span>
   <span class="token property">font-family</span><span class="token punctuation">:</span> Georgia<span class="token punctuation">,</span> serif<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
+<span class="token punctuation">}</span></code></pre>
 <p>As you can see, we are using the same three style declarations,
 but moved them into two separate rules.
-We put the two font declarations into <code data-mark-around="`">.schmancy</code> because we now understand
-that they should apply in general to (almost) all <code data-mark-around="`">schmancy</code> elements.
-Whereas the color declaration only applies to elements which <em data-mark-around="_">also</em>
-have a tag name of <code data-mark-around="`">h1</code>.</p>
-
-<p>Now let’s look at the other compound rule.
-The selector, <code data-mark-around="`">h2.schmancy</code> will match all elements which match both
-the <code data-mark-around="`">h2</code> and the <code data-mark-around="`">.schmancy</code> rules, which we’ve already written.
-So we only need the style declarations which we don’t already have
+We put the two font declarations into <code>.schmancy</code> because we now understand
+that they should apply in general to (almost) all <code>schmancy</code> elements.
+Whereas the color declaration only applies to elements which <em>also</em>
+have a tag name of <code>h1</code>.</p>
+<p>Now let's look at the other compound rule.
+The selector, <code>h2.schmancy</code> will match all elements which match both
+the <code>h2</code> and the <code>.schmancy</code> rules, which we've already written.
+So we only need the style declarations which we don't already have
 covered in those other rules.</p>
-
-<p>Here is the previous class we had to style the fancy <code data-mark-around="`">h2</code>:</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">.fancy2</span> <span class="token punctuation">{</span>
+<p>Here is the previous class we had to style the fancy <code>h2</code>:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.fancy2</span> <span class="token punctuation">{</span>
   <span class="token property">font-family</span><span class="token punctuation">:</span> Georgia<span class="token punctuation">;</span>
   <span class="token property">font-size</span><span class="token punctuation">:</span> 24px<span class="token punctuation">;</span>
   <span class="token property">font-weight</span><span class="token punctuation">:</span> normal<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<p>Of these three declarations, the first is covered by the <code data-mark-around="`">schmancy</code> rule,
+<span class="token punctuation">}</span></code></pre>
+<p>Of these three declarations, the first is covered by the <code>schmancy</code> rule,
 so we can leave it our of our new rule.
 The other two we need to carry along,
-because we want to apply them instead of the declarations for <code data-mark-around="`">font-size</code>
-and <code data-mark-around="`">font-weight</code> in our <code data-mark-around="`">h2</code> rule.</p>
-
-<p>There is one last declaration in the rule for <code data-mark-around="`">h2.schmancy</code> which did
-not appear in <code data-mark-around="`">.fancy</code>: <code data-mark-around="`">font-style: normal</code>.
+because we want to apply them instead of the declarations for <code>font-size</code>
+and <code>font-weight</code> in our <code>h2</code> rule.</p>
+<p>There is one last declaration in the rule for <code>h2.schmancy</code> which did
+not appear in <code>.fancy</code>: <code>font-style: normal</code>.
 This goes back to the design intent.
-As we understand it, <code data-mark-around="`">h2</code> is an exception to the general rule that elements
-in class <code data-mark-around="`">schmancy</code> are <code data-mark-around="`">italic</code>.
+As we understand it, <code>h2</code> is an exception to the general rule that elements
+in class <code>schmancy</code> are <code>italic</code>.
 In CSS, this can be expressed by
-declaring <code data-mark-around="`">font-style: italic</code> as part of <code data-mark-around="`">.schmancy</code>,
-and then declaring the exception under <code data-mark-around="`">h2.schmancy</code>.</p>
-
+declaring <code>font-style: italic</code> as part of <code>.schmancy</code>,
+and then declaring the exception under <code>h2.schmancy</code>.</p>
 <p>Our refactored CSS is clean and concise,
 and the designer is happy with the results.
-We’re almost ready to move on to learning some more CSS properties.
+We're almost ready to move on to learning some more CSS properties.
 But there is one more detail to clarify.</p>
-
-<p>We intentionally created a conflict when we added the <code data-mark-around="`">font-style</code>
-declaration to the rule for <code data-mark-around="`">h2.schmancy</code>,
-but we haven’t yet learned how CSS resolves conflicts in compound selectors.
-It’s now time to understand more completely how <em data-mark-around="_">specificity</em> is calculated
+<p>We intentionally created a conflict when we added the <code>font-style</code>
+declaration to the rule for <code>h2.schmancy</code>,
+but we haven't yet learned how CSS resolves conflicts in compound selectors.
+It's now time to understand more completely how <em>specificity</em> is calculated
 and used to resolve conflicts between rules.</p>
+<hr>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">></span></span>Just the H2 styles<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span>
 
-</section>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>schmancy<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Just the schmancy styles<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
 
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <h2>Just the H2 styles</h2>
-
-<p class="schmancy">Just the schmancy styles</p>
-
-<h2 class="schmancy">The H2 and shmancy styles</h2>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span><span class="token punctuation">&gt;</span></span>Just the H2 styles<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>schmancy<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Just the schmancy styles<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>schmancy<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>The H2 and shmancy styles<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Specificity</h2>
-
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h2</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>schmancy<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>The H2 and shmancy styles<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h2</span><span class="token punctuation">></span></span></code></pre>
+<h2>Specificity</h2>
 <p>There are many more kinds of selectors,
 and ways that they can be combined,
 which we will cover in a later section.
-But at this point, we need to solidify our understanding of <em data-mark-around="_">specificity</em>,
+But at this point, we need to solidify our understanding of <em>specificity</em>,
 and how CSS employs it to resolve conflicting style declarations
 applied to the same element.
 With this knowledge, we will also be prepared to write robust
 and future-proof CSS rules which avoid surprises.</p>
-
 <p>CSS, like HTML, is a declarative language.
-We’ve seen that styles are built up from declarations,
+We've seen that styles are built up from declarations,
 specifying a property and the value it shall take on.
 It is also a rule-based language.
 Selectors are the control structure of CSS, taking the place
-of <code data-mark-around="`">if-then-else</code> logic in an imperative language like Javascript.
+of <code>if-then-else</code> logic in an imperative language like Javascript.
 Therefore, any conditional logic determining
 the style applied to an element must be expressed using selectors.</p>
-
 <p>CSS gives us a rich language for composing new selectors from existing ones.
 We start with simple, general selectors to apply the broad strokes of a design,
 which satisfy the base cases.
 As we strive to meet more detailed requirements and address exceptions,
 we combine selectors, to create more and more specific rules.</p>
-
-<p>The cascade gives us a powerful tool to compose rules, called <em data-mark-around="_">specificity</em>.
+<p>The cascade gives us a powerful tool to compose rules, called <em>specificity</em>.
 The main idea behind specificity is: the more specific a rule,
 the more precedence it should have in the case of conflict with other rules.
 We saw earlier that specificity explains why a class rule takes precedence
 over a type rule.
 Now we will extend this notion of specificity to cover any CSS selector,
 no matter how complex.</p>
-
-<p>As we’ve seen earlier, the specificity of a simple selector depends on which
+<p>As we've seen earlier, the specificity of a simple selector depends on which
 category of selector it is:</p>
-
 <p>| Selector | |</p>
-
-<table><thead><tr><th>Category</th><th>Specificity</th></tr></thead><tbody><tr><td>ID</td><td>High</td></tr><tr><td>Class</td><td>Medium</td></tr><tr><td>Type</td><td>Low</td></tr></tbody></table>
-
-<ul><li><p><em data-mark-around="_">ID</em> selector (high specificity),</p>
-</li>
-
-<li><p><em data-mark-around="_">Class</em> selector (middle specificity), or</p>
-</li>
-
-<li><p><em data-mark-around="_">Type</em> selector (lowest specificity),</p>
-</li>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Specificity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ID</td>
+<td>High</td>
+</tr>
+<tr>
+<td>Class</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>Type</td>
+<td>Low</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><em>ID</em> selector (high specificity),</li>
+<li><em>Class</em> selector (middle specificity), or</li>
+<li><em>Type</em> selector (lowest specificity),</li>
 </ul>
-
 <p>To quantify the specificity of more complex selectors, we need more than the levels
 high, medium, and low.
 In fact, since selectors can be arbitrarily complex,
 we can not even describe specificity as a single number.
-Instead we use a list of three numbers, or <em data-mark-around="_">triple</em>,
+Instead we use a list of three numbers, or <em>triple</em>,
 like we do for the coordinates of a point in 3-dimensional space.
 Except instead of naming the coordinates
 <math>
@@ -997,57 +603,138 @@ Except instead of naming the coordinates
 <mi>t</mi>
 <mo>)</mo></mrow>
 </math>.</p>
-
 <p>We start by defining the specificity of the three kinds of simple selectors
 as triples as follows:</p>
-
-<table><thead><tr><th>Selector Category</th><th>Specificity</th></tr></thead><tbody><tr><td>ID</td><td><code data-mark-around="`">(1,0,0)</code></td></tr><tr><td>Class</td><td><code data-mark-around="`">(0,1,0)</code></td></tr><tr><td>Type</td><td><code data-mark-around="`">(0,0,1)</code></td></tr></tbody></table>
-
+<table>
+<thead>
+<tr>
+<th style="text-align:center">Selector Category</th>
+<th style="text-align:center">Specificity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">ID</td>
+<td style="text-align:center"><code>(1,0,0)</code></td>
+</tr>
+<tr>
+<td style="text-align:center">Class</td>
+<td style="text-align:center"><code>(0,1,0)</code></td>
+</tr>
+<tr>
+<td style="text-align:center">Type</td>
+<td style="text-align:center"><code>(0,0,1)</code></td>
+</tr>
+</tbody>
+</table>
 <p>To compute the specificity of a compound selector,
 we first break it into its individual simple selectors.
 Next, we categorize each simple selector as ID, Class, or Type.
 (We will come across other selectors later, but they will all count
 as Class selectors for the purposes of specificity calculation.)</p>
-
 <p>Then, we take the list of categorized simple selectors
 and make them rows in a table
 (keeping any duplicate selectors).
 For each (simple) selector, we fill in the specificity,
 as defined based on its category.</p>
-
-<p>For example, the selector <code data-mark-around="`">h1.fancy#Ch01</code>, we’d have this table:</p>
-
-<table><thead><tr><th>Selector</th><th>Category</th><th>Specificity</th></tr></thead><tbody><tr><td><code data-mark-around="`">h1</code></td><td>Type</td><td><code data-mark-around="`">(0,0,1)</code></td></tr><tr><td><code data-mark-around="`">.fancy</code></td><td>Class</td><td><code data-mark-around="`">(0,1,0)</code></td></tr><tr><td><code data-mark-around="`">#Ch01</code></td><td>ID</td><td><code data-mark-around="`">(1,0,0)</code></td></tr></tbody></table>
-
+<p>For example, the selector <code>h1.fancy#Ch01</code>, we'd have this table:</p>
+<table>
+<thead>
+<tr>
+<th>Selector</th>
+<th style="text-align:center">Category</th>
+<th style="text-align:center">Specificity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>h1</code></td>
+<td style="text-align:center">Type</td>
+<td style="text-align:center"><code>(0,0,1)</code></td>
+</tr>
+<tr>
+<td><code>.fancy</code></td>
+<td style="text-align:center">Class</td>
+<td style="text-align:center"><code>(0,1,0)</code></td>
+</tr>
+<tr>
+<td><code>#Ch01</code></td>
+<td style="text-align:center">ID</td>
+<td style="text-align:center"><code>(1,0,0)</code></td>
+</tr>
+</tbody>
+</table>
 <p>Now, the final step
 is to sum the specificities of the simple selectors, column-by-column.
-That is, compute the sum of the <code data-mark-around="`">I</code> values,
-followed by the sum of the <code data-mark-around="`">C</code> values,
-and finally the sum of the <code data-mark-around="`">T</code> values.
+That is, compute the sum of the <code>I</code> values,
+followed by the sum of the <code>C</code> values,
+and finally the sum of the <code>T</code> values.
 The resulting triple is the specificity of the original selector.</p>
-
-<table><thead><tr><th>Selector</th><th>Category</th><th>Specificity</th></tr></thead><tbody><tr><td><code data-mark-around="`">h1</code></td><td>Type</td><td><code data-mark-around="`">(0,0,1)</code></td></tr><tr><td><code data-mark-around="`">.fancy</code></td><td>Class</td><td><code data-mark-around="`">(0,1,0)</code></td></tr><tr><td><code data-mark-around="`">#Ch01</code></td><td>ID</td><td><code data-mark-around="`">(1,0,0)</code></td></tr><tr><td>-----</td><td>-----</td><td>-----</td></tr><tr><td></td><td>Total:</td><td><code data-mark-around="`">(1,1,1)</code></td></tr></tbody></table>
-
-<p>To put it more concisely, the specificity of any selector is a triple, <code data-mark-around="`">(I,C,T)</code>, where</p>
-
-<ul><li><p><code data-mark-around="`">I</code> is the number of ID selectors,</p>
-</li>
-
-<li><p><code data-mark-around="`">C</code> is the number of Class selectors, and</p>
-</li>
-
-<li><p><code data-mark-around="`">T</code> is the number of Type selectors.</p>
-</li>
+<table>
+<thead>
+<tr>
+<th>Selector</th>
+<th style="text-align:center">Category</th>
+<th style="text-align:center">Specificity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>h1</code></td>
+<td style="text-align:center">Type</td>
+<td style="text-align:center"><code>(0,0,1)</code></td>
+</tr>
+<tr>
+<td><code>.fancy</code></td>
+<td style="text-align:center">Class</td>
+<td style="text-align:center"><code>(0,1,0)</code></td>
+</tr>
+<tr>
+<td><code>#Ch01</code></td>
+<td style="text-align:center">ID</td>
+<td style="text-align:center"><code>(1,0,0)</code></td>
+</tr>
+<tr>
+<td>-----</td>
+<td style="text-align:center">-----</td>
+<td style="text-align:center">-----</td>
+</tr>
+<tr>
+<td></td>
+<td style="text-align:center">Total:</td>
+<td style="text-align:center"><code>(1,1,1)</code></td>
+</tr>
+</tbody>
+</table>
+<p>To put it more concisely, the specificity of any selector is a triple, <code>(I,C,T)</code>, where</p>
+<ul>
+<li><code>I</code> is the number of ID selectors,</li>
+<li><code>C</code> is the number of Class selectors, and</li>
+<li><code>T</code> is the number of Type selectors.</li>
 </ul>
-
-<p>To understand how to compare the specificity of two rules, let’s go back to
-our latest example of the rules <code data-mark-around="`">.schmancy</code> and <code data-mark-around="`">h2.schmancy</code>.
-Since <code data-mark-around="`">.schmancy</code> is a simple class selector, its specificity is <code data-mark-around="`">(0,1,0)</code>.
-For <code data-mark-around="`">h2.schmancy</code>, we observe that it contains one class selector
-and one type selector, so its specificity is <code data-mark-around="`">(0,1,1)</code>.</p>
-
-<table><thead><tr><th>Selector</th><th>Specificity</th></tr></thead><tbody><tr><td><code data-mark-around="`">.schmancy</code></td><td><code data-mark-around="`">(0,1,0)</code></td></tr><tr><td><code data-mark-around="`">h2.schmancy</code></td><td><code data-mark-around="`">(0,1,1)</code></td></tr></tbody></table>
-
+<p>To understand how to compare the specificity of two rules, let's go back to
+our latest example of the rules <code>.schmancy</code> and <code>h2.schmancy</code>.
+Since <code>.schmancy</code> is a simple class selector, its specificity is <code>(0,1,0)</code>.
+For <code>h2.schmancy</code>, we observe that it contains one class selector
+and one type selector, so its specificity is <code>(0,1,1)</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Selector</th>
+<th style="text-align:center">Specificity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.schmancy</code></td>
+<td style="text-align:center"><code>(0,1,0)</code></td>
+</tr>
+<tr>
+<td><code>h2.schmancy</code></td>
+<td style="text-align:center"><code>(0,1,1)</code></td>
+</tr>
+</tbody>
+</table>
 <p>To determine which specificity is higher,
 we compare corresponding values in the triples,
 starting at the left.
@@ -1055,60 +742,6 @@ If the two values are equal, we move to the next position.
 Once we find two values that are equal, the selector
 that has the higher value in that position
 has the higher specificity.</p>
-
-<p>So, in this case, <code data-mark-around="`">h2.schmancy</code> has the higher specificity
-because the <code data-mark-around="`">I</code> and <code data-mark-around="`">C</code> values are equal, and the
-<code data-mark-around="`">T</code> value of <code data-mark-around="`">1</code> is greater than <code data-mark-around="`">0</code>.</p>
-
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-
-</main>
-
-<style>@media screen{.wqa5gi5a4{--heightViewer: calc(100vh - var(--heightFooter));height:var(--heightViewer);overflow:hidden auto;position:relative}}.wqa5gi5a4 .layout{--render-grid-column: 1 / span 3;--code-grid-column: 1 / span 2;--prose-grid-column: 2 / span 2;display:grid;position:relative;top:calc(var(--heightViewer)*(1 - var(--current-scene, 1)));grid-template-columns:1fr 65ch 1fr;grid-auto-flow:row;justify-items:start;transition:top 0.5s ease-in-out;pointer-events:none}.wqa5gi5a4 .layout>*{pointer-events:all}@media print{.wqa5gi5a4 .layout{--prose-grid-column: unset;--render-grid-column: unset;--code-grid-column: unset;position:relative;top:auto;left:auto;height:auto;grid-template-columns:initial;grid-auto-rows:initial;grid-auto-flow:row}.wqa5gi5a4 .layout .render{break-before:page;break-inside:avoid;border:1px dotted black}.wqa5gi5a4 .layout .code{overflow:visible}}</style>
-
-<script>
-  customElements.define(
-    "consolid-ative",
-    class extends HTMLElement {
-      connectedCallback() {
-        let provider = this.closest("[data-provider]");
-
-        if (provider) {
-          const { value: currentScene } = provider.observe(
-            "current-scene",
-            (newValue) => {
-              console.log("Setting layout to scene", newValue);
-              this.style = `--current-scene: ${newValue}`;
-            }
-          );
-
-          console.log("Consolid-ative (webc)");
-        }
-      }
-    }
-  );
-</script>
-</consolid-ative>
-
-</article>
-
-<style>.wourcuvmv{display:block}.wourcuvmv article{display:flex;flex-direction:column-reverse}@media screen{position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;}@media print{.wourcuvmv article{position:static;height:auto;width:100%}}</style>
-<!-- /template -->
-</st-ative>
-<script type="module">
-
-</script>
-
-
-</body>
-</html>
+<p>So, in this case, <code>h2.schmancy</code> has the higher specificity
+because the <code>I</code> and <code>C</code> values are equal, and the
+<code>T</code> value of <code>1</code> is greater than <code>0</code>.</p>
