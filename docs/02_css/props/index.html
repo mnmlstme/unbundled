@@ -1,294 +1,58 @@
-<!doctype html>
-<html>
-<head>
-<title>Style Properties</title>
-<link rel="stylesheet" href="/styles/prism.css">
-<link rel="stylesheet" href="/styles/theme.css">
+<h2>Style Properties</h2>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">></span></span>No Style<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">color</span><span class="token punctuation">:</span> fireBrick</span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span>The text color<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
-</head>
-<body>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">background-color</span><span class="token punctuation">:</span> mintCream</span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span>The background color<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
-
-<st-ative class="wourcuvmv"><script>
-  const STORE_CHANGE_EVENT = "store:change";
-
-  function createStore(eventTarget, initial = {}) {
-    let root = Object.assign({}, initial);
-
-    console.log("create Global Store for st-ative", JSON.stringify(root));
-
-    return new Proxy(root, {
-      get: (target, prop, receiver) => {
-        const value = Reflect.get(target, prop, receiver);
-        return value;
-      },
-      set: (target, prop, newValue, receiver) => {
-        const oldValue = root[prop];
-        const didSet = Reflect.set(target, prop, newValue, receiver);
-        if (didSet) {
-          eventTarget.dispatchEvent(changeEvent(prop, newValue, oldValue));
-        }
-        return didSet;
-      },
-    });
-  }
-
-  function changeEvent(prop, newValue, oldValue) {
-    // ref: https://infrequently.org/2021/03/reactive-data-modern-js/
-    let evt = new CustomEvent(STORE_CHANGE_EVENT, {
-      bubbles: true,
-      cancelable: true,
-    });
-    evt.oldValue = oldValue;
-    evt.value = newValue;
-    evt.property = prop;
-
-    return evt;
-  }
-
-  customElements.define(
-    "st-ative",
-    class extends HTMLElement {
-      constructor() {
-        super();
-
-        const storeRoot = [];
-        let Store = createStore(this, {
-          "current-scene": 1,
-        });
-
-        this.dataset.provider = JSON.stringify(storeRoot);
-
-        this.observe = (key, watcher) => {
-          if (watcher) {
-            this.addEventListener(STORE_CHANGE_EVENT, (evt) => {
-              if (evt.property === key) {
-                watcher(evt.value, evt.oldValue);
-              }
-            });
-          }
-          return { value: Store[key] };
-        };
-
-        this.bind = (key, watcher) => {
-          const observation = this.observe(key, watcher);
-          return {
-            get: () => Store[key],
-            set: (newValue) => (Store[key] = newValue),
-            ...observation,
-          };
-        };
-
-        console.log("Store provider constructed");
-      }
-    }
-  );
-</script>
-
-<!-- template -->
-<article>
-  
-<navig-ative class="wguho-1wx"><!-- template --><footer>
-  <h6><span>Style Properties
-</span></h6>
-  <span>
-    <button name="previous">Previous</button>
-    <input width="6" type="number" min="1" value="1">
-    <button name="next">Next</button>
-  </span>
-</footer>
-
-<style>.wguho-1wx{height:var(--heightFooter)}.wguho-1wx footer{display:flex;flex-direction:row;padding:0.5rem;gap:0.5rem;justify-content:space-between;align-items:baseline}.wguho-1wx footer>*{margin:0}@media print{.wguho-1wx footer{display:none}}</style>
-<!-- /template -->
-
-<script>
-  console.log("Defining navig-ative...");
-
-  customElements.define(
-    "navig-ative",
-    class extends HTMLElement {
-      connectedCallback() {
-        let provider = this.closest("[data-provider]");
-        let numberInput = this.querySelector(':scope input[type="number"]');
-        let previousButton = this.querySelector(
-          ':scope button[name="previous"]'
-        );
-        let nextButton = this.querySelector(':scope button[name="next"]');
-
-        console.log("Navig-ative attempting to connect...", provider);
-
-        if (provider) {
-          const { get, set } = provider.bind(
-            "current-scene",
-            (newValue) => (numberInput.value = newValue)
-          );
-
-          numberInput.value = get();
-
-          numberInput.addEventListener("change", () => set(numberInput.value));
-
-          previousButton.addEventListener("click", () => set(get() - 1));
-
-          nextButton.addEventListener("click", () => {
-            set(get() + 1);
-          });
-
-          console.log("Consolid-ative (webc)");
-        }
-      }
-    }
-  );
-</script>
-</navig-ative>
-<consolid-ative class="wqa5gi5a4"><!-- <template> for consolid-ative --><main class="layout">
-  
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <h1>No Style</h1>
-
-<h1 style="color: fireBrick">The text color</h1>
-
-<h1 style="background-color: mintCream">The background color</h1>
-
-<h1 style="border-color: plum; border-style: solid">The border color</h1>
-
-<h1 style="color: fireBrick; background-color: mintCream; border-color: plum; border-style: solid">
-  All three colors
-</h1>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span><span class="token punctuation">&gt;</span></span>No Style<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">color</span><span class="token punctuation">:</span> fireBrick</span><span class="token punctuation">"</span></span></span><span class="token punctuation">&gt;</span></span>The text color<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">background-color</span><span class="token punctuation">:</span> mintCream</span><span class="token punctuation">"</span></span></span><span class="token punctuation">&gt;</span></span>The background color<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">border-color</span><span class="token punctuation">:</span> plum<span class="token punctuation">;</span> <span class="token property">border-style</span><span class="token punctuation">:</span> solid</span><span class="token punctuation">"</span></span></span><span class="token punctuation">&gt;</span></span>The border color<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">border-color</span><span class="token punctuation">:</span> plum<span class="token punctuation">;</span> <span class="token property">border-style</span><span class="token punctuation">:</span> solid</span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span>The border color<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
 <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span>
   <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">color</span><span class="token punctuation">:</span> fireBrick<span class="token punctuation">;</span> 
   	<span class="token property">background-color</span><span class="token punctuation">:</span> mintCream<span class="token punctuation">;</span>
 	<span class="token property">border-color</span><span class="token punctuation">:</span> plum<span class="token punctuation">;</span>
 	<span class="token property">border-style</span><span class="token punctuation">:</span> solid</span><span class="token punctuation">"</span></span></span>
-<span class="token punctuation">&gt;</span></span>
+<span class="token punctuation">></span></span>
   All three colors
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Style Properties</h2>
-
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span></code></pre>
 <p>To style a paragraph in Word, or a shape in Illustrator,
 we use the sidebar panels to specify characteristics like color,
 font, margins, shadows.
-Similarly, in CSS we have a rich set of style <em data-mark-around="_">properties</em>,
+Similarly, in CSS we have a rich set of style <em>properties</em>,
 which we can apply to HTML elements.</p>
-
 <p>The effect of assigning these properties in CSS is defined
 in the CSS3 standard.
 As long as we only use standard properties,
 any standards-conforming browser will display
 our styled elements the same way.
-With that said, CSS3 is a <em data-mark-around="_">living</em> standard,
+With that said, CSS3 is a <em>living</em> standard,
 meaning that it is always evolving.
 New properties and features are periodically added to the standard,
 but always in a way that does not invalidate code written to
 any previous iteration of the standard.
 That is, each new addition to CSS, and therefore each new release
 of standards-conforming browsers, is guaranteed to be backward-compatible.</p>
-
 <p>We will detail many of these properties in this chapter,
 but to begin,
-let’s look at three properties which control color:</p>
-
-<ul><li><p><code data-mark-around="`">color</code>: the foreground color of an element. For text elements, the color of the text.</p>
-</li>
-
-<li><p><code data-mark-around="`">background-color</code>: the background color of an element. This color fills a box around the element, behind the foreground.</p>
-</li>
-
-<li><p><code data-mark-around="`">border-color</code>: the color of the border around an element. Note that to see an element’s border, we need to also the element’s <code data-mark-around="`">border-style</code>.</p>
-</li>
+let's look at three properties which control color:</p>
+<ul>
+<li><code>color</code>: the foreground color of an element. For text elements, the color of the text.</li>
+<li><code>background-color</code>: the background color of an element. This color fills a box around the element, behind the foreground.</li>
+<li><code>border-color</code>: the color of the border around an element. Note that to see an element's border, we need to also the element's <code>border-style</code>.</li>
 </ul>
-
 <p>(For now we are also using some of the pre-defined color values defined by the
 standard.)</p>
-
-<p>In CSS, we set a style property using a <code data-mark-around="`">declaration</code>.
-Declarations consist of a property name, a colon (<code data-mark-around="`">:</code>), and the value we
+<p>In CSS, we set a style property using a <code>declaration</code>.
+Declarations consist of a property name, a colon (<code>:</code>), and the value we
 want the property to have.
-For example, to set the text color to red, we can say <code data-mark-around="`">color: red</code>.
-We can also create lists of declarations, using a semi-colon (<code data-mark-around="`">;</code>) to separate them.
-A set of one or more declarations is called a <code data-mark-around="`">style</code>.</p>
-
+For example, to set the text color to red, we can say <code>color: red</code>.
+We can also create lists of declarations, using a semi-colon (<code>;</code>) to separate them.
+A set of one or more declarations is called a <code>style</code>.</p>
 <p>The quickest way to apply a style to a specific HTML element is to
-use the <code data-mark-around="`">style</code> attribute on the element, as demonstrated in this example.
+use the <code>style</code> attribute on the element, as demonstrated in this example.
 First we see the styling that is set by the browser as a default.
 The exact style may vary between browsers and platforms, but in all likelihood
 the color of the text will be black.
 The next three lines show the effect of setting each of the three color
 properties separately.
-Finally, the last example shows all three combined into one <code data-mark-around="`">style</code>.</p>
-
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-
-</main>
-
-<style>@media screen{.wqa5gi5a4{--heightViewer: calc(100vh - var(--heightFooter));height:var(--heightViewer);overflow:hidden auto;position:relative}}.wqa5gi5a4 .layout{--render-grid-column: 1 / span 3;--code-grid-column: 1 / span 2;--prose-grid-column: 2 / span 2;display:grid;position:relative;top:calc(var(--heightViewer)*(1 - var(--current-scene, 1)));grid-template-columns:1fr 65ch 1fr;grid-auto-flow:row;justify-items:start;transition:top 0.5s ease-in-out;pointer-events:none}.wqa5gi5a4 .layout>*{pointer-events:all}@media print{.wqa5gi5a4 .layout{--prose-grid-column: unset;--render-grid-column: unset;--code-grid-column: unset;position:relative;top:auto;left:auto;height:auto;grid-template-columns:initial;grid-auto-rows:initial;grid-auto-flow:row}.wqa5gi5a4 .layout .render{break-before:page;break-inside:avoid;border:1px dotted black}.wqa5gi5a4 .layout .code{overflow:visible}}</style>
-
-<script>
-  customElements.define(
-    "consolid-ative",
-    class extends HTMLElement {
-      connectedCallback() {
-        let provider = this.closest("[data-provider]");
-
-        if (provider) {
-          const { value: currentScene } = provider.observe(
-            "current-scene",
-            (newValue) => {
-              console.log("Setting layout to scene", newValue);
-              this.style = `--current-scene: ${newValue}`;
-            }
-          );
-
-          console.log("Consolid-ative (webc)");
-        }
-      }
-    }
-  );
-</script>
-</consolid-ative>
-
-</article>
-
-<style>.wourcuvmv{display:block}.wourcuvmv article{display:flex;flex-direction:column-reverse}@media screen{position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;}@media print{.wourcuvmv article{position:static;height:auto;width:100%}}</style>
-<!-- /template -->
-</st-ative>
-<script type="module">
-
-</script>
-
-
-</body>
-</html>
+Finally, the last example shows all three combined into one <code>style</code>.</p>

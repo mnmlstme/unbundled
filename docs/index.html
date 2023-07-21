@@ -1,12 +1,56 @@
-<h2>Chapters</h2>
-<ul>
-<li>HTML</li>
-<li><a href="./02_css">CSS</a></li>
-<li>Javascript</li>
-<li>SVG</li>
-<li><a href="./05_patterns">Patterns</a></li>
-<li>Web APIs</li>
-<li><a href="./07_apps">Application Development</a></li>
-<li>Server-side Programming</li>
-<li>Universal Design</li>
+<!DOCTYPE html>
+<html>
+<head>
+<title>Web Development Unbundled</title>
+<script type="importmap">
+{ "imports": {"@cre.ative/kram-11ty/runtime":"/modules/@cre.ative/kram-11ty/runtime.mjs","@cre.ative/kram-11ty/styles":"/modules/@cre.ative/kram-11ty/styles.css"} }
+</script>
+<link rel="stylesheet" href="/modules/@cre.ative/kram-11ty/styles.css">
+<script type="module">
+import {init, register} from "@cre.ative/kram-11ty/runtime";
+init({});
+
+</script>
+</head>
+<body>
+<kram-main>
+<h1 slot="title">Web Development Unbundled</h1>
+<kram-toc slot="nav"><ol>
+<li data-idref="scene-1">Chapters</li>
+</ol></kram-toc>
+<kram-flow><kram-scene 
+        scene="1" 
+        language="null" 
+        norender><h2>Chapters</h2>
+
+<ul><li><p>HTML</p>
+</li>
+
+<li><p><a href="./02_css/">CSS</a></p>
+</li>
+
+<li><p>Javascript</p>
+</li>
+
+<li><p>SVG</p>
+</li>
+
+<li><p><a href="./05_patterns/">Patterns</a></p>
+</li>
+
+<li><p>Web APIs</p>
+</li>
+
+<li><p><a href="./07_apps/">Application Development</a></p>
+</li>
+
+<li><p>Server-side Programming</p>
+</li>
+
+<li><p>Universal Design</p>
+</li>
 </ul>
+</kram-scene></kram-flow>
+</kram-main>
+</body>
+</html>

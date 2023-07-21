@@ -1,5 +1,6 @@
 ---
 title: Itinerary Custom Element
+platform: web-standard
 ---
 
 # Itinerary with Custom Element Markup
@@ -16,7 +17,7 @@ title: Itinerary Custom Element
     <blz-excursion>
       <a href="#">Murano</a>
     </blz-excursion>
-    <blz-excursion type="walking-tour">
+    <blz-excursion type="walking">
       <a href="#">Piazza San Marco</a>
     </blz-excursion>
   </blz-destination>
@@ -29,13 +30,13 @@ I've created some new tag names so I can later define very semantics.
 And because those semantics are specific to our application, Blazing Travels, I've put
 a prefix of `blz-` on each of the tag names.
 This way, there is no ambiguity, either with standard HTML tags—which are guaranteed to
-never include a hyphen—or the information architecture of some other project.
+never include a hyphen—or custom elements in other projects.
 
-Try loading this markup into a browser, and you will just see the place names.
+Try loading this markup into a browser, and you will just see the text in the three `<span>`
+elements and the three links, all one one line.
 If you inspect the page in Developer Tools, though, you will see the element hierarchy.
 For any element with an unrecognized tag name, the browser just displays its contents.
-Since the `<blz-place>` elements contain text—which the browser is able to present—that text
-is displayed.
+That's why only the `<span>` elements and `<a>` elements are displayed.
 
 If you want to do anything else—you need to _register_ the tag name as a custom element.
 And that must be done using Javascript.
@@ -45,6 +46,8 @@ which are nothing like the `class` attribute in HTML.
 But the good part of this, is that much of the code that defines each of these custom
 elements can be written in HTML/CSS.
 You will actually end up re-using a lot of the HTML and CSS that you wrote previously.
+Before getting to Javascript, I'll show you the HTML and CSS required to define
+your own custom element.
 
 ```html
 <template id="blz-accommodation-template">
@@ -57,14 +60,24 @@ You will actually end up re-using a lot of the HTML and CSS that you wrote previ
 </template>
 ```
 
+Custom elements are defined in HTML using the `<template>` element.
 HTML `<template>` elements can be put almost anywhere, but putting them in the `<head>` keeps
 them separate from content.
 
-The `<slot>` element is a placeholder. The contents of the `<blz-place>` element will be
-inserted there. The text "Some Place Name" will only appear if `<blz-place>` is empty.
+The `<slot>` element is a placeholder. The contents of the `<blz-accommodation>` element will be
+inserted there. The text "**_ ... _**" will only appear if `<blz-accommodation>` is empty.
 
-Now for the Javascript code to register the `blz-place` element and connect it to
-the `<template>`.
+The template also contains a `<style>` element, which, like the `<style>` element within a `<head>`
+element, contains CSS code.
+The difference, when `<style>` is used within a template, is that the CSS rules _only_
+affect the elements in the template.
+Moreover, the elements in the template are _not_ affected by any CSS anywhere else in the document,
+including `<style>` elements, and linked stylesheets.
+
+<aside>Shadow DOM vs light DOM. CSS properties not inherited across shadow DOM boundary.</aside>
+
+Now for the Javascript code to register the tag name `blz-accommodation` and connect
+it with the `<template>`.
 All Javascript goes in a `<script>` element.
 For now, we'll keep all `<script>` element in the `<head>`.
 First, you need to define a `class`.
@@ -81,13 +94,17 @@ class BlzAccommodation extends HTMLElement {
 customElements.define("blz-accommodation", BlzAccommodation);
 ```
 
+<aside>Need some basic Javascript syntax  here</aside>
+
 The class must extend the standard Javascript class `HTMLElement`, which means it
 has all the capabilities of any other HTML element.
 
-By registering the tag name `blz-place` and linking it to class `BlzPlace`,
-you are going to tell the browser to use class `BlzPlace` instead of `HTMLElement`
+By registering the tag name `blz-accommodation` and linking it to class `BlzPlace`,
+you are going to tell the browser to use class `BlzAccommodation` instead of `HTMLElement`
 to construct a new element node in the _DOM_—the Document Object Model.
 For now, this line can go in the same `<script>` tag as the class definition above.
+
+<aside>Need to know about the DOM.</aside>
 
 ---
 
@@ -100,17 +117,21 @@ For now, this line can go in the same `<script>` tag as the class definition abo
   <span slot="dates">14 Oct - 18 Oct</span>
   <blz-accommodation><a href="#">Locanda San Barnaba</a></blz-accommodation>
   <blz-excursion><a href="#">Murano</a></blz-excursion>
-  <blz-excursion type="walking-tour"
-    ><a href="#">Piazza San Marco</a></blz-excursion
-  >
+  <blz-excursion type="walking"><a href="#">Piazza San Marco</a></blz-excursion>
 </blz-destination>
 ```
 
-This `blz-destination` contains four elements, the first of which has a `slot="name"`
+This `blz-destination` contains six elements, the first three of which have a `slot`
 attribute.
-This is a _named slot_, and there is a matching `<slot name="name">` in the template.
-There is another named slot, `nights`.
-Note that the template has switched the order in which these values are displayed.
+These are _named slots_.
+When a direct descendent of a custom element has a `slot` attribute,
+that element will be used as the contents of the `<slot>`
+in the template that has the same name.
+For example, the `<span slot="name">` element will become the
+content of the `<slot name="name">` slot.
+
+Take a look at the following template for this `<blz-destination>` custom element.
+Note that it contains four `<slot>` elements, three of which have `name` attributes.
 
 ```html
 <template id="blz-destination-template">
@@ -128,8 +149,9 @@ Note that the template has switched the order in which these values are displaye
     }
     :host {
       display: grid;
-      grid-template-columns: min-content auto 1fr;
+      grid-template-columns: [dates] auto [header] 1fr [info] 3fr [info-end];
       gap: var(--size-spacing-medium) var(--size-spacing-large);
+      align-items: baseline;
     }
     header {
       --color-text: var(--color-text-inverted);
@@ -138,6 +160,8 @@ Note that the template has switched the order in which these values are displaye
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      height: 100%;
+      box-sizing: border-box;
       padding: var(--size-spacing-small);
       background: var(--color-background-header);
       color: var(--color-text);
@@ -149,6 +173,7 @@ Note that the template has switched the order in which these values are displaye
     .list {
       display: flex;
       flex-direction: column;
+      grid-column: info / info-end;
     }
   </style>
 </template>
@@ -156,13 +181,6 @@ Note that the template has switched the order in which these values are displaye
 
 We need to bring in the reset and some of `page.css` because CSS declarations
 are not inherited from the light DOM to the shadow DOM.
-
-When you created the `<blz-destination>` element, you supplied an attribute,
-`nights="4"`.
-This attribute is not part of the HTML standard—it is a _custom_ attribute.
-You will need to write some code in the `BlzDestination` class to copy that value
-into the `<p>` element provided for it.
-This is similar to using a slot.
 
 ```js
 class BlzDestination extends HTMLElement {
@@ -187,9 +205,7 @@ customElements.define("blz-destination", BlzDestination);
   <span slot="dates">14 Oct - 18 Oct</span>
   <blz-accommodation><a href="#">Locanda San Barnaba</a></blz-accommodation>
   <blz-excursion><a href="#">Murano</a></blz-excursion>
-  <blz-excursion type="walking-tour"
-    ><a href="#">Piazza San Marco</a></blz-excursion
-  >
+  <blz-excursion type="walking"><a href="#">Piazza San Marco</a></blz-excursion>
 </blz-destination>
 ```
 
@@ -220,7 +236,8 @@ Javascript.
 </template>
 ```
 
-There's no feature in HTML templates for accessing attributes, like `<slot>` provides for contents.
+There's no feature for pulling attribute values into an HTML template,
+like `<slot>` does for contents.
 This must be done by Javascript code in the custom element's class.
 
 ```js
@@ -233,8 +250,6 @@ class BlzExcursion extends HTMLElement {
 
   connectedCallback() {
     const type = this.getAttribute("type");
-
-    console.log("Excursion:", type, this);
 
     if (type) {
       this._updateMessage(type);
@@ -252,8 +267,17 @@ class BlzExcursion extends HTMLElement {
     let place = this.shadowRoot.getElementById("place");
 
     switch (type) {
-      case "walking-tour":
-        message.replaceChildren("Walking tour of ", place);
+      case "bus":
+        message.replaceChildren("Take a city bus to ", place);
+        break;
+      case "metro":
+        message.replaceChildren("Travel to ", place, " via Metro");
+        break;
+      case "train":
+        message.replaceChildren(place, " by train");
+        break;
+      case "walking":
+        message.replaceChildren("Tour ", place, " on foot");
         break;
       default:
         message.replaceChildren("Visit ", place);
@@ -265,21 +289,50 @@ class BlzExcursion extends HTMLElement {
 customElements.define("blz-excursion", BlzExcursion);
 ```
 
+You shouldn't normally hard-code messages like this.
+In later chapters, you'll learn how to store interface copy so that it can be
+easily updated and localized.
+
 ---
 
 ## Container Controls Layout
 
 ```html
-  <blz-itinerary>
-    <blz-destination>
-      <span slot="nights">4</span>
-      <span slot="name">Venice</span>
-      <span slot="dates">14 Oct - 18 Oct</span>
-      <blz-accommodation><a href="#">Locanda San Barnaba</a></blz-accommodation>
-      <blz-excursion><a href="#">Murano</a></blz-excursion>
-      <blz-excursion type="walking-tour"><a href="#">Piazza San Marco</a></blz-excursion>
-    </blz-destination>
-  </blz-itinerary></template>
+<blz-itinerary>
+  <blz-destination>
+    <span slot="nights">4</span>
+    <span slot="name">Venice</span>
+    <span slot="dates">14 Oct - 18 Oct</span>
+    <blz-accommodation><a href="#">Locanda San Barnaba</a></blz-accommodation>
+    <blz-excursion><a href="#">Murano</a></blz-excursion>
+    <blz-excursion type="walking"
+      ><a href="#">Piazza San Marco</a></blz-excursion
+    >
+  </blz-destination>
+  <blz-destination>
+    <span slot="nights">3</span>
+    <span slot="name">Florence</span>
+    <span slot="dates">18 Oct - 21 Oct</span>
+    <blz-accommodation><a href="#">Hotel Perseo</a></blz-accommodation>
+    <blz-excursion type="walking"
+      ><a href="#">Duomo, Campanile</a></blz-excursion
+    >
+    <blz-excursion type="train"><a href="#">Lucca</a></blz-excursion>
+    <blz-excursion type="bus"><a href="#">Fiesole</a></blz-excursion>
+  </blz-destination>
+  <blz-destination>
+    <span slot="nights">4</span>
+    <span slot="name">Rome</span>
+    <span slot="dates">21 Oct - 25 Oct</span>
+    <blz-accommodation><a href="#">La Piccola Maison</a></blz-accommodation>
+    <blz-excursion type="metro"
+      ><a href="#">Forum, Colosseum, Palatino Hill</a></blz-excursion
+    >
+    <blz-excursion type="metro"
+      ><a href="#">Vatican, St Peter's</a></blz-excursion
+    >
+  </blz-destination>
+</blz-itinerary>
 ```
 
 ```html
@@ -299,7 +352,8 @@ customElements.define("blz-excursion", BlzExcursion);
     }
 
     ::slotted(*) {
-      display: subgrid;
+      grid-column: start / end;
+      grid-template-columns: subgrid;
     }
   </style>
 </template>

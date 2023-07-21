@@ -1,5 +1,6 @@
 ---
 title: Web Components
+platform: web-standard
 ---
 
 ```html

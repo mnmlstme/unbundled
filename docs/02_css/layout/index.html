@@ -1,423 +1,70 @@
-<!doctype html>
-<html>
-<head>
-<title>CSS Layout</title>
-<link rel="stylesheet" href="/styles/prism.css">
-<link rel="stylesheet" href="/styles/theme.css">
-<style>/* Kram: CSS in Scene 2 */
-.boxed-text {
-  border: 1px solid lightCoral;
-}
-
-/* Kram: CSS in Scene 2 */
-.narrow-box {
-  width: 15em;
-}
-
-/* Kram: CSS in Scene 2 */
-.two-line-box {
-  height: 2.5em;
-}
-
-/* Kram: CSS in Scene 3 */
-.hug-box {
-  width: max-content;
-}
-
-.squeeze-box {
-  width: min-content;
-}
-
-/* Kram: CSS in Scene 3 */
-.min-box {
-  min-width: 8em;
-  width: min-content;
-}
-
-.non-breaking {
-  white-space: nowrap;
-}
-
-/* Kram: CSS in Scene 4 */
-.boxed-section {
-  width: 25em;
-  border: 1px solid plum;
-}
-
-.with-margins {
-  margin: 2em;
-}
-
-.with-padding {
-  padding: 2em;
-}
-
-/* Kram: CSS in Scene 5 */
-.content-box {
-  box-sizing: content-box; /* (default) */
-  width: 200px;
-  height: 50px;
-  padding: 2rem;
-  background: lightCoral;
-  border: 0.5rem dashed plum;
-  margin: 2rem;
-}
-
-/* Kram: CSS in Scene 6 */
-.border-box {
-  box-sizing: border-box;
-  width: 200px;
-  height: auto;
-  padding: 2rem;
-  background: azure;
-  border: 0.5rem dashed plum;
-  margin: 2rem 4.5rem;
-}
-
-/* Kram: CSS in Scene 6 */
-* {
-  /* reset the box model to use border-box */
-  box-sizing: border-box;
-}
-</style>
-
-</head>
-<body>
-
-
-<st-ative class="wourcuvmv"><script>
-  const STORE_CHANGE_EVENT = "store:change";
-
-  function createStore(eventTarget, initial = {}) {
-    let root = Object.assign({}, initial);
-
-    console.log("create Global Store for st-ative", JSON.stringify(root));
-
-    return new Proxy(root, {
-      get: (target, prop, receiver) => {
-        const value = Reflect.get(target, prop, receiver);
-        return value;
-      },
-      set: (target, prop, newValue, receiver) => {
-        const oldValue = root[prop];
-        const didSet = Reflect.set(target, prop, newValue, receiver);
-        if (didSet) {
-          eventTarget.dispatchEvent(changeEvent(prop, newValue, oldValue));
-        }
-        return didSet;
-      },
-    });
-  }
-
-  function changeEvent(prop, newValue, oldValue) {
-    // ref: https://infrequently.org/2021/03/reactive-data-modern-js/
-    let evt = new CustomEvent(STORE_CHANGE_EVENT, {
-      bubbles: true,
-      cancelable: true,
-    });
-    evt.oldValue = oldValue;
-    evt.value = newValue;
-    evt.property = prop;
-
-    return evt;
-  }
-
-  customElements.define(
-    "st-ative",
-    class extends HTMLElement {
-      constructor() {
-        super();
-
-        const storeRoot = [];
-        let Store = createStore(this, {
-          "current-scene": 1,
-        });
-
-        this.dataset.provider = JSON.stringify(storeRoot);
-
-        this.observe = (key, watcher) => {
-          if (watcher) {
-            this.addEventListener(STORE_CHANGE_EVENT, (evt) => {
-              if (evt.property === key) {
-                watcher(evt.value, evt.oldValue);
-              }
-            });
-          }
-          return { value: Store[key] };
-        };
-
-        this.bind = (key, watcher) => {
-          const observation = this.observe(key, watcher);
-          return {
-            get: () => Store[key],
-            set: (newValue) => (Store[key] = newValue),
-            ...observation,
-          };
-        };
-
-        console.log("Store provider constructed");
-      }
-    }
-  );
-</script>
-
-<!-- template -->
-<article>
-  
-<navig-ative class="wguho-1wx"><!-- template --><footer>
-  <h6><span>CSS Layout
-</span></h6>
-  <span>
-    <button name="previous">Previous</button>
-    <input width="6" type="number" min="1" value="1">
-    <button name="next">Next</button>
-  </span>
-</footer>
-
-<style>.wguho-1wx{height:var(--heightFooter)}.wguho-1wx footer{display:flex;flex-direction:row;padding:0.5rem;gap:0.5rem;justify-content:space-between;align-items:baseline}.wguho-1wx footer>*{margin:0}@media print{.wguho-1wx footer{display:none}}</style>
-<!-- /template -->
-
-<script>
-  console.log("Defining navig-ative...");
-
-  customElements.define(
-    "navig-ative",
-    class extends HTMLElement {
-      connectedCallback() {
-        let provider = this.closest("[data-provider]");
-        let numberInput = this.querySelector(':scope input[type="number"]');
-        let previousButton = this.querySelector(
-          ':scope button[name="previous"]'
-        );
-        let nextButton = this.querySelector(':scope button[name="next"]');
-
-        console.log("Navig-ative attempting to connect...", provider);
-
-        if (provider) {
-          const { get, set } = provider.bind(
-            "current-scene",
-            (newValue) => (numberInput.value = newValue)
-          );
-
-          numberInput.value = get();
-
-          numberInput.addEventListener("change", () => set(numberInput.value));
-
-          previousButton.addEventListener("click", () => set(get() - 1));
-
-          nextButton.addEventListener("click", () => {
-            set(get() + 1);
-          });
-
-          console.log("Consolid-ative (webc)");
-        }
-      }
-    }
-  );
-</script>
-</navig-ative>
-<consolid-ative class="wqa5gi5a4"><!-- <template> for consolid-ative --><main class="layout">
-  
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h1>CSS Layout</h1>
-
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <p class="boxed-text">Paragraphs are by default full width.</p>
-<p class="narrow-box boxed-text">This box is narrow.</p>
-<p class="narrow-box boxed-text">
+<h1>CSS Layout</h1>
+<hr>
+<h2>Controlling the size of blocks</h2>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Paragraphs are by default full width.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>narrow-box boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>This box is narrow.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>narrow-box boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
   If we add more content to a narrow box, that content will wrap to as many
   lines as it needs, making the box taller.
-</p>
-<p class="narrow-box two-line-box boxed-text">
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>narrow-box two-line-box boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
   If we constrain the height of the box, the content will overflow.
-</p>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Paragraphs are by default full width.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>narrow-box boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>This box is narrow.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>narrow-box boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-  If we add more content to a narrow box, that content will wrap to as many
-  lines as it needs, making the box taller.
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>narrow-box two-line-box boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-  If we constrain the height of the box, the content will overflow.
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Controlling the size of blocks</h2>
-
-<p>Let’s draw make the box around our blocks visible. We can define the
-class <code data-mark-around="`">boxed-text</code> to do that:</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">.boxed-text</span> <span class="token punctuation">{</span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span></code></pre>
+<p>Let's draw make the box around our blocks visible. We can define the
+class <code>boxed-text</code> to do that:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.boxed-text</span> <span class="token punctuation">{</span>
   <span class="token property">border</span><span class="token punctuation">:</span> 1px solid lightCoral<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
+<span class="token punctuation">}</span></code></pre>
 <p>Our box extends to the full width of the page, because that is the
 default layout for block elements. To change the width of the box, we
-can use the <code data-mark-around="`">width</code> property:</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">.narrow-box</span> <span class="token punctuation">{</span>
+can use the <code>width</code> property:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.narrow-box</span> <span class="token punctuation">{</span>
   <span class="token property">width</span><span class="token punctuation">:</span> 15em<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<p>We can also control the height of the box, using the <code data-mark-around="`">height</code> property:</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">.two-line-box</span> <span class="token punctuation">{</span>
+<span class="token punctuation">}</span></code></pre>
+<p>We can also control the height of the box, using the <code>height</code> property:</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.two-line-box</span> <span class="token punctuation">{</span>
   <span class="token property">height</span><span class="token punctuation">:</span> 2.5em<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <p class="boxed-text narrow-box">Too little text.</p>
-<p class="boxed-text hug-box">This box hugs content.</p>
-<p class="boxed-text squeeze-box">This box is as narrow as it can be.</p>
-<p class="boxed-text min-box">
+<span class="token punctuation">}</span></code></pre>
+<hr>
+<h2>Intrinsic Sizing</h2>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text narrow-box<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Too little text.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text hug-box<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>This box hugs content.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text squeeze-box<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>This box is as narrow as it can be.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text min-box<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
   This box is not too narrow because it has a minimum width.
-</p>
-<p class="boxed-text min-box">
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text min-box<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
   This box has a minimum width, but if there are
-  <em class="non-breaking">phrases that cannot be broken</em>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>em</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>non-breaking<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>phrases that cannot be broken<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>em</span><span class="token punctuation">></span></span>
   , CSS will make room for them.
-</p>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text narrow-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Too little text.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text hug-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>This box hugs content.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text squeeze-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>This box is as narrow as it can be.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text min-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-  This box is not too narrow because it has a minimum width.
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text min-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-  This box has a minimum width, but if there are
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>em</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>non-breaking<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>phrases that cannot be broken<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>em</span><span class="token punctuation">&gt;</span></span>
-  , CSS will make room for them.
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Intrinsic Sizing</h2>
-
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span></code></pre>
 <p>In the previous section, we looked at the box model, and how setting the
-<code data-mark-around="`">width</code> on a box forces the text within the box to wrap. But there are
-also times when we want the box to <em data-mark-around="_">hug</em> the contents.</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">.hug-box</span> <span class="token punctuation">{</span>
+<code>width</code> on a box forces the text within the box to wrap. But there are
+also times when we want the box to <em>hug</em> the contents.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.hug-box</span> <span class="token punctuation">{</span>
   <span class="token property">width</span><span class="token punctuation">:</span> max-content<span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 
 <span class="token selector">.squeeze-box</span> <span class="token punctuation">{</span>
   <span class="token property">width</span><span class="token punctuation">:</span> min-content<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">.min-box</span> <span class="token punctuation">{</span>
+<span class="token punctuation">}</span></code></pre>
+<pre class="language-css"><code class="language-css"><span class="token selector">.min-box</span> <span class="token punctuation">{</span>
   <span class="token property">min-width</span><span class="token punctuation">:</span> 8em<span class="token punctuation">;</span>
   <span class="token property">width</span><span class="token punctuation">:</span> min-content<span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 
 <span class="token selector">.non-breaking</span> <span class="token punctuation">{</span>
   <span class="token property">white-space</span><span class="token punctuation">:</span> nowrap<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <section class="boxed-section">
-  <h1 class="boxed-text">
-    <em>Metamorphosis</em>
+<span class="token punctuation">}</span></code></pre>
+<hr>
+<h2>Margins and Padding</h2>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>section</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-section<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>em</span><span class="token punctuation">></span></span>Metamorphosis<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>em</span><span class="token punctuation">></span></span>
     by Franz Kafka
-  </h1>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">></span></span>
 
-  <p class="boxed-text with-margins">
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text with-margins<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
     One morning, when Gregor Samsa woke from troubled dreams, he found himself
     transformed in his bed into a horrible vermin. He lay on his armour-like
     back, and if he lifted his head a little he could see his brown belly,
@@ -425,8 +72,8 @@ also times when we want the box to <em data-mark-around="_">hug</em> the content
     hardly able to cover it and seemed ready to slide off any moment. His many
     legs, pitifully thin compared with the size of the rest of him, waved about
     helplessly as he looked.
-  </p>
-  <p class="boxed-text with-padding">
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text with-padding<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
     “What’s happened to me?” he thought. It wasn’t a dream. His room, a proper
     human room although a little too small, lay peacefully between its four
     familiar walls. A collection of textile samples lay spread out on the
@@ -435,54 +82,9 @@ also times when we want the box to <em data-mark-around="_">hug</em> the content
     gilded frame. It showed a lady fitted out with a fur hat and fur boa who sat
     upright, raising a heavy fur muff that covered the whole of her lower arm
     towards the viewer.
-  </p>
-</section>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>section</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-section<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>h1</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>em</span><span class="token punctuation">&gt;</span></span>Metamorphosis<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>em</span><span class="token punctuation">&gt;</span></span>
-    by Franz Kafka
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>h1</span><span class="token punctuation">&gt;</span></span>
-
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text with-margins<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-    One morning, when Gregor Samsa woke from troubled dreams, he found himself
-    transformed in his bed into a horrible vermin. He lay on his armour-like
-    back, and if he lifted his head a little he could see his brown belly,
-    slightly domed and divided by arches into stiff sections. The bedding was
-    hardly able to cover it and seemed ready to slide off any moment. His many
-    legs, pitifully thin compared with the size of the rest of him, waved about
-    helplessly as he looked.
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>boxed-text with-padding<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-    “What’s happened to me?” he thought. It wasn’t a dream. His room, a proper
-    human room although a little too small, lay peacefully between its four
-    familiar walls. A collection of textile samples lay spread out on the
-    table—Samsa was a travelling salesman—and above it there hung a picture that
-    he had recently cut out of an illustrated magazine and housed in a nice,
-    gilded frame. It showed a lady fitted out with a fur hat and fur boa who sat
-    upright, raising a heavy fur muff that covered the whole of her lower arm
-    towards the viewer.
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>section</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Margins and Padding</h2>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">.boxed-section</span> <span class="token punctuation">{</span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>section</span><span class="token punctuation">></span></span></code></pre>
+<pre class="language-css"><code class="language-css"><span class="token selector">.boxed-section</span> <span class="token punctuation">{</span>
   <span class="token property">width</span><span class="token punctuation">:</span> 25em<span class="token punctuation">;</span>
   <span class="token property">border</span><span class="token punctuation">:</span> 1px solid plum<span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
@@ -493,54 +95,18 @@ also times when we want the box to <em data-mark-around="_">hug</em> the content
 
 <span class="token selector">.with-padding</span> <span class="token punctuation">{</span>
   <span class="token property">padding</span><span class="token punctuation">:</span> 2em<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <section>
-  <p class="content-box">Here is our content.</p>
-  <img src="../_files/Box Model.svg">
-</section>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>section</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>content-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Here is our content.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>../_files/Box Model.svg<span class="token punctuation">"</span></span> <span class="token punctuation">/&gt;</span></span>
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>section</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Box Model</h2>
-
-<p>In the previous section, we used <code data-mark-around="`">padding</code> to make space inside an element’s border,
-and <code data-mark-around="`">margin</code> to make space outside.
-We are now ready to look at the CSS <em data-mark-around="_">box model</em>, and how the overall
-<code data-mark-around="`">width</code> and <code data-mark-around="`">height</code> of an element are computed.</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">.content-box</span> <span class="token punctuation">{</span>
+<span class="token punctuation">}</span></code></pre>
+<hr>
+<h2>Box Model</h2>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>section</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>content-box<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>Here is our content.<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>img</span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>../_files/Box Model.svg<span class="token punctuation">"</span></span> <span class="token punctuation">/></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>section</span><span class="token punctuation">></span></span></code></pre>
+<p>In the previous section, we used <code>padding</code> to make space inside an element's border,
+and <code>margin</code> to make space outside.
+We are now ready to look at the CSS <em>box model</em>, and how the overall
+<code>width</code> and <code>height</code> of an element are computed.</p>
+<pre class="language-css"><code class="language-css"><span class="token selector">.content-box</span> <span class="token punctuation">{</span>
   <span class="token property">box-sizing</span><span class="token punctuation">:</span> content-box<span class="token punctuation">;</span> <span class="token comment">/* (default) */</span>
   <span class="token property">width</span><span class="token punctuation">:</span> 200px<span class="token punctuation">;</span>
   <span class="token property">height</span><span class="token punctuation">:</span> 50px<span class="token punctuation">;</span>
@@ -548,94 +114,48 @@ We are now ready to look at the CSS <em data-mark-around="_">box model</em>, and
   <span class="token property">background</span><span class="token punctuation">:</span> lightCoral<span class="token punctuation">;</span>
   <span class="token property">border</span><span class="token punctuation">:</span> 0.5rem dashed plum<span class="token punctuation">;</span>
   <span class="token property">margin</span><span class="token punctuation">:</span> 2rem<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
+<span class="token punctuation">}</span></code></pre>
 <p>For any element presented, the CSS box model defines 4 different boxes.
-The innermost box is the <em data-mark-around="_">content box</em>.
+The innermost box is the <em>content box</em>.
 This is where any content inside the element is placed.
-In this example, we have a <code data-mark-around="`">&lt;p&gt;</code> element which contains some text.</p>
-
-<p>The next box is the <em data-mark-around="_">padding box</em>, which contains the content box
-as well as any <code data-mark-around="`">padding</code> from the CSS applied to the element.
-In this example, we have <code data-mark-around="`">2.0rem</code> of padding on all sides.</p>
-
-<p>Next is the <em data-mark-around="_">border box</em>, which contains the padding box
-as well as any <code data-mark-around="`">border</code> from the CSS applied to the element.
-In this example, we have a transparent border which is <code data-mark-around="`">0.5rem</code> wide
+In this example, we have a <code>&lt;p&gt;</code> element which contains some text.</p>
+<p>The next box is the <em>padding box</em>, which contains the content box
+as well as any <code>padding</code> from the CSS applied to the element.
+In this example, we have <code>2.0rem</code> of padding on all sides.</p>
+<p>Next is the <em>border box</em>, which contains the padding box
+as well as any <code>border</code> from the CSS applied to the element.
+In this example, we have a transparent border which is <code>0.5rem</code> wide
 on all sides.
 Note that even though the border is transparent, it still contributes
 to the overall height and width calculations for the box.</p>
-
 <p>When we are laying out content on a web page, and arranging boxes next to each
-other, it is usually the border box that we’re concerned with.
+other, it is usually the border box that we're concerned with.
 This is because the border box is the maximum visual extent of the element.
-All of an element’s content, as well as its border is contained in the border box.</p>
-
+All of an element's content, as well as its border is contained in the border box.</p>
 <p>Though the border box is the visual extent of the element, for historical
-reasons, CSS uses the <code data-mark-around="`">width</code> and <code data-mark-around="`">height</code> properties to determine the
+reasons, CSS uses the <code>width</code> and <code>height</code> properties to determine the
 size of the content box.
 We will see in the next section how we can instead specify the dimensions of the
 border box, and have CSS compute the limits of the content box.</p>
-
-<p>If a <code data-mark-around="`">background</code> has been applied to the element, it will also be contained by the border box.
+<p>If a <code>background</code> has been applied to the element, it will also be contained by the border box.
 If the element has a background and a border, the background will extend all the way to the
 outside edge of the border box.
 This can be observed by applying a transparent border, as in our example.</p>
-
 <p>The final box in the box model lies outside the element, and serves to
 separate it from adjacent or enclosing boxes.
-This is the <em data-mark-around="_">margin box</em> which contains the border box as well as any <code data-mark-around="`">margin</code>
+This is the <em>margin box</em> which contains the border box as well as any <code>margin</code>
 applied around the element.</p>
-
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  <p class="content-box">
+<hr>
+<h2>The <code>box-sizing</code> property</h2>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>content-box<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
   This content box has a width of 200px. We've put a box with a border around
   it.
-</p>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span>
 
-<p class="border-box">
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>border-box<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
   This border box has a width 200px. We've put the content inside.
-</p>
-
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code lang="html" class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>content-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-  This content box has a width of 200px. We've put a box with a border around
-  it.
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>p</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>border-box<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
-  This border box has a width 200px. We've put the content inside.
-<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">&gt;</span></span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>The <code data-mark-around="`">box-sizing</code> property</h2>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">.border-box</span> <span class="token punctuation">{</span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>p</span><span class="token punctuation">></span></span></code></pre>
+<pre class="language-css"><code class="language-css"><span class="token selector">.border-box</span> <span class="token punctuation">{</span>
   <span class="token property">box-sizing</span><span class="token punctuation">:</span> border-box<span class="token punctuation">;</span>
   <span class="token property">width</span><span class="token punctuation">:</span> 200px<span class="token punctuation">;</span>
   <span class="token property">height</span><span class="token punctuation">:</span> auto<span class="token punctuation">;</span>
@@ -643,277 +163,64 @@ applied around the element.</p>
   <span class="token property">background</span><span class="token punctuation">:</span> azure<span class="token punctuation">;</span>
   <span class="token property">border</span><span class="token punctuation">:</span> 0.5rem dashed plum<span class="token punctuation">;</span>
   <span class="token property">margin</span><span class="token punctuation">:</span> 2rem 4.5rem<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<p>We’ve seen that by default, the <code data-mark-around="`">width</code> property refers to the width of the element’s
-<em data-mark-around="_">content box</em>, exclusive of the padding and border. Sometimes this is what
+<span class="token punctuation">}</span></code></pre>
+<p>We've seen that by default, the <code>width</code> property refers to the width of the element's
+<em>content box</em>, exclusive of the padding and border. Sometimes this is what
 you want, but at other times, we want to make this box fit into a larger
 layout, and it would be easier for us to specify the overall width of
 the box, including padding and borders. In fact, before CSS was
 standardized, that is exactly how some browsers (notably Internet
-Explorer) interpreted <code data-mark-around="`">width</code>. This was called <em data-mark-around="_">Quirks mode</em>.</p>
-
-<p>When CSS standardized the definition of the <code data-mark-around="`">width</code> property, it
-would’ve been very difficult to convert the large amounts of CSS that
-were written assuming <em data-mark-around="_">Quirks mode</em>’s box model. So another property,
-<code data-mark-around="`">box-sizing</code> was added to provide support for three box models:
-<code data-mark-around="`">content-box</code> (the default), <code data-mark-around="`">border-box</code> (the Quirks mode one), and
-<code data-mark-around="`">padding-box</code> (which considers everything up to the inside edge the border
+Explorer) interpreted <code>width</code>. This was called <em>Quirks mode</em>.</p>
+<p>When CSS standardized the definition of the <code>width</code> property, it
+would've been very difficult to convert the large amounts of CSS that
+were written assuming <em>Quirks mode</em>'s box model. So another property,
+<code>box-sizing</code> was added to provide support for three box models:
+<code>content-box</code> (the default), <code>border-box</code> (the Quirks mode one), and
+<code>padding-box</code> (which considers everything up to the inside edge the border
 to contribute to the width).</p>
-
-<p>Even though the default is <code data-mark-around="`">content-box</code>, many developers still prefer
-<code data-mark-around="`">border-box</code>, and end up “resetting” the default <code data-mark-around="`">box-sizing</code> to
-<code data-mark-around="`">border-box</code>. In the following discussion, we will assume this reset has
+<p>Even though the default is <code>content-box</code>, many developers still prefer
+<code>border-box</code>, and end up &quot;resetting&quot; the default <code>box-sizing</code> to
+<code>border-box</code>. In the following discussion, we will assume this reset has
 been applied to the CSS.</p>
-
-<ide-ative data-language="css" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"><code class="language-css"><span class="token selector">*</span> <span class="token punctuation">{</span>
+<pre class="language-css"><code class="language-css"><span class="token selector">*</span> <span class="token punctuation">{</span>
   <span class="token comment">/* reset the box model to use border-box */</span>
   <span class="token property">box-sizing</span><span class="token punctuation">:</span> border-box<span class="token punctuation">;</span>
-<span class="token punctuation">}</span>
-</code></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
+<span class="token punctuation">}</span></code></pre>
 <p>In the instances where we actually intend to size the content box (or the padding box for
-that matter), we will explicitly set the <code data-mark-around="`">box-sizing</code> property.</p>
-
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Flex Layouts</h2>
-
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Grid Layouts</h2>
-
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Dealing with Overflow</h2>
-
+that matter), we will explicitly set the <code>box-sizing</code> property.</p>
+<hr>
+<h2>Flex Layouts</h2>
+<hr>
+<h2>Grid Layouts</h2>
+<hr>
+<h2>Dealing with Overflow</h2>
 <p>When designing layouts, we should always consider the content that is
 being presented. In rare cases, the content is static. We know what it
 is and it will never change. But frequently the same layout is used to
 contain different content at different times. For example, the same
 layout may be used to present all the articles on a news site.</p>
-
 <p>Designers often work with placeholder text when working with content
 that is unknown or subject to change. But we also need to anticipate
 what will happen when some unusual text occurs.</p>
-
-<p>We’ve seen that within block elements,
+<p>We've seen that within block elements,
 content is laid out as lines of text
 which may wrap to the next line.
-The default CSS of <code data-mark-around="`">width: auto;</code>, which allows lines to be
+The default CSS of <code>width: auto;</code>, which allows lines to be
 as wide as possible,
 this strategy is usually sufficient to avoid horizontal overflow.</p>
-
 <p>To avoid vertical overflow, the CSS default is again the simplest approach.
-With CSS of <code data-mark-around="`">height: auto;</code>, boxes will grow in height to accommodate
+With CSS of <code>height: auto;</code>, boxes will grow in height to accommodate
 all of the content.
 Of course, this may force each enclosing box to get taller,
 ultimately increasing the size of the page as it is presented on the screen.</p>
-
 <p>For this reason, traditional web layouts have a fixed width,
 but scroll vertically.
 For web pages that are primarily focused on presenting content,
 avoiding overflow in this way is often the best layout strategy.
 Our first strategy for managing overflow is to avoid overflow.</p>
-
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Scrolling</h2>
-
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Locating Content Out-of-Flow</h2>
-
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-<oper-ative class="wysn2nsyy"><!-- template --><output class="render">
-  
-</output>
-
-<style>.wysn2nsyy{height:min-content;width:100%;display:flex;align-items:center;justify-content:center;overflow:auto;grid-column:var(--render-grid-column)}.wysn2nsyy .render{max-width:100%;max-height:100%;display:block;position:relative;padding:var(--sizeRenderPadding);box-sizing:border-box}@media print{.wysn2nsyy{display:block;height:auto;overflow:hidden;border:1px dotted black;margin:2rem auto}}</style>
-<!-- /template -->
-</oper-ative>
-<ide-ative data-language="auto" class="wl0h2n110"><!-- template --><figure class="code">
-  <figcaption></figcaption>
-  <pre class="language-markup"></pre>
-</figure>
-
-<style>.wl0h2n110{--ide-language: attr(data-language);display:contents}.wl0h2n110 .code{height:max-content;max-width:100%;max-height:100%;overflow:auto;margin:1rem;grid-column:var(--code-grid-column)}.wl0h2n110 .code>pre{margin:0}.wl0h2n110 figcaption:empty::after{content:var(--ide-language, "code")}@media screen{.wl0h2n110{height:100%;width:100%;overflow:hidden}}@media print{.wl0h2n110{display:block;height:auto;break-inside:avoid;margin:0 auto;border:solid var(--colorSubdued);border-width:0 2px}.wl0h2n110 .code{font-size:11pt;max-width:100ch}.wl0h2n110 pre[class*="language-"],.wl0h2n110 code[class*="language-"]{font-size:10pt;line-height:1.12em}}</style>
-<!-- /template -->
-</ide-ative>
-<narr-ative class="wntxcuure"><!-- template id="narr-ative" webc:raw --><section class="prose">
-  <h2>Absolute Positioning</h2>
-
-</section>
-
-<style>@import "/styles/theme.css";.wntxcuure{display:contents;box-sizing:border-box;width:100%}.wntxcuure .prose{display:contents;font-family:var(--fontBody);font-size:var(--textSizeProse);font-weight:var(--textWeightProse);line-height:var(--lineHeightProse);color:var(--textColorProse);outline:none;padding:10em 0 1em 0;box-sizing:border-box}.wntxcuure .prose *{box-sizing:border-box}.wntxcuure .prose>*{margin:1rem;position:relative;grid-column:var(--prose-grid-column)}.wntxcuure .prose>ul,.wntxcuure .prose>ol{margin-left:2rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:65ch}.wntxcuure .prose>figure{margin:0.5rem}.wntxcuure .prose pre>*:focus{outline:none}.wntxcuure .prose>h1,.wntxcuure .prose>h2,.wntxcuure .prose>h3,.wntxcuure .prose>h4,.wntxcuure .prose>h5,.wntxcuure .prose>h6{font-family:var(--fontDisplay);font-weight:var(--textWeightHeading);color:var(--textColorHeading)}.wntxcuure .prose>h1{font-size:var(--textSizeH1)}.wntxcuure .prose>h2{font-size:var(--textSizeH2)}.wntxcuure .prose>h3{font-size:var(--textSizeH3)}.wntxcuure .prose pre[class*="language-"]{overflow:hidden}.wntxcuure .prose>*+*{margin-top:0.5em}.wntxcuure .prose>h1+*{margin-top:2em}.wntxcuure .prose ul,.wntxcuure .prose ol{padding-left:1em}.wntxcuure .prose ul>li,.wntxcuure .prose ol>li{position:relative}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>code{color:var(--textColorInlineCode);font-family:var(--fontCode);background:var(--backgroundInlineCode)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a{color:inherit;text-decoration:none;background:linear-gradient(transparent,transparent 50%,var(--backgroundLink));padding:0 0.25em;border:var(--borderLink);border-radius:var(--borderRadiusLink);cursor:pointer}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) a:hover{color:var(--textColorHoverLink)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) strong{font-weight:var(--textWeightStrong)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6) em{font-style:--var(textStyleEmphasis)}.wntxcuure .prose>br{margin:0;line-height:0}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)>*::after{display:inline;color:var(--textColorMarkup);background:var(--backgroundMarkup);font-family:var(--fontCode);line-height:var(--lineHeightMarkup);font-style:var(--textStyleMarkup);border-radius:var(--borderRadiusMarkup);font-size:var(--textSizeMarkup);font-weight:var(--textWeightMarkup);padding:var(--borderRadiusMarkup);vertical-align:0.2em;border:var(--borderMarkup);margin:0 0.1rem}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6)::before,.wntxcuure .prose>*>li::before{display:block;position:absolute;right:100%;top:0.2em;height:1rem;width:1rem}.wntxcuure .prose>ul::before,.wntxcuure .prose>ol::before{display:block;position:absolute;right:100%}.wntxcuure .prose>[data-mark-before]:focus::before{content:attr(data-mark-before)}.wntxcuure .prose>*:focus>li[data-mark-before]{list-style:none}.wntxcuure .prose>*:focus>li[data-mark-before]::before{content:attr(data-mark-before)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::before,.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus [data-mark-around]::after{content:attr(data-mark-around)}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::before{content:"["}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a::after{content:"]"}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6):focus a[href]::after{content:"]("attr(href)")"}@media screen{.wntxcuure{overflow:hidden auto}}@media print{.wntxcuure{break-before:page}.wntxcuure .prose{width:100%;display:flex;flex-direction:column;align-items:center}.wntxcuure .prose>:is(p,ul,ol,h1,h2,h3,h4,h5,h6){max-width:40rem;width:60%}}</style>
-<!-- /template -->
-
-
-</narr-ative>
-
-</main>
-
-<style>@media screen{.wqa5gi5a4{--heightViewer: calc(100vh - var(--heightFooter));height:var(--heightViewer);overflow:hidden auto;position:relative}}.wqa5gi5a4 .layout{--render-grid-column: 1 / span 3;--code-grid-column: 1 / span 2;--prose-grid-column: 2 / span 2;display:grid;position:relative;top:calc(var(--heightViewer)*(1 - var(--current-scene, 1)));grid-template-columns:1fr 65ch 1fr;grid-auto-flow:row;justify-items:start;transition:top 0.5s ease-in-out;pointer-events:none}.wqa5gi5a4 .layout>*{pointer-events:all}@media print{.wqa5gi5a4 .layout{--prose-grid-column: unset;--render-grid-column: unset;--code-grid-column: unset;position:relative;top:auto;left:auto;height:auto;grid-template-columns:initial;grid-auto-rows:initial;grid-auto-flow:row}.wqa5gi5a4 .layout .render{break-before:page;break-inside:avoid;border:1px dotted black}.wqa5gi5a4 .layout .code{overflow:visible}}</style>
-
-<script>
-  customElements.define(
-    "consolid-ative",
-    class extends HTMLElement {
-      connectedCallback() {
-        let provider = this.closest("[data-provider]");
-
-        if (provider) {
-          const { value: currentScene } = provider.observe(
-            "current-scene",
-            (newValue) => {
-              console.log("Setting layout to scene", newValue);
-              this.style = `--current-scene: ${newValue}`;
-            }
-          );
-
-          console.log("Consolid-ative (webc)");
-        }
-      }
-    }
-  );
-</script>
-</consolid-ative>
-
-</article>
-
-<style>.wourcuvmv{display:block}.wourcuvmv article{display:flex;flex-direction:column-reverse}@media screen{position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;}@media print{.wourcuvmv article{position:static;height:auto;width:100%}}</style>
-<!-- /template -->
-</st-ative>
-<script type="module">
-
-</script>
-
-
-</body>
-</html>
+<hr>
+<h2>Scrolling</h2>
+<hr>
+<h2>Locating Content Out-of-Flow</h2>
+<hr>
+<h2>Absolute Positioning</h2>

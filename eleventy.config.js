@@ -1,7 +1,6 @@
 const kram11ty = require("@cre.ative/kram-11ty");
-const pluginWebc = require("@11ty/eleventy-plugin-webc");
-const fs = require("node:fs/promises");
-const path = require("node:path");
+const vitePlugin = require("@11ty/eleventy-plugin-vite");
+const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
 
 module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({
@@ -10,19 +9,23 @@ module.exports = function (eleventyConfig) {
   });
   eleventyConfig.addPassthroughCopy("src/chapters/**/FILES/*.*");
 
-  eleventyConfig.addPlugin(pluginWebc, {
-    // (The default changed from `false` in Eleventy WebC v0.7.0)
-    components: "src/components/cre-ative/*.webc",
-
-    // Adds an Eleventy WebC transform to process all HTML output
-    useTransform: true,
-
-    // Additional global data used in the Eleventy WebC transform
-    transformData: {},
+  eleventyConfig.addPlugin(vitePlugin, {
+    viteOptions: {
+      configFile: "./vite.config.js",
+    },
   });
 
+  eleventyConfig.addPlugin(syntaxHighlight);
+
   // Override Markdown parser to Kram
-  eleventyConfig.addExtension("md", kram11ty.configure());
+  eleventyConfig.addExtension(
+    "md",
+    kram11ty.configure({
+      input: "./src/blog",
+      output: "./docs",
+      template: "./src/templates/blog.html",
+    })
+  );
 
   // Return your Object options:
   return {
