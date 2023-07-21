@@ -23,4 +23,8 @@
   --size-spacing-large: 1rem;
 
   --style-font-title: italic;
+
+  --weight-font-body: 400;
+  --weight-font-title: 700;
+  --weight-font-title-muted: 200;
 }

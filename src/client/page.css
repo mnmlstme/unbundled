@@ -15,16 +15,16 @@ dt {
   font-family: var(--font-display);
 }
 header {
+  --color-text: var(--color-text-inverted);
+  --color-text-heading: var(--color-text-inverted);
+  --color-link: var(--color-link-inverted);
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  padding: var(--size-spacing-small);
+  padding: 0 var(--size-spacing-small);
   background: var(--color-background-header);
-  color: var(--color-text-inverted);
-}
-header a {
-  color: var(--color-link-inverted);
+  color: var(--color-text);
 }
 h1 {
   font-size: var(--size-font-title);
