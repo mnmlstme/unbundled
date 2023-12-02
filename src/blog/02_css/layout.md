@@ -1,5 +1,6 @@
 ---
 title: CSS Layout
+platform: web-standard
 ---
 
 # CSS Layout

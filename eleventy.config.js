@@ -7,11 +7,17 @@ module.exports = function (eleventyConfig) {
     "src/scripts": "scripts",
     "src/styles": "styles",
   });
+
   eleventyConfig.addPassthroughCopy("src/chapters/**/FILES/*.*");
 
   eleventyConfig.addPlugin(vitePlugin, {
     viteOptions: {
-      configFile: "./vite.config.js",
+      mode: "development",
+      build: {
+        modulePreload: false,
+        minify: false,
+        target: "esnext",
+      },
     },
   });
 
@@ -23,7 +29,7 @@ module.exports = function (eleventyConfig) {
     kram11ty.configure({
       input: "./src/blog",
       output: "./docs",
-      template: "./src/templates/blog.html",
+      template: "/src/templates/blog.html",
     })
   );
 

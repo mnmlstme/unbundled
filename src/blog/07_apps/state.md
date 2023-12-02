@@ -1,5 +1,6 @@
 ---
 title: State Management
+platform: web-standard
 model:
   count: 10
 ---

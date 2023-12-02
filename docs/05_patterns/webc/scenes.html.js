@@ -1,4 +1,4 @@
-<html>
+export default `<html>
             <body><div data-scene="1"><hello-world></hello-world>
 </div>
 <div data-scene="2"><hello-world> web components </hello-world>
@@ -70,4 +70,4 @@
 <action-item>↓</action-item>
 <action-item>Reset</action-item>
 </div></body>
-            </html>
+            </html>`;

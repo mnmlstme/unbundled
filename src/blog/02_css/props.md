@@ -1,5 +1,6 @@
 ---
 title: Style Properties
+platform: web-standard
 ---
 
 ## Style Properties

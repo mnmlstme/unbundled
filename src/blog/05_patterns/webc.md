@@ -303,7 +303,6 @@ First, we'll define a template, and some styling to handle hiding and revealing 
 
 ```html
 <template id="dropdown-menu-template">
-
   <input type="checkbox" id="is-shown" />
   <label for="is-shown">
     <slot>Menu</slot>
@@ -314,7 +313,7 @@ First, we'll define a template, and some styling to handle hiding and revealing 
       <li>Command 2</li>
       <li>Command 3</li>
     </ul>
-  <slot>
+  </slot>
 
   <style>
     :host {
@@ -330,7 +329,7 @@ First, we'll define a template, and some styling to handle hiding and revealing 
       cursor: pointer;
     }
 
-    slot[name="menu"]{
+    slot[name="menu"] {
       display: none;
       position: absolute;
       top: 100%;

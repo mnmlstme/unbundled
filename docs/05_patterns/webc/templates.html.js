@@ -1,4 +1,4 @@
-<html>
+export default `<html>
           <body>
             <template id="hello-world-template">
   <h1>Hello, <slot>world</slot>!</h1>
@@ -61,7 +61,6 @@
 </template>
 
 <template id="dropdown-menu-template">
-
   <input type="checkbox" id="is-shown" />
   <label for="is-shown">
     <slot>Menu</slot>
@@ -72,7 +71,7 @@
       <li>Command 2</li>
       <li>Command 3</li>
     </ul>
-  <slot>
+  </slot>
 
   <style>
     :host {
@@ -88,7 +87,7 @@
       cursor: pointer;
     }
 
-    slot[name="menu"]{
+    slot[name="menu"] {
       display: none;
       position: absolute;
       top: 100%;
@@ -221,4 +220,4 @@
 </template>
 
           </body>
-        </html>
+        </html>`;

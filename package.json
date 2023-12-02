@@ -14,6 +14,7 @@
     "@11ty/eleventy": "^2.0.0",
     "@11ty/eleventy-plugin-syntaxhighlight": "^5.0.0",
     "@11ty/eleventy-plugin-vite": "^4.0.0",
-    "@cre.ative/kram-11ty": "^1.5.1"
+    "@cre.ative/kram-11ty": "file:.yalc/@cre.ative/kram-11ty",
+    "http-server": "^14.1.1"
   }
 }

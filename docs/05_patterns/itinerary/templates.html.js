@@ -1,4 +1,4 @@
-<html>
+export default `<html>
           <body>
             <template id="blz-accommodation-template">
   <p>Stay at <slot>*** Accommodation Name Goes HERE ***</slot></p>
@@ -87,4 +87,4 @@
 </template>
 
           </body>
-        </html>
+        </html>`;

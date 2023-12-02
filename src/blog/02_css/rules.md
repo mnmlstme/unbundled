@@ -1,5 +1,6 @@
 ---
 title: Mapping CSS Styles to HTML with Rules
+platform: web-standard
 ---
 
 ```html

@@ -1,4 +1,4 @@
-/* Kram: CSS in Scene 5 */
+export default `/* Kram: CSS in Scene 5 */
 :root {
   /* Design Tokens */
   --color-accent: rgb(42 143 42);
@@ -46,3 +46,4 @@ body {
 a {
   color: var(--color-link);
 }
+`;

@@ -1,4 +1,4 @@
-<html>
+export default `<html>
             <body><div data-scene="1"><blz-itinerary>
   <blz-destination>
     <span slot="nights">4</span>
@@ -70,4 +70,4 @@
   </blz-destination>
 </blz-itinerary>
 </div></body>
-            </html>
+            </html>`;

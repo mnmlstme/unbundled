@@ -3,13 +3,13 @@
 <head>
 <title>Itinerary Custom Element</title>
 <script type="importmap">
-{ "imports": {"@cre.ative/kram-11ty/runtime":"/modules/@cre.ative/kram-11ty/runtime.mjs","@cre.ative/kram-11ty/styles":"/modules/@cre.ative/kram-11ty/styles.css"} }
+{ "imports": {"@cre.ative/kram-11ty/runtime":"../../modules/@cre.ative/kram-11ty/runtime.mjs","@cre.ative/kram-11ty/styles":"../../modules/@cre.ative/kram-11ty/styles.css"} }
 </script>
-<link rel="stylesheet" href="/modules/@cre.ative/kram-11ty/styles.css">
+<link rel="stylesheet" href="../../modules/@cre.ative/kram-11ty/styles.css">
 <script type="module">
 import {init, register} from "@cre.ative/kram-11ty/runtime";
 init({});
-import("./templates.html")
+import("./templates.html.js")
           .then((mod) => register(mod, "undefined", "html", (resource, container) => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(resource.default, 'text/html');
@@ -17,7 +17,7 @@ import("./templates.html")
             for ( let def = body.firstElementChild; def; def=body.firstElementChild ) {
               container.appendChild(def); }
           }))
-import("./scenes.html")
+import("./scenes.html.js")
           .then((mod) => register(mod, "undefined", "html", (resource, container) => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(resource.default, 'text/html');
@@ -41,7 +41,7 @@ import("./scenes.html")
               } 
             }
           }))
-import("./styles.css")
+import("./styles.css.js")
           .then((mod) => register(mod, "undefined", "css", (resource, container) => {
           let sheet = document.createElement("style");
           sheet.innerHTML = resource.default;
