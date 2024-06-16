@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Web Development, Unbundled</title>
+<script type="importmap">
+{ "imports": {"@cre.ative/kram-11ty/runtime":"../modules/@cre.ative/kram-11ty/runtime.mjs","@cre.ative/kram-11ty/styles":"../modules/@cre.ative/kram-11ty/styles.css"} }
+</script>
+<link rel="stylesheet" href="../modules/@cre.ative/kram-11ty/styles.css">
+<script type="module">
+import {init, register} from "@cre.ative/kram-11ty/runtime";
+init({});
+
+</script>
+</head>
+<body>
+<kram-main>
+<h1 slot="title">Web Development, Unbundled</h1>
+<kram-toc slot="nav"><ol>
+<li data-idref="scene-1">Scene 1</li>
+</ol></kram-toc>
+<kram-flow><kram-scene 
+        scene="1" 
+        language="null" 
+        norender><ul><li><p>Module 1. Information Architecture and HTML</p>
+</li>
+
+<li><p><a href="./02_css/">Module 2. Style and Layout with CSS</a></p>
+</li>
+
+<li><p><a href="./03_js/">Module 3. User Interaction with Javascript</a></p>
+</li>
+
+<li><p>Module 4. MVC Architecture</p>
+</li>
+
+<li><p>Module 5. Implementing and Using Data APIs</p>
+</li>
+
+<li><p>Module 6. Security and Cloud Data</p>
+</li>
+
+<li><p><a href="./07_csr/">Module 7. Client-Side Rendering</a></p>
+</li>
+
+<li><p>Module 8. <a href="./08_spa/">Single-Page Apps</a></p>
+</li>
+
+<li><p>Module 9. Special Topics</p>
+</li>
+</ul>
+</kram-scene></kram-flow>
+</kram-main>
+</body>
+</html>

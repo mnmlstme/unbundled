@@ -2,3 +2,4 @@
 /.nova
 /.yalc
 /yalc.lock
+.DS_Store

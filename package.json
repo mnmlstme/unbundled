@@ -4,17 +4,13 @@
   "description": "workspace for examples of Web Development, Unbundled",
   "scripts": {
     "publish": "npx @11ty/eleventy",
-    "start": "npx @11ty/eleventy --serve",
+    "start": "npx @11ty/eleventy --serve --port=8000",
     "serve": "http-server ./docs -c-1",
     "clean": "rm -rf package-lock.json node_modules kram_modules docs"
   },
   "author": "ken@mnmlst.me",
   "license": "BSD-3-Clause",
-  "devDependencies": {
-    "@11ty/eleventy": "^2.0.0",
-    "@11ty/eleventy-plugin-syntaxhighlight": "^5.0.0",
-    "@11ty/eleventy-plugin-vite": "^4.0.0",
-    "@cre.ative/kram-11ty": "file:.yalc/@cre.ative/kram-11ty",
-    "http-server": "^14.1.1"
-  }
+  "workspaces": [
+    "packages/*"
+  ]
 }

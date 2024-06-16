@@ -4,11 +4,11 @@ const syntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
 
 module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({
-    "src/scripts": "scripts",
-    "src/styles": "styles",
+    "blog/scripts": "scripts",
+    "blog/styles": "styles",
   });
 
-  eleventyConfig.addPassthroughCopy("src/chapters/**/FILES/*.*");
+  eleventyConfig.addPassthroughCopy("blog/**/FILES/*.*");
 
   eleventyConfig.addPlugin(vitePlugin, {
     viteOptions: {
@@ -27,17 +27,17 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addExtension(
     "md",
     kram11ty.configure({
-      input: "./src/blog",
-      output: "./docs",
-      template: "/src/templates/blog.html",
+      input: "./blog",
+      output: "./site",
+      template: "./templates/blog.html",
     })
   );
 
   // Return your Object options:
   return {
     dir: {
-      input: "src/blog",
-      output: "docs",
+      input: "./blog",
+      output: "./site",
     },
   };
 };
