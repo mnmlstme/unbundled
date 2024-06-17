@@ -1,30 +1,115 @@
-// module Kram_4f44e823_webc (ES6)
-          import { html } from '@un-bundled/unbundled'
-          console.log('Loading module "Kram_4f44e823_webc"')
+// module Kram_cd848e6d_webc (ES6)
+          import { css, html, shadow } from '@un-bundled/unbundled'
+          console.log('Loading module "Kram_cd848e6d_webc"')
           export function Program ({connectStore, initializeStore}) {
             // JS Definition from scene 1
 class HelloWorldElement extends HTMLElement {
   constructor() {
     super();
-    this.replaceChildren(html` <h1>Hello, World</h1> `);
+    this.append(html` <h1>Hello, World</h1> `);
   }
 }
 
 // JS Definition from scene 1
 customElements.define("hello-world", HelloWorldElement);
 
-// JS Definition from scene 3
-class HelloStyleElement extends HTMLElement {
+// JS Definition from scene 2
+class HelloNameElement extends HTMLElement {
+  get name() {
+    return this.getAttribute("name") || "World";
+  }
+
   constructor() {
     super();
-    let content = document.getElementById("hello-style-template").content;
-    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
+    // This will not work:
+    this.append(html` <h1>Hello, ${this.name}</h1> `);
+  }
+
+  connectedCallback() {
+    this.replaceChildren(html` <h1>Hello, ${this.name}</h1> `);
   }
 }
 
-customElements.define("hello-style", HelloStyleElement);
+// JS Definition from scene 2
+customElements.define("hello-name", HelloNameElement);
+
+// JS Definition from scene 3
+class HelloContentElement extends HTMLElement {
+  static template = html`
+    <template>
+      <h1>Hello, <slot>there</slot>!</h1>
+    </template>
+  `;
+
+  constructor() {
+    super();
+
+    this.attachShadow({ mode: "open" }).appendChild(
+      HelloContentElement.template.firstChild.content.cloneNode(true)
+    );
+  }
+}
+
+// JS Definition from scene 3
+class HelloShadowElement extends HTMLElement {
+  static template = html`
+    <template>
+      <h1>Hello, <slot>there</slot>!</h1>
+    </template>
+  `;
+
+  constructor() {
+    super();
+
+    shadow(this).template(HelloShadowElement.template);
+  }
+}
+
+// JS Definition from scene 3
+customElements.define("hello-content", HelloShadowElement);
 
 // JS Definition from scene 4
+class HelloStyleElement extends HTMLElement {
+  static template = html`
+    <template>
+      <h1>Hello, <slot>there</slot>!</h1>
+    </template>
+  `;
+
+  static styles = css`
+    :host {
+      --image-max-height: 4em;
+    }
+
+    h1 {
+      display: flex;
+      align-items: center;
+      gap: var(--size-spacing-large);
+      font-family: var(--font-family-display);
+      font-size: var(--size-type-xxlarge);
+      font-style: oblique;
+      font-weight: var(--font-weight-bold);
+      line-height: 1;
+    }
+
+    ::slotted(img) {
+      max-height: var(--image-max-height);
+    }
+  `;
+
+  constructor() {
+    super();
+
+    shadow(this)
+      .template(HelloStyleElement.template)
+      .styles(HelloStyleElement.styles);
+  }
+}
+
+// JS Definition from scene 4
+customElements.define("hello-style", HelloStyleElement);
+
+// JS Definition from scene 7
 class GreetWorldElement extends HTMLElement {
   constructor() {
     super();
@@ -35,7 +120,7 @@ class GreetWorldElement extends HTMLElement {
 
 customElements.define("greet-world", GreetWorldElement);
 
-// JS Definition from scene 5
+// JS Definition from scene 8
 class ArrowButtonElement extends HTMLElement {
   static get observedAttributes() {
     return ["heading"];
@@ -69,7 +154,7 @@ class ArrowButtonElement extends HTMLElement {
 
 customElements.define("arrow-button", ArrowButtonElement);
 
-// JS Definition from scene 6
+// JS Definition from scene 9
 const parser = new DOMParser();
 
 function prepareTemplate(htmlString) {
@@ -79,7 +164,7 @@ function prepareTemplate(htmlString) {
   return content;
 }
 
-// JS Definition from scene 6
+// JS Definition from scene 9
 class V1DropdownElement extends HTMLElement {
   static template = prepareTemplate(`<template>
       <slot name="actuator"><button> Menu </button></slot>
@@ -134,7 +219,7 @@ class V1DropdownElement extends HTMLElement {
 
 customElements.define("dropdown-menu", V1DropdownElement);
 
-// JS Definition from scene 8
+// JS Definition from scene 11
 class DropdownBaseElement extends HTMLElement {
   constructor() {
     super();
@@ -171,7 +256,7 @@ class DropdownBaseElement extends HTMLElement {
 
 customElements.define("dropdown-base", DropdownBaseElement);
 
-// JS Definition from scene 9
+// JS Definition from scene 12
 class CommandMenuElement extends HTMLElement {
   constructor() {
     super();
@@ -191,7 +276,7 @@ class CommandGroupElement extends HTMLElement {
 customElements.define("command-menu", CommandMenuElement);
 customElements.define("command-group", CommandGroupElement);
 
-// JS Definition from scene 10
+// JS Definition from scene 13
 class ActionItemElement extends HTMLElement {
   constructor() {
     super();
@@ -202,7 +287,7 @@ class ActionItemElement extends HTMLElement {
 
 customElements.define("action-item", ActionItemElement);
 
-// JS Definition from scene 11
+// JS Definition from scene 14
 class HtmlFragmentElement extends HTMLElement {
   connectedCallback() {
     const href = this.getAttribute("href");

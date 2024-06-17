@@ -1,24 +1,36 @@
 export default `<html>
             <body><div data-scene="1"><hello-world></hello-world>
 </div>
-<div data-scene="2"><hello-world> web components </hello-world>
+<div data-scene="2"><hello-name name="Blaze"></hello-name>
 </div>
-<div data-scene="3"><hello-style> component style </hello-style>
+<div data-scene="3"><hello-content>
+  <img src="../FILES/Globe.svg" />
+  World
+</hello-content>
+</div>
+<div data-scene="4"><hello-style>
+  <img src="../FILES/Globe.svg" />
+  World
+</hello-style>
+</div>
+<div data-scene="5"><hello-world> web components </hello-world>
+</div>
+<div data-scene="6"><hello-style> component style </hello-style>
 
 <h1>This &lt;H1&gt; has no style</h1>
 </div>
-<div data-scene="4"><greet-world>
+<div data-scene="7"><greet-world>
   <span slot="greeting">Greetings</span>
   <span slot="recipient">earthlings</span>
 </greet-world>
 </div>
-<div data-scene="5"><arrow-button></arrow-button>
+<div data-scene="8"><arrow-button></arrow-button>
 <arrow-button heading="90deg"></arrow-button>
 <arrow-button heading="180deg"></arrow-button>
 <arrow-button heading="-90deg"></arrow-button>
 <arrow-button heading="45deg"></arrow-button>
 </div>
-<div data-scene="6"><section>
+<div data-scene="9"><section>
   <nav class="menu-bar">
     <dropdown-menu open>
       <span slot="actuator">File</span>
@@ -41,7 +53,7 @@ export default `<html>
   </nav>
 </section>
 </div>
-<div data-scene="8"><section>
+<div data-scene="11"><section>
   <nav class="menu-bar">
     <dropdown-base>
       File
@@ -65,12 +77,12 @@ export default `<html>
   </nav>
 </section>
 </div>
-<div data-scene="10"><format-data name="count">The count is {count}.</format-data>
+<div data-scene="13"><format-data name="count">The count is {count}.</format-data>
 <action-item>↑</action-item>
 <action-item>↓</action-item>
 <action-item>Reset</action-item>
 </div>
-<div data-scene="11"><html-fragment href="destination/venice.html">
+<div data-scene="14"><html-fragment href="destination/venice.html">
   <h3>
     <a href="#" onclick="relayEvent(event, 'html-fragment:open')"> Venice </a>
   </h3>

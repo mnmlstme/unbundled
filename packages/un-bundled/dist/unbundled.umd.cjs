@@ -2,6 +2,12 @@
   typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.unbundled = {}));
 })(this, function(exports2) {
   "use strict";
+  function css(template, ...params) {
+    const cssString = template.map((s, i) => i ? [params[i - 1], s] : [s]).flat().join("");
+    let sheet = new CSSStyleSheet();
+    sheet.replaceSync(cssString);
+    return sheet;
+  }
   const parser = new DOMParser();
   function html(template, ...params) {
     const htmlString = template.map((s, i) => i ? [params[i - 1], s] : [s]).flat().join("");
@@ -11,16 +17,23 @@
     fragment.replaceChildren(...collection);
     return fragment;
   }
-  function shadow(fragment) {
-    const first = fragment.firstElementChild;
-    const template = first && first.tagName === "TEMPLATE" ? first : void 0;
-    return { attach };
-    function attach(el, options = { mode: "open" }) {
-      const shadow2 = el.attachShadow(options);
-      if (template) shadow2.appendChild(template.content.cloneNode(true));
-      return shadow2;
+  function shadow(el, options = { mode: "open" }) {
+    const shadowRoot = el.attachShadow(options);
+    const chain = { template, styles };
+    return chain;
+    function template(fragment) {
+      const first = fragment.firstElementChild;
+      const template2 = first && first.tagName === "TEMPLATE" ? first : void 0;
+      if (template2) {
+        shadowRoot.appendChild(template2.content.cloneNode(true));
+      }
+      return chain;
+    }
+    function styles(...sheets) {
+      shadowRoot.adoptedStyleSheets = sheets;
     }
   }
+  exports2.css = css;
   exports2.html = html;
   exports2.shadow = shadow;
   Object.defineProperty(exports2, Symbol.toStringTag, { value: "Module" });

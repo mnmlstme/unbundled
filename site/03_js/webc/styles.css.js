@@ -1,4 +1,9 @@
-export default `/* Kram: CSS in Scene 6 */
+export default `/* Kram: CSS in Scene 3 */
+hello-content img {
+  max-width: 8em;
+}
+
+/* Kram: CSS in Scene 9 */
 :host {
   position: relative;
 }
@@ -24,12 +29,12 @@ export default `/* Kram: CSS in Scene 6 */
   list-style: none;
 }
 
-/* Kram: CSS in Scene 9 */
+/* Kram: CSS in Scene 12 */
 command-group + command-group {
   --command-group-display-top-hr: none;
 }
 
-/* Kram: CSS in Scene 12 */
+/* Kram: CSS in Scene 15 */
 /* CSS reset */
 * {
   margin: 0;
@@ -128,7 +133,7 @@ time {
   padding: 0.5em 0;
 }
 
-/* Kram: CSS in Scene 12 */
+/* Kram: CSS in Scene 15 */
 /* css tokens */
 
 :root {

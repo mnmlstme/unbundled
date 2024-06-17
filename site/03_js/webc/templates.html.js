@@ -1,10 +1,6 @@
 export default `<html>
           <body>
-            <template id="hello-world-template">
-  <h1>Hello, <slot>world</slot>!</h1>
-</template>
-
-<template id="hello-style-template">
+            <template id="hello-style-template">
   <h1>Hello, <slot class="fancy">world</slot>!</h1>
 
   <style>

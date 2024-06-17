@@ -4,7 +4,9 @@ platform: web-standard
 imports:
   - from: "@un-bundled/unbundled"
     expose:
+      - css
       - html
+      - shadow
 ---
 
 ```html
@@ -33,7 +35,7 @@ HTML elements, `HTMLElement`:
 class HelloWorldElement extends HTMLElement {
   constructor() {
     super();
-    this.replaceChildren(html` <h1>Hello, World</h1> `);
+    this.append(html` <h1>Hello, World</h1> `);
   }
 }
 ```
@@ -45,19 +47,297 @@ class should be used whenever the `hello-world` tag name is given:
 customElements.define("hello-world", HelloWorldElement);
 ```
 
-## Shadow DOM and template
+---
 
-We define a custom element in HTML using the `<template>` HTML element.
-Inside the template we put whatever HTML we want to have inserted whenever the custom element is used.
+## Reference a Custom Element's Attributes
+
+Our `<hello-world>` element is not very useful, because it
+always creates the same DOM inside itself. Instead, we'd like
+to have a way to parameterize it, so it can do other things.
+In HTML, we can often specify different variants of an element
+by setting _attributes_.
+
+For example, we could name the person we are greeting
+by passing that name as the value of the `name` attribute:
 
 ```html
-<template id="hello-world-template">
-  <h1>Hello, <slot>world</slot>!</h1>
-</template>
+<hello-name name="Blaze"></hello-name>
 ```
 
-There's one more thing we need, and that is to bind our template to the tag name `hello-world` by
-registering a Javascript `class` and attaching our template in its `constuctor`.
+```js
+class HelloNameElement extends HTMLElement {
+  get name() {
+    return this.getAttribute("name") || "World";
+  }
+
+  constructor() {
+    super();
+    // This will not work:
+    this.append(html` <h1>Hello, ${this.name}</h1> `);
+  }
+
+  connectedCallback() {
+    this.replaceChildren(html` <h1>Hello, ${this.name}</h1> `);
+  }
+}
+```
+
+```js
+customElements.define("hello-name", HelloNameElement);
+```
+
+We are using a property _getter_ function so that whenever
+we say `this.name`, we will get the value of the `name` attribute.
+
+But when `this.name` is referenced from the constructor, it's value is
+not what we set the `name` attribute to, but rather the default value,
+`"World"`. The reason is has to do with a concept called the component
+lifecycle.
+
+We will be looking at the lifecycle in more detail, but for now,
+consider what the browser has to do as it's building the DOM tree
+for this snippet of HTML. First it parses the start tag, which
+says to create a `hello-name` element. It looks up the tag name
+`hello-name` in the custom elements registry, and finds that the
+class `HelloNameElement` must be used to construct the element.
+It then creates a new instance of `HelloNameElement` (i.e.,
+it essentially runs `new HelloNameElement()`), which ends up
+invoking the `constructor`.
+
+Notice that the attribute `name="Blaze"` has not been set on the
+element at the time the `constructor` is called. In fact, there is
+no way it could be, because setting an attribute on an element
+requires the element already exist, which it doesn't until _after_
+the constructor is called.
+
+Attributes, like elements, are represented as nodes in the DOM tree.
+When the element is first created, it is just an object with no
+connections to anything, including its attributes, children, or parent
+node. So it is impossible to access any of these from the custom
+element's `constructor`.
+
+We will see later that there are some operations we can perform
+from the `constructor`, but for now, let's get back to the task
+of getting the `name` attribute to affect the rendering of our
+element.
+
+Once our `<hello-world>` element is constructed, the browser will
+construct any other nodes, including attributes and other elements,
+and connect them to each other.
+When all of a custom element's related nodes have been connected,
+its `connectedCallback` method (if its `class` defines one) will
+be invoked. Only then is it "safe" to reference attributes and
+other adjacent nodes.
+
+So, in order to render the string from the `name` attribute into
+the content of the element, we must do so from `connectedCallback`.
+Note that we call `this.replaceChildren` so that any previously
+rendered content is replaced, not appended to.
+
+---
+
+## The Shadow DOM, templates, and slots
+
+```html
+<hello-content>
+  <img src="../FILES/Globe.svg" />
+  World
+</hello-content>
+```
+
+Our custom element now lets us change the name in the generated text,
+but it is still pretty limited.
+For one, we can only pass strings through attributes, not more
+complex data structures.
+And also, we cannot specify any content inside the `<hello-name>`
+element, because it will just be replaced anyway.
+
+Let's say we want to put arbitrary HTML—for example,
+an icon along with some text—inside our greeting.
+We can't do that with attributes. But we can put
+that content inside the element. After all, HTML
+is designed for describing hierarchical structures,
+and most built-in elements can contain content.
+Why shouldn't our custom element contain content.
+
+When we start to have our custom element operate on
+its content, we immediately run into a problem.
+How do we know whether the element's content is an
+_input_ to the render process, or the _result_ of
+the render process.
+
+So far, our element has rendered
+the DOM inside itself, as child nodes. If there were
+already child nodes there, it would replace them with the
+new value. What if that value depends on the child nodes themselves?
+We would have a loop, or _recursion_. How would we know
+whether or not to modify the content again.
+
+> This may not seem like a huge issue at present, since
+> we could set a flag to make sure we only rendered once,
+> but soon we will want our element to react to changes
+> in its inputs, including its content, and then we will need
+> to make sure to keep inputs and outputs separate.
+
+Custom elements solve this problem by defining a separate DOM
+tree for the content which is generated by the element. This
+separate tree is called the Shadow DOM.
+
+To use the Shadow DOM, you must attach a shadow root to your
+element. This is typically done in the `constructor` because it
+does not depend on anything outside the element.
+Once the shadow root is attached, you can render DOM nodes
+into it. These nodes will appear on the screen _as if_ they
+were part of the element's content, but the will remain
+separate from the element's child nodes, which will be in
+the original DOM tree, or _Light DOM_.
+
+```js
+class HelloContentElement extends HTMLElement {
+  static template = html`
+    <template>
+      <h1>Hello, <slot>there</slot>!</h1>
+    </template>
+  `;
+
+  constructor() {
+    super();
+
+    this.attachShadow({ mode: "open" }).appendChild(
+      HelloContentElement.template.firstChild.content.cloneNode(true)
+    );
+  }
+}
+```
+
+We could render the shadow DOM for our custom element
+inside the `constructor`, in much the same way as we've
+been rendering into the element's content. But if we have
+many of these elements to create, it is much quicker to
+parse the HTML once and build the DOM tree, saving it as
+a static class member.
+Then for each new element, we _clone_ that tree and append it
+to the Shadow DOM.
+
+We will be repeating this sequence of defining a static template,
+creating a shadow root (`this.attachShadow`), cloning the
+template, and appending its content to the shadow DOM for
+nearly every custom element. So it's nice to have a shorthand
+for this idiom. At Unbundled, we have a utility called `shadow`
+which simplifies this code considerably:
+
+```js
+class HelloShadowElement extends HTMLElement {
+  static template = html`
+    <template>
+      <h1>Hello, <slot>there</slot>!</h1>
+    </template>
+  `;
+
+  constructor() {
+    super();
+
+    shadow(this).template(HelloShadowElement.template);
+  }
+}
+```
+
+```js
+customElements.define("hello-content", HelloShadowElement);
+```
+
+Using a `<template>` like this
+has some other features which allow us to avoid re-rendering
+the Shadow DOM when we want to change the resulting view.
+
+Notice that the globe and the string `World`, which were
+in the Light DOM, are rendered in exactly the right
+place, relative to the strings `Hello,` and `!`.
+Now take a look at the template. See that the word `world` is
+wrapped in a `<slot>` element. This tells the browser's rendering
+mechanism to inject the Light DOM content of our element
+at that point in the Shadow DOM, replacing the contents of
+the `<slot>` element itself. What's inside the `<slot>`
+element will only be displayed when the `hello-content` element
+is empty, in effect providing a default value to fill the slot.
+
+Before we move on, let's add some CSS so make sure any image inside
+a `<hello-content>` element is not too large.
+Without worrying about the Shadow DOM, let's write a rule
+that targets any `<img>` element inside of a `<hello-content>`
+element:
+
+```css
+hello-content img {
+  max-width: 8em;
+}
+```
+
+---
+
+### Styling the Shadow DOM
+
+In the previous section, we styled child nodes of a custom
+element using a CSS element selector. But, you may have noticed,
+the `<h1>` in the Shadow DOM of our element is no longer
+getting the element style which we have applied to the entire
+page from `page.css`.
+
+This is another feature of using the Shadow DOM: CSS rules from the Light DOM do not apply
+to nodes in the Shadow DOM. At first, this will seem like
+an impediment to using Shadow DOM, but we will see that it allows
+us to simplify our CSS rules significantly, and also promote
+modularity in styling our custom elements.
+
+```html
+<hello-style>
+  <img src="../FILES/Globe.svg" />
+  World
+</hello-style>
+```
+
+```js
+class HelloStyleElement extends HTMLElement {
+  static template = html`
+    <template>
+      <h1>Hello, <slot>there</slot>!</h1>
+    </template>
+  `;
+
+  static styles = css`
+    :host {
+      --image-max-height: 4em;
+    }
+
+    h1 {
+      display: flex;
+      align-items: center;
+      gap: var(--size-spacing-large);
+      font-family: var(--font-family-display);
+      font-size: var(--size-type-xxlarge);
+      font-style: oblique;
+      font-weight: var(--font-weight-bold);
+      line-height: 1;
+    }
+
+    ::slotted(img) {
+      max-height: var(--image-max-height);
+    }
+  `;
+
+  constructor() {
+    super();
+
+    shadow(this)
+      .template(HelloStyleElement.template)
+      .styles(HelloStyleElement.styles);
+  }
+}
+```
+
+```js
+customElements.define("hello-style", HelloStyleElement);
+```
 
 ---
 
@@ -109,7 +389,7 @@ in the template without affecting anything outside our component.
 
 Remember, every time we define a new component, we need this boilerplate:
 
-```js
+```
 class HelloStyleElement extends HTMLElement {
   constructor() {
     super();
