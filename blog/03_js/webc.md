@@ -253,8 +253,12 @@ the Shadow DOM when we want to change the resulting view.
 Notice that the globe and the string `World`, which were
 in the Light DOM, are rendered in exactly the right
 place, relative to the strings `Hello,` and `!`.
-Now take a look at the template. See that the word `world` is
-wrapped in a `<slot>` element. This tells the browser's rendering
+Now take a look at the template. See that the word `there` is
+wrapped in a `<slot>` element.
+Slots, like attributes, are a way to _parameterize_ the element,
+modifying it on an instance-by-instance basis.
+
+Slots tell the browser's rendering
 mechanism to inject the Light DOM content of our element
 at that point in the Shadow DOM, replacing the contents of
 the `<slot>` element itself. What's inside the `<slot>`
@@ -275,7 +279,7 @@ hello-content img {
 
 ---
 
-### Styling the Shadow DOM
+## Styling the Shadow DOM
 
 In the previous section, we styled child nodes of a custom
 element using a CSS element selector. But, you may have noticed,
@@ -283,11 +287,21 @@ the `<h1>` in the Shadow DOM of our element is no longer
 getting the element style which we have applied to the entire
 page from `page.css`.
 
-This is another feature of using the Shadow DOM: CSS rules from the Light DOM do not apply
-to nodes in the Shadow DOM. At first, this will seem like
+This is another feature of using the Shadow DOM: CSS rules
+from the Light DOM do not extend to nodes in the Shadow DOM.
+At first, this will seem like
 an impediment to using Shadow DOM, but we will see that it allows
 us to simplify our CSS rules significantly, and also promote
 modularity in styling our custom elements.
+
+Let's see how we can adopt our preferred styling
+for the `<h1>` and also add some additional styling specific
+to our custom element. Recall that the `font-family`, `-size`,
+and `-weight` which we prescribed for `h1` were all based on
+design tokens. We will access the same tokens in a separate
+CSS stylesheet which will then be applied to the Shadow DOM
+of our custom element. We can do this because CSS custom
+properties _do_ get propagated into the Shadow DOM.
 
 ```html
 <hello-style>
@@ -306,7 +320,7 @@ class HelloStyleElement extends HTMLElement {
 
   static styles = css`
     :host {
-      --image-max-height: 4em;
+      --image-max-height: calc(2 * var(--size-type-xxlarge));
     }
 
     h1 {
@@ -339,101 +353,101 @@ class HelloStyleElement extends HTMLElement {
 customElements.define("hello-style", HelloStyleElement);
 ```
 
----
+> The `css` and `shadow().styles` functions are utilities
+> we've defined at Unbundled,
+> similar to `html` and `shadow().template`.
+> You can see how they are defined in the
+> [source code](https://github.com/mnmlstme/unbundled/blob/main/packages/un-bundled/src/css.ts)
 
-# Slots
+Besides defining the typography for the `<h1>`, we're also
+using `flex` to align the items inside the `<h1>`. If you inspect
+the elements in your browser, you will see that in this example,
+there are three flex items: the string `Hello,`, the `<img>`, and
+the string `World!`. The `<slot>` itself is not a flex item, even
+though it is a child of the `<h1>`. This is because `<slot>` elements
+by default have `display: contents` set on them.
 
-```html
-<hello-world> web components </hello-world>
-```
+Now that our custom element has styles, we no longer need to
+style the `<img>` from the Light DOM. We can instead use the
+`::slotted()` pseudo-element selector to reach out into the Light DOM
+and target any `<img>` element that filled the slot.
 
-Notice that the template for `<hello-world>` includes `<slot>` markup.
-Slots allow us to swap out different content each time the component is used.
-In this case, the `<slot>` contains the word "world", so we can use this same
-template to say hello to anything.
+Finally, we can use `:host` selector to target the
+custom element itself. Here we are using this rule to
+set a custom property `--image-max-height`, which will
+then be used in our `::slotted(img)` rule. Because we define
+it on `:host`, it will propagate into the Light DOM, as
+well as the Shadow DOM.
 
-A slot can be thought of as a parameter to the component.
-Every time we use the component, we can assign a different value to the slot
-by putting that value in the body of the component.
+Any CSS custom property defined on `:host` can also be
+_overridden_ with a `style` attribute on any instance
+of the custom element. For example, if we wanted to
+increase the maximum height of the image in this example,
+we could write:
 
----
+`<hello-style style="--image-max-height: max-content">`
 
-# Styling the template
-
-```html
-<hello-style> component style </hello-style>
-
-<h1>This &lt;H1&gt; has no style</h1>
-```
-
-By inserting a `<style>` element inside our template, we can apply CSS to elements
-in the template without affecting anything outside our component.
-
-```html
-<template id="hello-style-template">
-  <h1>Hello, <slot class="fancy">world</slot>!</h1>
-
-  <style>
-    h1 {
-      font: var(--size-type-xlarge) var(--font-family-display);
-    }
-
-    .fancy {
-      font-family: var(--font-family-body);
-      font-style: italic;
-      color: var(--color-accent);
-    }
-  </style>
-</template>
-```
-
-Remember, every time we define a new component, we need this boilerplate:
-
-```
-class HelloStyleElement extends HTMLElement {
-  constructor() {
-    super();
-    let content = document.getElementById("hello-style-template").content;
-    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
-  }
-}
-
-customElements.define("hello-style", HelloStyleElement);
-```
+When used in this way, custom element can define their
+own interface to control their styling. Now you see
+why we call them "custom properties".
 
 ---
 
-# Named Slots
+## Named Slots
+
+Just as a function can have more than one parameter,
+a `<template>` can contain more than one `<slot>`.
+To distinguish between multiple slots, the slots need to have a `name` attribute.
 
 ```html
 <greet-world>
   <span slot="greeting">Greetings</span>
-  <span slot="recipient">earthlings</span>
+  <img src="../FILES/Globe.svg" />
+  Earthlings
 </greet-world>
 ```
 
-Just as a function can have more than one parameter,
-a component template can contain more than one `<slot>`.
-To distinguish between multiple slots, the slots need to have a `name` attribute.
+```js
+class GreetWorldElement extends HTMLElement {
+  constructor() {
+    super();
 
-```html
-<template id="greet-world-template">
-  <h1>
-    <slot name="greeting">Hello</slot>, <slot name="recipient">world</slot>!
-  </h1>
+    shadow(this)
+      .template(GreetWorldElement.template)
+      .styles(GreetWorldElement.styles);
+  }
 
-  <style>
+  static template = html`
+    <template>
+      <h1><slot name="greeting">Hello</slot>, <slot>there</slot>!</h1>
+    </template>
+  `;
+
+  static styles = css`
+    :host {
+      --image-max-height: calc(2 * var(--size-type-xxlarge));
+    }
+
     h1 {
-      font-family: Georgia;
-      font-size: 6rem;
+      display: flex;
+      align-items: center;
+      gap: var(--size-spacing-large);
+      font-family: var(--font-family-display);
+      font-size: var(--size-type-xxlarge);
+      font-style: oblique;
+      font-weight: var(--font-weight-bold);
+      line-height: 1;
     }
 
-    slot[name="recipient"] {
-      font-style: italic;
-      color: darkorange;
+    ::slotted(img) {
+      max-height: var(--image-max-height);
     }
-  </style>
-</template>
+  `;
+}
+```
+
+```js
+customElements.define("greet-world", GreetWorldElement);
 ```
 
 To assign content to a named slot, we need to put it in an element that has a `slot` attribute.
@@ -441,22 +455,10 @@ The value of the `slot` attribute needs to match the `name` attribute of a slot
 in the template.
 There can be at most one unnamed slot in a template definition.
 Any untagged text, or elements with no `slot` attribute, will be added to
-the unnamed slot, it it exists.
+the unnamed slot, if it exists.
 
 We are using `<span>` for the slot value, because the `<slot>` occurs in the middle of text.
 Using something other than a span may change the styling or even result in invalid markup.
-
-```js
-class GreetWorldElement extends HTMLElement {
-  constructor() {
-    super();
-    let content = document.getElementById("greet-world-template").content;
-    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
-  }
-}
-
-customElements.define("greet-world", GreetWorldElement);
-```
 
 ---
 
@@ -559,7 +561,7 @@ class, it can access the host element via `this`.
 ```html
 <section>
   <nav class="menu-bar">
-    <dropdown-menu open>
+    <drop-down>
       <span slot="actuator">File</span>
       <menu>
         <li>New…</li>
@@ -573,15 +575,13 @@ class, it can access the host element via `this`.
         <li><hr /></li>
         <li>Close</li>
       </menu>
-    </dropdown-menu>
-    <dropdown-menu> <span slot="actuator"> Edit </span> </dropdown-menu>
-    <dropdown-menu> <span slot="actuator"> View </span></dropdown-menu>
-    <dropdown-menu> <span slot="actuator"> Help </span></dropdown-menu>
+    </drop-down>
+    <drop-down><span slot="actuator"> Edit </span></drop-down>
+    <drop-down><span slot="actuator"> View </span></drop-down>
+    <drop-down><span slot="actuator"> Help </span></drop-down>
   </nav>
 </section>
 ```
-
-We can define a component in HTML, and style it with CSS, but to be really useful, our component needs the ability to do something. We need to implement some interactions, and to do that, we will need Javascript.
 
 Let's implement a dropdown menu, like the **File** menu in most desktop applications.
 There are two parts to the dropdown component:
@@ -594,75 +594,87 @@ The _menu_ content will always require markup, so we will make it
 a named slot. Since the _actuator_ will often be untagged text, which makes it a good choice for
 the unnamed slot.
 
-First, we'll define a template, and some styling to handle hiding and revealing the menu. We'll use a checkbox to maintain the open/closed state, and wrapping the `<label>` for the checkbox around the actuator will allow it to control the open/closed state. No Javascript is required here.
-
-```js
-const parser = new DOMParser();
-
-function prepareTemplate(htmlString) {
-  const doc = parser.parseFromString(htmlString, "text/html");
-  const content = doc.head.firstElementChild.content;
-
-  return content;
-}
-```
-
 The logic for closing the menu when the user clicks outside the menu can be applied from the component's constructor, since we have a `this` handle.
 
 ```js
-class V1DropdownElement extends HTMLElement {
-  static template = prepareTemplate(`<template>
-      <slot name="actuator"><button> Menu </button></slot>
-      <div id="panel">
-        <slot></slot>
-      </div>
+class DropdownElement extends HTMLElement {
+  static template = html`<template>
+    <slot name="actuator"><button>Menu</button></slot>
+    <div id="panel">
+      <slot>
+        <menu>
+          <li>Menu Item 1</li>
+          <li>Menu Item 2</li>
+          <li>Menu Item 3</li>
+      </slot>
+    </div>
+  </template> `;
 
-      <style>
-        :host {
-          position: relative;
-        }
-        #is-shown {
-          display: none;
-        }
-        #panel {
-          display: none;
-          position: absolute;
-          left: 0;
-          margin-top: var(--size-spacing-small);
-          width: max-content;
-          padding: var(--size-spacing-small);
-          border-radius: var(--size-radius-small);
-          background: var(--color-background-card);
-          color: var(--color-text);
-          box-shadow: var(--shadow-popover);
-        }
-        :host([open]) #panel {
-          display: block;
-        }
-        ::slotted(menu) {
-          list-style: none;
-        }
-      </style>
-    </template>`);
+  static styles = css`
+    :host {
+      position: relative;
+    }
+    slot[name="actuator"] {
+      cursor: pointer;
+    }
+    #panel {
+      display: block;
+      position: absolute;
+      left: 0;
+      margin-top: var(--size-spacing-small);
+      width: max-content;
+      transform: perspective(100vh) rotateX(-90deg);
+      transform-origin: top center;
+      padding: var(--size-spacing-small);
+      border-radius: var(--size-radius-small);
+      background: var(--color-background-card);
+      color: var(--color-text);
+      box-shadow: var(--shadow-popover);
+      transition: transform 200ms;
+    }
+    :host([open]) #panel {
+      transform: rotateX(0);
+    }
+  `;
 
   constructor() {
     super();
 
-    this.attachShadow({ mode: "open" }).appendChild(
-      V1DropdownElement.template.cloneNode(true)
-    );
+    shadow(this)
+      .template(DropdownElement.template)
+      .styles(DropdownElement.styles);
     this.shadowRoot
       .querySelector("slot[name='actuator']")
       .addEventListener("click", () => this.toggle());
+    this.clickawayHandler = (ev) => {
+      if (!ev.composedPath().includes(this)) {
+        this.toggle(false);
+      } else {
+        ev.stopPropagation();
+      }
+    };
   }
 
   toggle() {
     if (this.hasAttribute("open")) this.removeAttribute("open");
     else this.setAttribute("open", "open");
   }
+
+  static observedAttributes = ["open"];
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === "open") {
+      if (oldValue === null && newValue !== null) {
+        document.addEventListener("click", this.clickawayHandler);
+      }
+      if (oldValue !== null && newValue === null) {
+        document.removeEventListener("click", this.clickawayHandler);
+      }
+    }
+  }
 }
 
-customElements.define("dropdown-menu", V1DropdownElement);
+customElements.define("drop-down", DropdownElement);
 ```
 
 ```html
@@ -1205,5 +1217,18 @@ time {
   --font-weight-bold: 700;
 
   --shadow-popover: 1px 1px 2px var(--color-shadow);
+}
+```
+
+First, we'll define a template, and some styling to handle hiding and revealing the menu. We'll use a checkbox to maintain the open/closed state, and wrapping the `<label>` for the checkbox around the actuator will allow it to control the open/closed state. No Javascript is required here.
+
+```js
+const parser = new DOMParser();
+
+function prepareTemplate(htmlString) {
+  const doc = parser.parseFromString(htmlString, "text/html");
+  const content = doc.head.firstElementChild.content;
+
+  return content;
 }
 ```

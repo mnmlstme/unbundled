@@ -1,6 +1,6 @@
-// module Kram_cd848e6d_webc (ES6)
+// module Kram_0dc8a6f0_webc (ES6)
           import { css, html, shadow } from '@un-bundled/unbundled'
-          console.log('Loading module "Kram_cd848e6d_webc"')
+          console.log('Loading module "Kram_0dc8a6f0_webc"')
           export function Program ({connectStore, initializeStore}) {
             // JS Definition from scene 1
 class HelloWorldElement extends HTMLElement {
@@ -78,7 +78,7 @@ class HelloStyleElement extends HTMLElement {
 
   static styles = css`
     :host {
-      --image-max-height: 4em;
+      --image-max-height: calc(2 * var(--size-type-xxlarge));
     }
 
     h1 {
@@ -109,18 +109,48 @@ class HelloStyleElement extends HTMLElement {
 // JS Definition from scene 4
 customElements.define("hello-style", HelloStyleElement);
 
-// JS Definition from scene 7
+// JS Definition from scene 5
 class GreetWorldElement extends HTMLElement {
   constructor() {
     super();
-    let content = document.getElementById("greet-world-template").content;
-    this.attachShadow({ mode: "open" }).appendChild(content.cloneNode(true));
+
+    shadow(this)
+      .template(GreetWorldElement.template)
+      .styles(GreetWorldElement.styles);
   }
+
+  static template = html`
+    <template>
+      <h1><slot name="greeting">Hello</slot>, <slot>there</slot>!</h1>
+    </template>
+  `;
+
+  static styles = css`
+    :host {
+      --image-max-height: calc(2 * var(--size-type-xxlarge));
+    }
+
+    h1 {
+      display: flex;
+      align-items: center;
+      gap: var(--size-spacing-large);
+      font-family: var(--font-family-display);
+      font-size: var(--size-type-xxlarge);
+      font-style: oblique;
+      font-weight: var(--font-weight-bold);
+      line-height: 1;
+    }
+
+    ::slotted(img) {
+      max-height: var(--image-max-height);
+    }
+  `;
 }
 
+// JS Definition from scene 5
 customElements.define("greet-world", GreetWorldElement);
 
-// JS Definition from scene 8
+// JS Definition from scene 6
 class ArrowButtonElement extends HTMLElement {
   static get observedAttributes() {
     return ["heading"];
@@ -154,72 +184,87 @@ class ArrowButtonElement extends HTMLElement {
 
 customElements.define("arrow-button", ArrowButtonElement);
 
-// JS Definition from scene 9
-const parser = new DOMParser();
+// JS Definition from scene 7
+class DropdownElement extends HTMLElement {
+  static template = html`<template>
+    <slot name="actuator"><button>Menu</button></slot>
+    <div id="panel">
+      <slot>
+        <menu>
+          <li>Menu Item 1</li>
+          <li>Menu Item 2</li>
+          <li>Menu Item 3</li>
+      </slot>
+    </div>
+  </template> `;
 
-function prepareTemplate(htmlString) {
-  const doc = parser.parseFromString(htmlString, "text/html");
-  const content = doc.head.firstElementChild.content;
-
-  return content;
-}
-
-// JS Definition from scene 9
-class V1DropdownElement extends HTMLElement {
-  static template = prepareTemplate(`<template>
-      <slot name="actuator"><button> Menu </button></slot>
-      <div id="panel">
-        <slot></slot>
-      </div>
-
-      <style>
-        :host {
-          position: relative;
-        }
-        #is-shown {
-          display: none;
-        }
-        #panel {
-          display: none;
-          position: absolute;
-          left: 0;
-          margin-top: var(--size-spacing-small);
-          width: max-content;
-          padding: var(--size-spacing-small);
-          border-radius: var(--size-radius-small);
-          background: var(--color-background-card);
-          color: var(--color-text);
-          box-shadow: var(--shadow-popover);
-        }
-        :host([open]) #panel {
-          display: block;
-        }
-        ::slotted(menu) {
-          list-style: none;
-        }
-      </style>
-    </template>`);
+  static styles = css`
+    :host {
+      position: relative;
+    }
+    slot[name="actuator"] {
+      cursor: pointer;
+    }
+    #panel {
+      display: block;
+      position: absolute;
+      left: 0;
+      margin-top: var(--size-spacing-small);
+      width: max-content;
+      transform: perspective(100vh) rotateX(-90deg);
+      transform-origin: top center;
+      padding: var(--size-spacing-small);
+      border-radius: var(--size-radius-small);
+      background: var(--color-background-card);
+      color: var(--color-text);
+      box-shadow: var(--shadow-popover);
+      transition: transform 200ms;
+    }
+    :host([open]) #panel {
+      transform: rotateX(0);
+    }
+  `;
 
   constructor() {
     super();
 
-    this.attachShadow({ mode: "open" }).appendChild(
-      V1DropdownElement.template.cloneNode(true)
-    );
+    shadow(this)
+      .template(DropdownElement.template)
+      .styles(DropdownElement.styles);
     this.shadowRoot
       .querySelector("slot[name='actuator']")
       .addEventListener("click", () => this.toggle());
+    this.clickawayHandler = (ev) => {
+      if (!ev.composedPath().includes(this)) {
+        this.toggle(false);
+      } else {
+        ev.stopPropagation();
+      }
+    };
   }
 
   toggle() {
     if (this.hasAttribute("open")) this.removeAttribute("open");
     else this.setAttribute("open", "open");
   }
+
+  static observedAttributes = ["open"];
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (name === "open") {
+      if (oldValue === null && newValue !== null) {
+        document.addEventListener("click", this.clickawayHandler);
+      }
+      if (oldValue !== null && newValue === null) {
+        document.removeEventListener("click", this.clickawayHandler);
+      }
+    }
+  }
 }
 
-customElements.define("dropdown-menu", V1DropdownElement);
+customElements.define("drop-down", DropdownElement);
 
-// JS Definition from scene 11
+// JS Definition from scene 9
 class DropdownBaseElement extends HTMLElement {
   constructor() {
     super();
@@ -256,7 +301,7 @@ class DropdownBaseElement extends HTMLElement {
 
 customElements.define("dropdown-base", DropdownBaseElement);
 
-// JS Definition from scene 12
+// JS Definition from scene 10
 class CommandMenuElement extends HTMLElement {
   constructor() {
     super();
@@ -276,7 +321,7 @@ class CommandGroupElement extends HTMLElement {
 customElements.define("command-menu", CommandMenuElement);
 customElements.define("command-group", CommandGroupElement);
 
-// JS Definition from scene 13
+// JS Definition from scene 11
 class ActionItemElement extends HTMLElement {
   constructor() {
     super();
@@ -287,7 +332,7 @@ class ActionItemElement extends HTMLElement {
 
 customElements.define("action-item", ActionItemElement);
 
-// JS Definition from scene 14
+// JS Definition from scene 12
 class HtmlFragmentElement extends HTMLElement {
   connectedCallback() {
     const href = this.getAttribute("href");
@@ -297,6 +342,16 @@ class HtmlFragmentElement extends HTMLElement {
 
     this.addEventListener("html-fragment:open", () => loadHTML(href, this));
   }
+}
+
+// JS Definition from scene 13
+const parser = new DOMParser();
+
+function prepareTemplate(htmlString) {
+  const doc = parser.parseFromString(htmlString, "text/html");
+  const content = doc.head.firstElementChild.content;
+
+  return content;
 }
 
             return ({

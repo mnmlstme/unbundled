@@ -3,7 +3,7 @@ hello-content img {
   max-width: 8em;
 }
 
-/* Kram: CSS in Scene 9 */
+/* Kram: CSS in Scene 7 */
 :host {
   position: relative;
 }
@@ -29,12 +29,12 @@ hello-content img {
   list-style: none;
 }
 
-/* Kram: CSS in Scene 12 */
+/* Kram: CSS in Scene 10 */
 command-group + command-group {
   --command-group-display-top-hr: none;
 }
 
-/* Kram: CSS in Scene 15 */
+/* Kram: CSS in Scene 13 */
 /* CSS reset */
 * {
   margin: 0;
@@ -133,7 +133,7 @@ time {
   padding: 0.5em 0;
 }
 
-/* Kram: CSS in Scene 15 */
+/* Kram: CSS in Scene 13 */
 /* css tokens */
 
 :root {

@@ -1,40 +1,6 @@
 export default `<html>
           <body>
-            <template id="hello-style-template">
-  <h1>Hello, <slot class="fancy">world</slot>!</h1>
-
-  <style>
-    h1 {
-      font: var(--size-type-xlarge) var(--font-family-display);
-    }
-
-    .fancy {
-      font-family: var(--font-family-body);
-      font-style: italic;
-      color: var(--color-accent);
-    }
-  </style>
-</template>
-
-<template id="greet-world-template">
-  <h1>
-    <slot name="greeting">Hello</slot>, <slot name="recipient">world</slot>!
-  </h1>
-
-  <style>
-    h1 {
-      font-family: Georgia;
-      font-size: 6rem;
-    }
-
-    slot[name="recipient"] {
-      font-style: italic;
-      color: darkorange;
-    }
-  </style>
-</template>
-
-<template id="arrow-button-template">
+            <template id="arrow-button-template">
   <button>
     <svg viewBox="0 0 24 24">
       <path

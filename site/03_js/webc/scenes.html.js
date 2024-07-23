@@ -13,26 +13,21 @@ export default `<html>
   World
 </hello-style>
 </div>
-<div data-scene="5"><hello-world> web components </hello-world>
-</div>
-<div data-scene="6"><hello-style> component style </hello-style>
-
-<h1>This &lt;H1&gt; has no style</h1>
-</div>
-<div data-scene="7"><greet-world>
+<div data-scene="5"><greet-world>
   <span slot="greeting">Greetings</span>
-  <span slot="recipient">earthlings</span>
+  <img src="../FILES/Globe.svg" />
+  Earthlings
 </greet-world>
 </div>
-<div data-scene="8"><arrow-button></arrow-button>
+<div data-scene="6"><arrow-button></arrow-button>
 <arrow-button heading="90deg"></arrow-button>
 <arrow-button heading="180deg"></arrow-button>
 <arrow-button heading="-90deg"></arrow-button>
 <arrow-button heading="45deg"></arrow-button>
 </div>
-<div data-scene="9"><section>
+<div data-scene="7"><section>
   <nav class="menu-bar">
-    <dropdown-menu open>
+    <drop-down>
       <span slot="actuator">File</span>
       <menu>
         <li>New…</li>
@@ -46,14 +41,14 @@ export default `<html>
         <li><hr /></li>
         <li>Close</li>
       </menu>
-    </dropdown-menu>
-    <dropdown-menu> <span slot="actuator"> Edit </span> </dropdown-menu>
-    <dropdown-menu> <span slot="actuator"> View </span></dropdown-menu>
-    <dropdown-menu> <span slot="actuator"> Help </span></dropdown-menu>
+    </drop-down>
+    <drop-down><span slot="actuator"> Edit </span></drop-down>
+    <drop-down><span slot="actuator"> View </span></drop-down>
+    <drop-down><span slot="actuator"> Help </span></drop-down>
   </nav>
 </section>
 </div>
-<div data-scene="11"><section>
+<div data-scene="9"><section>
   <nav class="menu-bar">
     <dropdown-base>
       File
@@ -77,12 +72,12 @@ export default `<html>
   </nav>
 </section>
 </div>
-<div data-scene="13"><format-data name="count">The count is {count}.</format-data>
+<div data-scene="11"><format-data name="count">The count is {count}.</format-data>
 <action-item>↑</action-item>
 <action-item>↓</action-item>
 <action-item>Reset</action-item>
 </div>
-<div data-scene="14"><html-fragment href="destination/venice.html">
+<div data-scene="12"><html-fragment href="destination/venice.html">
   <h3>
     <a href="#" onclick="relayEvent(event, 'html-fragment:open')"> Venice </a>
   </h3>
