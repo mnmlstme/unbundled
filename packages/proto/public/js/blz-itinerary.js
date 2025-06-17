@@ -24,6 +24,28 @@ export class BlzItineraryElement extends HTMLElement {
           return;
       }
     });
+
+    this.addEventListener("click", (event) => {
+      console.log("Click bubbled", event);
+      const button = event.originalTarget;
+      const id = button.id;
+      switch (id) {
+        case "extend-stay":
+          const itinerary = this.$.itinerary;
+          const destinations = itinerary.destinations;
+          const rome = destinations[2];
+          const newItinerary = {
+            ...itinerary,
+            destinations: destinations.toSpliced(
+              2, 1,
+              { ...rome, endDate: "2024-10-30" }
+            )
+          };
+          console.log("Setting itinerary:", newItinerary);
+          this.$.itinerary = newItinerary;
+          return;
+      }
+    })
   }
 
   static observedAttributes = ["src"];
@@ -42,6 +64,7 @@ export class BlzItineraryElement extends HTMLElement {
     return html`<dl>
         ${destinations.map(renderDestination)}
       </dl>
+      <button onclick="console.log('Click')" id="extend-stay">Extend Stay</button>
     `;
 
     function renderDestination(dest) {
