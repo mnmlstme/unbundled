@@ -1,10 +1,29 @@
 import { css, html, shadow } from "@un-bundled/unbundled";
+import { viewModel } from "./viewModel.js";
 
 export class BlzItineraryElement extends HTMLElement {
 
+  $ = viewModel(this, {
+    itinerary: {
+      destinations: []
+    }
+  });
+
   constructor() {
     super();
-    shadow(this).styles(BlzItineraryElement.styles);
+    shadow(this)
+      .styles(BlzItineraryElement.styles);
+
+    this.addEventListener("observable:change", (event) => {
+      const [prop, oldValue, newValue] = event.detail;
+      switch (prop) {
+        case "itinerary":
+          console.log("⚡️ViewModel[itinerary] changed!", this.$.itinerary);
+          const view = BlzItineraryElement.render(this.$.itinerary)
+          shadow(this).replace(view);
+          return;
+      }
+    });
   }
 
   static observedAttributes = ["src"];
@@ -13,14 +32,13 @@ export class BlzItineraryElement extends HTMLElement {
     if (name === "src") {
       this.hydrate(newValue)
         .then((data) => {
-          const view = BlzItineraryElement.render(data)
-          shadow(this).replace(view);
-        });
+          this.$.itinerary = data;
+         });
     }
   }
 
-  static render(data) {
-    const destinations = data?.destinations || [];
+  static render(itinerary) {
+    const destinations = itinerary?.destinations || [];
     return html`<dl>
         ${destinations.map(renderDestination)}
       </dl>
