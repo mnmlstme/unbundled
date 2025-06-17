@@ -2,8 +2,8 @@ export function shadow(
   el: HTMLElement,
   options: ShadowRootInit = { mode: "open" }
 ) {
-  const shadowRoot = el.attachShadow(options);
-  const chain = { template, styles };
+  const shadowRoot = el.shadowRoot || el.attachShadow(options);
+  const chain = { template, styles, replace };
 
   return chain;
 
@@ -23,5 +23,12 @@ export function shadow(
 
   function styles(...sheets: CSSStyleSheet[]) {
     shadowRoot.adoptedStyleSheets = sheets;
+
+    return chain;
+  }
+
+  function replace(fragment: DocumentFragment) {
+    shadowRoot.replaceChildren(fragment);
+    return chain;
   }
 }

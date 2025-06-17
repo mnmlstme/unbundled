@@ -4,11 +4,16 @@
   "description": "",
   "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:1.13": "WEBROOT=v0.1.13-components npm start",
+    "start": "http-server -p 3000 $WEBROOT"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "@un-bundled/unbundled": "^0.1.0"
   }
 }
