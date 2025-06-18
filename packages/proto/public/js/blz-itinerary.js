@@ -86,19 +86,20 @@ export class BlzItineraryElement extends HTMLElement {
       if ( changed ) {
         const view = renderDestination(d);
         if (i < children.length)
-          children[i].replaceWith(view);
+          renderDestination(d, previous.destinations[i], children[i]);
         else
-          parent.append(view);
+          parent.append(renderDestination(d));
      }
     });
 
-    function renderDestination(dest) {
+    function renderDestination(dest, previous = null, root = null ) {
         const {name, link, startDate, endDate, featuredImage} = dest;
 
-      console.log("🌆 (re) Rendering destination:", name);
+      if (!previous) {
+        console.log("🌆 initial render:", name);
         return html`
-            <div>
-            . <dt>${dest.startDate} to ${dest.endDate}</dt>
+          <div>
+            <dt>${dest.startDate} to ${dest.endDate}</dt>
             <dd>
             <blz-destination
                 start-date="${startDate}"
@@ -109,8 +110,32 @@ export class BlzItineraryElement extends HTMLElement {
                 ${name}
             </blz-destination>
             </dd>
-            </div>
+          </div>
         `;
+      }
+
+      const dt = root.firstElementChild;
+      const blz_d = root.querySelector("blz-destination");
+      console.log("🌆 re-render:", dest, previous);
+
+      if (startDate !== previous.startDate ||
+        endDate !== previous.endDate)
+        dt.textContent = `${startDate} to ${endDate}`;
+
+      if (startDate !== previous.startDate)
+        blz_d.setAttribute("start-date", startDate);
+
+      if (endDate !== previous.endDate)
+        blz_d.setAttribute("end-date", endDate);
+
+      if (link !== previous.link)
+        blz_d.setAttribute("href", link);
+
+      if (featuredImage !== previous.featuredImage)
+        blz_d.setAttribute("img-src", featuredImage);
+
+      if (name !== previous.name)
+        blz_d.textContent = name;
     }
   }
 
