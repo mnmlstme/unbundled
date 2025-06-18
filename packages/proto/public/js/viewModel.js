@@ -1,46 +1,39 @@
+import { cloneTemplate } from "@un-bundled/unbundled";
+import { createObservable } from "./effects.js";
 
-export function viewModel(element, init = {}) {
-  return createObservable(element, init);
-}
+export class ViewModel {
+  constructor(init) {
+    this.proxy = createObservable(init);
+  }
 
-function createObservable(eventTarget, root) {
-  const OBSERVABLE_CHANGE_EVENT = "observable:change";
+  get(prop) {
+    return this.proxy[prop];
+  }
 
-  console.log("creating Observable:", JSON.stringify(root));
+  set(prop, value) {
+    this.proxy[prop] = value;
+  }
 
-  let proxy = new Proxy(root, {
-    get: (target, prop, receiver) => {
-      if (prop === "then") {
-        return undefined;
-      }
-      const value = Reflect.get(target, prop, receiver);
-      console.log(`Observable['${prop}'] => ${JSON.stringify(value)}`);
-      return value;
-    },
-    set: (target, prop, newValue, receiver) => {
-      const oldValue = root[prop];
-      console.log(
-        `Observable['${prop}'] <= ${JSON.stringify(
-          newValue
-        )}; was ${JSON.stringify(oldValue)}`
-      );
-      const didSet = Reflect.set(target, prop, newValue, receiver);
-      if (didSet) {
-        let evt = new CustomEvent(OBSERVABLE_CHANGE_EVENT, {
-          bubbles: true,
-          cancelable: true,
-          composed: true,
-          detail: [prop, oldValue, newValue]
-        });
-        Object.assign(evt, { property: prop, oldValue, value: newValue });
-        eventTarget.dispatchEvent(evt);
-        console.log("dispatched event to target", evt, eventTarget);
-      } else {
-        console.log(`Observable['${prop}] was not set to ${newValue}`);
-      }
-      return didSet;
-    },
-  });
+  render(view, scope = this.proxy) {
+    const effects = view.querySelectorAll("unbundled-effect");
 
-  return proxy;
+    effects.forEach((node) => {
+      if (node.effect) node.effect(scope, node);
+      console.log("🧬 rendered with viewmodel", node);
+    });
+
+    return view;
+  }
+
+  map(view, scope = this.proxy) {
+    return scope.map(v => {
+      const clone = cloneTemplate(view);
+      console.log("Cloned with effects:", view, clone);
+      console.log("Effects in original:",
+        view.querySelectorAll("unbundled-effect"));
+      console.log("Effects in clone:",
+        clone.querySelectorAll("unbundled-effect"));
+      return this.render(clone, v);
+    });
+  }
 }

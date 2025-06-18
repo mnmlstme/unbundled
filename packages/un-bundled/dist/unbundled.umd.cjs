@@ -15,8 +15,29 @@
     return customElements;
   }
   const parser = new DOMParser();
+  class HtmlEffect extends HTMLElement {
+    constructor(viewFn) {
+      super();
+      this.effect = viewFn;
+    }
+    setEffect(effect) {
+      this.effect = effect;
+    }
+    setEffectId(hash) {
+      this.dataset.effectId = hash;
+    }
+    getEffectId() {
+      return this.dataset.effectId;
+    }
+  }
   function html(template, ...values) {
     const params = values.map(processParam);
+    const effects = params.filter((node) => node instanceof HtmlEffect).map((node, index) => {
+      const hash = `effect-${index}`;
+      const effect = node;
+      effect.setEffectId(hash);
+      return [hash, effect.effect];
+    });
     const htmlString = template.map((s, i) => {
       if (i === 0) return [s];
       const node = params[i - 1];
@@ -42,38 +63,54 @@
         }
       }
     });
-    return fragment;
-    function processParam(v, _) {
-      if (v === null) return "";
-      switch (typeof v) {
-        case "string":
-          return escapeHtml(v);
-        case "bigint":
-        case "boolean":
-        case "number":
-        case "symbol":
-          return escapeHtml(v.toString());
-        case "object":
-          if (Array.isArray(v)) {
-            const frag = new DocumentFragment();
-            const elements = v.map(
-              processParam
-            );
-            frag.replaceChildren(...elements);
-            return frag;
-          }
-          if (v instanceof Node) return v;
-          return new Text(v.toString());
-        default:
-          return new Comment(
-            `[invalid parameter of type "${typeof v}"]`
+    return Object.assign(fragment, {
+      effects: Object.fromEntries(effects)
+    });
+  }
+  function processParam(v, _) {
+    if (v === null) return "";
+    switch (typeof v) {
+      case "string":
+        return escapeHtml(v);
+      case "bigint":
+      case "boolean":
+      case "number":
+      case "symbol":
+        return escapeHtml(v.toString());
+      case "object":
+        if (Array.isArray(v)) {
+          const frag = new DocumentFragment();
+          const elements = v.map(
+            processParam
           );
-      }
+          frag.replaceChildren(...elements);
+          return frag;
+        }
+        if (v instanceof Node) return v;
+        return new Text(v.toString());
+      default:
+        return new Comment(
+          `[invalid parameter of type "${typeof v}"]`
+        );
     }
+  }
+  function cloneTemplate(view) {
+    const clone = view.cloneNode(true);
+    clone.querySelectorAll("unbundled-effect").forEach((node) => {
+      const effect = node;
+      const hash = effect.getEffectId();
+      console.log("Cloning effect:", effect);
+      if (hash) {
+        const fn = view.effects[hash];
+        effect.setEffect(fn);
+      }
+    });
+    return Object.assign(clone, { effects: view.effects });
   }
   function escapeHtml(v) {
     return v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }
+  define2({ "unbundled-effect": HtmlEffect });
   function shadow(el, options = { mode: "open" }) {
     const shadowRoot = el.shadowRoot || el.attachShadow(options);
     const chain = { template, styles, replace };
@@ -95,6 +132,8 @@
       return chain;
     }
   }
+  exports2.HtmlEffect = HtmlEffect;
+  exports2.cloneTemplate = cloneTemplate;
   exports2.css = css;
   exports2.define = define2;
   exports2.html = html;

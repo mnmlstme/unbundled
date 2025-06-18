@@ -2,11 +2,10 @@
   "name": "proto",
   "version": "1.0.0",
   "description": "",
-  "main": "index.html",
+  "main": "public/index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start:1.13": "WEBROOT=v0.1.13-components npm start",
-    "start": "http-server -p 3000 $WEBROOT"
+    "start": "http-server -p 3000"
   },
   "author": "",
   "license": "ISC",
