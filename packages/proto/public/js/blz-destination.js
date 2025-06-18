@@ -10,7 +10,7 @@ export class BlzDestinationElement extends HTMLElement {
               <slot>Untitled Destination</slot>
             </a>
           </h2>
-          <p></p>
+          <p id="nights"></p>
         </header>
         <slot name="highlights"></slot>
       </section>
@@ -25,7 +25,7 @@ export class BlzDestinationElement extends HTMLElement {
       .styles(BlzDestinationElement.styles);
   }
 
-  static observedAttributes = ["img-src", "href"];
+  static observedAttributes = ["img-src", "href", "start-date", "end-date"];
 
   attributeChangedCallback(name, _, newValue) {
     switch (name) {
@@ -35,6 +35,12 @@ export class BlzDestinationElement extends HTMLElement {
       case "img-src":
         this._updateImgSrc(newValue);
         break;
+      case "start-date":
+      case "end-date":
+        this._updateNights(
+          this.getAttribute("start-date"),
+          this.getAttribute("end-date")
+        );
     }
   }
 
@@ -45,6 +51,14 @@ export class BlzDestinationElement extends HTMLElement {
 
   _updateImgSrc(imgSrc) {
     this.style.setProperty("--img-src", `url(${imgSrc})`);
+  }
+
+  _updateNights(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const nights = Math.floor((end.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
+    const p = this.shadowRoot.getElementById("nights");
+    p.textContent = `${nights} nights`
   }
 
   static styles = css`
