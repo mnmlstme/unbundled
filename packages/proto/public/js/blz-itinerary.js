@@ -12,15 +12,15 @@ export class BlzItineraryElement extends HTMLElement {
   constructor() {
     super();
     shadow(this)
-      .styles(BlzItineraryElement.styles);
+      .styles(BlzItineraryElement.styles)
+      .replace(BlzItineraryElement.render(this.$.itinerary));
 
     this.addEventListener("observable:change", (event) => {
       const [prop, oldValue, newValue] = event.detail;
       switch (prop) {
         case "itinerary":
-          console.log("⚡️ViewModel[itinerary] changed!", this.$.itinerary);
-          const view = BlzItineraryElement.render(this.$.itinerary)
-          shadow(this).replace(view);
+          console.log("⚡️ViewModel[itinerary] changed!", newValue, oldValue);
+          BlzItineraryElement.render(newValue, oldValue, this.shadowRoot);
           return;
       }
     });
@@ -34,11 +34,14 @@ export class BlzItineraryElement extends HTMLElement {
           const itinerary = this.$.itinerary;
           const destinations = itinerary.destinations;
           const rome = destinations[2];
+          let endDate = new Date(rome.endDate)
+          endDate.setTime(endDate.getTime() + 24 * 60 * 60 * 1000);
+          console.log("new end date:", endDate);
           const newItinerary = {
             ...itinerary,
             destinations: destinations.toSpliced(
               2, 1,
-              { ...rome, endDate: "2024-10-30" }
+              { ...rome, endDate: endDate.toISOString().substr(0, 10) }
             )
           };
           console.log("Setting itinerary:", newItinerary);
@@ -59,29 +62,54 @@ export class BlzItineraryElement extends HTMLElement {
     }
   }
 
-  static render(itinerary) {
+  static render(itinerary, previous = null, root = null  ) {
     const destinations = itinerary?.destinations || [];
-    return html`<dl>
+
+    if (!previous) {
+      // initial render: create DOMFragment
+      console.log("initial render");
+      return  html`<dl>
         ${destinations.map(renderDestination)}
       </dl>
       <button onclick="console.log('Click')" id="extend-stay">Extend Stay</button>
     `;
+    }
+
+    // There is already a view, we need to update it.
+
+    const parent = root.firstElementChild;
+    const children = parent.children;
+    console.log("re-render DL children:", Array.from(children), destinations, previous.destinations);
+
+    destinations.forEach((d, i) => {
+      const changed = d !== previous.destinations[i];
+      if ( changed ) {
+        const view = renderDestination(d);
+        if (i < children.length)
+          children[i].replaceWith(view);
+        else
+          parent.append(view);
+     }
+    });
 
     function renderDestination(dest) {
         const {name, link, startDate, endDate, featuredImage} = dest;
 
+      console.log("🌆 (re) Rendering destination:", name);
         return html`
-        . <dt>${dest.startDate} to ${dest.endDate}</dt>
-          <dd>
-          <blz-destination
-            start-date="${startDate}"
-            end-date="${endDate}"
-            href="${link}"
-            img-src="${featuredImage}"
-          >
-            ${name}
-          </blz-destination>
-          </dd>
+            <div>
+            . <dt>${dest.startDate} to ${dest.endDate}</dt>
+            <dd>
+            <blz-destination
+                start-date="${startDate}"
+                end-date="${endDate}"
+                href="${link}"
+                img-src="${featuredImage}"
+            >
+                ${name}
+            </blz-destination>
+            </dd>
+            </div>
         `;
     }
   }
