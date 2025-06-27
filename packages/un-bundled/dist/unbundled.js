@@ -87,15 +87,17 @@ function html(template, ...values) {
       if (values[i] instanceof HtmlEffect) {
         const effect = values[i];
         const key = `data-un-effect-${i}`;
-        addEffector(
-          key,
-          (viewModel, site, fragment2) => {
-            const parent = site.parentNode || fragment2;
-            const rendered = effect.fn(viewModel);
-            const param2 = processAsNode(rendered);
-            parent.insertBefore(param2, site.nextSibling);
+        addEffector(key, (viewModel, start, end) => {
+          const rendered = effect.fn(viewModel);
+          const param2 = processAsNode(rendered);
+          console.log("Rendering effect into DocumentRange", start, end);
+          const parent = start.parentNode;
+          if (parent) {
+            while (start.nextSibling && start.nextSibling !== end)
+              parent.removeChild(start.nextSibling);
+            parent.insertBefore(param2, end);
           }
-        );
+        });
         return [s, `<ins ${key}=""></ins>`];
       }
       let param = processAsNode(values[i]);
@@ -145,10 +147,13 @@ function renderWithEffects(original, effectors, viewModel) {
     if (site) {
       console.log("Rendering for effects on viewModel", viewModel);
       list.forEach((fn) => {
-        const placeholder = new Comment(`un-html: ${key}`);
+        const start = new Comment(` <<< ${key} `);
+        const end = new Comment(` >>> ${key} `);
+        const placeholder = new DocumentFragment();
+        placeholder.replaceChildren(start, end);
         const parent = site.parentNode || fragment;
         parent.replaceChild(placeholder, site);
-        createEffect((d) => fn(d, placeholder, fragment), viewModel);
+        createEffect((d) => fn(d, start, end), viewModel);
       });
     }
   });

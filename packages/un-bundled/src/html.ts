@@ -31,11 +31,7 @@ const ATTR_RE = /^([^>]*)\s+([a-zA-Z-]+)=$/;
 const CLOSE_RE = /^(\s+)?>/;
 
 type Mutation = (site: HTMLElement) => void;
-type Effector<T extends object> = (
-  data: T,
-  site: Node,
-  fragment: DocumentFragment
-) => void;
+type Effector<T extends object> = (data: T, start: Node, end: Node) => void;
 
 export function html<T extends object>(
   template: TemplateStringsArray,
@@ -76,19 +72,19 @@ export function html<T extends object>(
         if (values[i] instanceof HtmlEffect) {
           const effect = values[i] as HtmlEffect<T>;
           const key = `data-un-effect-${i}`;
-          addEffector(
-            key,
-            (viewModel: T, site: Node, fragment: DocumentFragment) => {
-              // console.log("Effect on node:", site);
-              const parent = site.parentNode || fragment;
-              // console.log("Parent:", parent);
-              const rendered = effect.fn(viewModel);
-              // console.log("Rendered effect:", rendered);
-              const param = processAsNode(rendered);
-              // console.log("Param processed:", param);
-              parent.insertBefore(param, site.nextSibling);
+          addEffector(key, (viewModel: T, start: Node, end: Node) => {
+            const rendered = effect.fn(viewModel);
+            // console.log("Rendered effect:", rendered);
+            const param = processAsNode(rendered);
+            // console.log("Param processed:", param);
+            console.log("Rendering effect into DocumentRange", start, end);
+            const parent = start.parentNode;
+            if (parent) {
+              while (start.nextSibling && start.nextSibling !== end)
+                parent.removeChild(start.nextSibling);
+              parent.insertBefore(param, end);
             }
-          );
+          });
           return [s, `<ins ${key}=""></ins>`];
         }
         let param = processAsNode(values[i]);
@@ -156,10 +152,13 @@ function renderWithEffects<T extends object>(
     if (site) {
       console.log("Rendering for effects on viewModel", viewModel);
       list.forEach((fn) => {
-        const placeholder = new Comment(`un-html: ${key}`);
+        const start = new Comment(` <<< ${key} `);
+        const end = new Comment(` >>> ${key} `);
+        const placeholder = new DocumentFragment();
+        placeholder.replaceChildren(start, end);
         const parent = site.parentNode || fragment;
         parent.replaceChild(placeholder, site);
-        createEffect<T>((d) => fn(d, placeholder, fragment), viewModel);
+        createEffect<T>((d) => fn(d, start, end), viewModel);
       });
     }
   });
