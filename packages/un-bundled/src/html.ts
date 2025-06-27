@@ -1,53 +1,125 @@
-import { define } from "./define.ts";
+import { createEffect } from "./effects";
 
 const parser = new DOMParser();
 
-export interface ViewTemplate extends DocumentFragment {
-  effects: { [hash: string]: ViewFn };
+export interface ViewTemplate<T extends object> extends DocumentFragment {
+  render(init: T): DocumentFragment;
 }
 
-export type ViewFn = ($: object) => DocumentFragment;
+export type RenderResult<T extends object> =
+  | string
+  | boolean
+  | number
+  | ViewTemplate<T>;
+export type RenderFunction<T extends object> = (data: T) => RenderResult<T>;
 
-export class HtmlEffect extends HTMLElement {
-  effect: ViewFn;
-  constructor( viewFn: ViewFn ) {
-    super();
+class HtmlEffect<T extends object> {
+  fn: RenderFunction<T>;
 
-    this.effect = viewFn;
-  }
-
-  setEffect(effect: ViewFn) {
-    this.effect = effect;
-  }
-  setEffectId(hash: string) {
-    this.dataset.effectId = hash;
-  }
-  getEffectId(): string | undefined {
-    return this.dataset.effectId;
+  constructor(fn: RenderFunction<T>) {
+    this.fn = fn;
+    console.log("Creating HtmlEffect:", fn);
   }
 }
 
-export function html(
+export function fx<T extends object>(fn: RenderFunction<T>): HtmlEffect<T> {
+  return new HtmlEffect(fn);
+}
+
+const OPEN_RE = /<[a-zA-z][$a-zA-Z0-9-]*\s+[^>]*$/;
+const ATTR_RE = /^([^>]*)\s+([a-zA-Z-]+)=$/;
+const CLOSE_RE = /^(\s+)?>/;
+
+type Mutation = (site: HTMLElement) => void;
+type Effector<T extends object> = (
+  data: T,
+  site: Node,
+  fragment: DocumentFragment
+) => void;
+
+export function html<T extends object>(
   template: TemplateStringsArray,
   ...values: unknown[]
-): ViewTemplate {
-  const params = values.map(processParam);
-  const effects = params
-    .filter(node => node instanceof HtmlEffect)
-    .map((node, index) => {
-      const hash = `effect-${index}`;
-      const effect = node as HtmlEffect;
-      effect.setEffectId(hash)
-      return [hash, effect.effect];
-    });
+): ViewTemplate<T> {
+  const tagOpeners = template.map((s) => Boolean(s.match(OPEN_RE)));
+  const tagAttrs = template.map((s) => Boolean(s.match(ATTR_RE)));
+  const tagClosers = template.map((s) => Boolean(s.match(CLOSE_RE)));
+  const mutations: Map<string, Mutation[]> = new Map();
+  const effectors: Map<string, Effector<T>[]> = new Map();
+  const fragment = new DocumentFragment();
+
+  function addMutation(key: string, fn: Mutation) {
+    let list = mutations.get(key);
+    if (list) list.push(fn);
+    else mutations.set(key, [fn]);
+  }
+
+  function addEffector(key: string, fn: Effector<T>) {
+    let list = effectors.get(key);
+    if (list) list.push(fn);
+    else effectors.set(key, [fn]);
+  }
+
+  console.log("tagOpeners:", tagOpeners);
+  console.log("tagClosers:", tagClosers);
+  console.log("tagInnards:", tagAttrs);
+  console.log("template strings:", template);
+  console.log("parameters:", values);
+
   const htmlString = template
     .map((s, i) => {
-      if (i === 0) return [s];
+      if (i === values.length) return [s]; // no more parameters
 
-      const node = params[i - 1];
-      if (node instanceof Node)
-        return [`<ins id="mu-html-${i - 1}"></ins>`, s];
-      return [node, s];
+      // inline any parameters we can, and set up for substitution
+
+      if (!tagOpeners[i] && !tagAttrs[i]) {
+        if (values[i] instanceof HtmlEffect) {
+          const effect = values[i] as HtmlEffect<T>;
+          const key = `data-un-effect-${i}`;
+          addEffector(
+            key,
+            (viewModel: T, site: Node, fragment: DocumentFragment) => {
+              // console.log("Effect on node:", site);
+              const parent = site.parentNode || fragment;
+              // console.log("Parent:", parent);
+              const rendered = effect.fn(viewModel);
+              // console.log("Rendered effect:", rendered);
+              const param = processAsNode(rendered);
+              // console.log("Param processed:", param);
+              parent.insertBefore(param, site.nextSibling);
+            }
+          );
+          return [s, `<ins ${key}=""></ins>`];
+        }
+        let param = processAsNode(values[i]);
+        if (param instanceof Node) {
+          const key = `data-un-html-${i}`;
+          addMutation(key, (site: HTMLElement) => {
+            const parent = site.parentNode || fragment;
+            parent.replaceChild(param, site);
+          });
+          return [s, `<ins ${key}=""></ins>`];
+        }
+
+        return [s, param];
+      }
+
+      const attrMatches = s.match(ATTR_RE);
+
+      if (attrMatches) {
+        const [_, upToName, attrName] = attrMatches;
+        const key = `data-un-attr-${attrName}`;
+        const attrValue = processAsAttribute(attrName, values[i]);
+        addMutation(
+          key,
+          typeof attrValue === "undefined"
+            ? (site: HTMLElement) => site.removeAttribute(attrName)
+            : (site: HTMLElement) => site.setAttribute(attrName, attrValue)
+        );
+        return [upToName, ` ${key}="" `];
+      }
+
+      return [s];
     })
     .flat()
     .join("");
@@ -55,87 +127,95 @@ export function html(
   const collection = doc.head.childElementCount
     ? doc.head.children
     : doc.body.children;
-  const fragment = new DocumentFragment();
 
   fragment.replaceChildren(...collection);
 
-  params.forEach((node, i) => {
-    if (node instanceof Node) {
-      const pos = fragment.querySelector(`ins#mu-html-${i}`);
-
-      if (pos) {
-        const parent = pos.parentNode;
-        parent?.replaceChild(node, pos);
-      } else {
-        console.log(
-          "Missing insertion point:",
-          `ins#mu-html-${i}`
-        );
-      }
+  mutations.forEach((list: Mutation[], key: string) => {
+    const site = fragment.querySelector(`[${key}]`) as HTMLElement;
+    console.log("Mutating ", key, site, list);
+    if (site) {
+      list.forEach((fn) => fn(site));
+      delete site.dataset[key];
     }
   });
 
   return Object.assign(fragment, {
-    effects: Object.fromEntries(effects)
+    effectors,
+    render: (viewModel: T) => renderWithEffects(fragment, effectors, viewModel)
   });
 }
 
-function processParam(v: unknown, _: number): Node | string {
-  if (v === null) return "";
+function renderWithEffects<T extends object>(
+  original: DocumentFragment,
+  effectors: Map<string, Effector<T>[]>,
+  viewModel: T
+): DocumentFragment {
+  const fragment = original.cloneNode(true) as DocumentFragment;
+  effectors.forEach((list: Effector<T>[], key) => {
+    const site = fragment.querySelector(`[${key}]`) as HTMLElement;
+    if (site) {
+      console.log("Rendering for effects on viewModel", viewModel);
+      list.forEach((fn) => {
+        const placeholder = new Comment(`un-html: ${key}`);
+        const parent = site.parentNode || fragment;
+        parent.replaceChild(placeholder, site);
+        createEffect<T>((d) => fn(d, placeholder, fragment), viewModel);
+      });
+    }
+  });
+  return fragment;
+}
+
+function processAsNode(v: unknown): Node {
+  if (v === null) return new Text("");
 
   switch (typeof v) {
     case "string":
-      return escapeHtml(v);
+      return new Text(v);
     case "bigint":
     case "boolean":
     case "number":
     case "symbol":
       // convert these to strings to make text nodes
-      return escapeHtml(v.toString());
+      return new Text(v.toString());
     case "object":
       // turn arrays into DocumentFragments
       if (Array.isArray(v)) {
         const frag = new DocumentFragment();
-        const elements = (v as Array<unknown>).map(
-          processParam
+        const elements = (v as Array<unknown>).map((node) =>
+          processAsNode(node)
         );
         frag.replaceChildren(...elements);
         return frag;
       }
       if (v instanceof Node) return v;
-      return new Text(v.toString());
+      return new Text(JSON.stringify(v));
     default:
       // anything else, leave a comment node
-      return new Comment(
-        `[invalid parameter of type "${typeof v}"]`
-      );
+      return new Comment(`[invalid type "${typeof v}"]`);
   }
 }
 
-export function cloneTemplate(view: ViewTemplate): ViewTemplate {
-  const clone: DocumentFragment = view.cloneNode(true) as DocumentFragment;
-
-  clone.querySelectorAll("unbundled-effect")
-    .forEach((node) => {
-      const effect = node as HtmlEffect;
-      const hash = effect.getEffectId();
-      console.log("Cloning effect:", effect);
-      if (hash) {
-        const fn = view.effects[hash];
-        effect.setEffect(fn);
-      }
-    })
-
-  return Object.assign(clone, { effects: view.effects });
+function processAsAttribute(name: string, v: unknown): string | undefined {
+  console.log("Processing attribute:", name, v);
+  switch (typeof v) {
+    case "object":
+      if (Array.isArray(v)) return v.join(" ");
+      if (name === "style") return formatAsCss(v as object);
+      return JSON.stringify(v);
+    case "boolean":
+      return v ? "" : undefined;
+    case "number":
+      return v.toString();
+    case "string":
+      return v;
+    default:
+      return "";
+  }
 }
 
-function escapeHtml(v: string): string {
-  return v
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
+function formatAsCss(v: object): string {
+  return Object.entries(v)
+    .map(([prop, value]) => `${prop}:${value};`)
+    .join("");
 }
-
-define({ "unbundled-effect": HtmlEffect });

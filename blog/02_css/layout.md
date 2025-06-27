@@ -17,7 +17,8 @@ platform: web-standard
   lines as it needs, making the box taller.
 </p>
 <p class="narrow-box two-line-box boxed-text">
-  If we constrain the height of the box, the content will overflow.
+  If we constrain the height of the box, and continue to add content, the
+  content will eventually overflow.
 </p>
 ```
 
@@ -54,8 +55,13 @@ We can also control the height of the box, using the `height` property:
 
 ```html
 <p class="boxed-text narrow-box">Too little text.</p>
-<p class="boxed-text hug-box">This box hugs content.</p>
+<p class="boxed-text fit-box">This box just fits.</p>
 <p class="boxed-text squeeze-box">This box is as narrow as it can be.</p>
+<div class="boxed-text narrow-box">
+  <p class="boxed-text stretch-box">
+    This box is as wide as possible, even if it overflows.
+  </p>
+</div>
 <p class="boxed-text min-box">
   This box is not too narrow because it has a minimum width.
 </p>
@@ -71,12 +77,16 @@ In the previous section, we looked at the box model, and how setting the
 also times when we want the box to _hug_ the contents.
 
 ```css
-.hug-box {
-  width: max-content;
+.fit-box {
+  width: fit-content;
 }
 
 .squeeze-box {
   width: min-content;
+}
+
+.stretch-box {
+  width: max-content;
 }
 ```
 

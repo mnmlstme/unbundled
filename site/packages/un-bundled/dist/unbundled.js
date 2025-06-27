@@ -4,6 +4,12 @@ function css(template, ...params) {
   sheet.replaceSync(cssString);
   return sheet;
 }
+function define(defns) {
+  Object.entries(defns).map(([k, v]) => {
+    if (!customElements.get(k)) customElements.define(k, v);
+  });
+  return customElements;
+}
 const parser = new DOMParser();
 function html(template, ...params) {
   const htmlString = template.map((s, i) => i ? [params[i - 1], s] : [s]).flat().join("");
@@ -31,6 +37,7 @@ function shadow(el, options = { mode: "open" }) {
 }
 export {
   css,
+  define,
   html,
   shadow
 };

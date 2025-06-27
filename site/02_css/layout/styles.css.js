@@ -14,12 +14,16 @@ export default `/* Kram: CSS in Scene 2 */
 }
 
 /* Kram: CSS in Scene 3 */
-.hug-box {
-  width: max-content;
+.fit-box {
+  width: fit-content;
 }
 
 .squeeze-box {
   width: min-content;
+}
+
+.stretch-box {
+  width: max-content;
 }
 
 /* Kram: CSS in Scene 3 */

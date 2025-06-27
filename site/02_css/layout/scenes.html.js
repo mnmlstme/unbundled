@@ -6,12 +6,18 @@ export default `<html>
   lines as it needs, making the box taller.
 </p>
 <p class="narrow-box two-line-box boxed-text">
-  If we constrain the height of the box, the content will overflow.
+  If we constrain the height of the box, and continue to add content, the
+  content will eventually overflow.
 </p>
 </div>
 <div data-scene="3"><p class="boxed-text narrow-box">Too little text.</p>
-<p class="boxed-text hug-box">This box hugs content.</p>
+<p class="boxed-text fit-box">This box just fits.</p>
 <p class="boxed-text squeeze-box">This box is as narrow as it can be.</p>
+<div class="boxed-text narrow-box">
+  <p class="boxed-text stretch-box">
+    This box is as wide as possible, even if it overflows.
+  </p>
+</div>
 <p class="boxed-text min-box">
   This box is not too narrow because it has a minimum width.
 </p>
