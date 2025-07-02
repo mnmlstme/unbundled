@@ -1,9 +1,29 @@
 {
-  "name": "@un-bundled/unbundled",
+  "name": "@un-/bundled",
   "version": "0.1.0",
-  "main": "dist/unbundled.js",
+  "main": "dist/index.js",
   "type": "module",
-  "types": "./dist/unbundled.d.ts",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "@un-/bundled": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "@un-/html": {
+      "import": {
+        "types": "./dist/html.d.ts",
+        "default": "./dist/html.js"
+      }
+    },
+    "@un-/viewModel": {
+      "import": {
+        "types": "./dist/viewModel.d.ts",
+        "default": "./dist/viewModel.js"
+      }
+    }
+  },
   "scripts": {
     "build": "npx vite build",
     "test": "echo \"Error: no test specified\" && exit 1"

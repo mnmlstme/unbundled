@@ -1,3 +1,4 @@
+import { createEffect } from "./effects.js";
 function css(template, ...params) {
   const cssString = template.map((s, i) => i ? [params[i - 1], s] : [s]).flat().join("");
   let sheet = new CSSStyleSheet();
@@ -9,42 +10,6 @@ function define(defns) {
     if (!customElements.get(k)) customElements.define(k, v);
   });
   return customElements;
-}
-const $context = [];
-function effectInContext() {
-  const len = $context.length;
-  return len ? $context[len - 1] : void 0;
-}
-function createEffect(fn, initialScope) {
-  const effect = {
-    execute(context) {
-      $context.push(effect);
-      fn(context);
-      $context.pop();
-    }
-  };
-  effect.execute(initialScope);
-}
-class EffectsManager {
-  constructor() {
-    this.signals = /* @__PURE__ */ new Map();
-  }
-  subscribe(key) {
-    const effect = effectInContext();
-    if (effect) {
-      let signal = this.signals.get(key);
-      if (!signal) this.signals.set(key, signal = /* @__PURE__ */ new Set());
-      signal.add(effect);
-    }
-  }
-  runEffects(key, scope) {
-    const signal = this.signals.get(key);
-    if (signal) {
-      for (const effect of signal) {
-        effect.execute(scope);
-      }
-    }
-  }
 }
 const parser = new DOMParser();
 class HtmlEffect {
@@ -204,43 +169,6 @@ function processAsAttribute(name, v) {
 function formatAsCss(v) {
   return Object.entries(v).map(([prop, value]) => `${prop}:${value};`).join("");
 }
-function createObservable(root) {
-  const subscriptions = new EffectsManager();
-  let proxy = new Proxy(root, {
-    get: (subject, prop, receiver) => {
-      if (prop === "then") {
-        return void 0;
-      }
-      const value = Reflect.get(subject, prop, receiver);
-      if (isObservable(value)) {
-        console.log("Observed: ", prop, value, subject);
-        subscriptions.subscribe(prop);
-      }
-      return value;
-    },
-    set: (subject, prop, newValue, receiver) => {
-      const didSet = Reflect.set(subject, prop, newValue, receiver);
-      if (didSet && isObservable(newValue)) {
-        console.log("Changed: ", prop, newValue, subject);
-        subscriptions.runEffects(prop, subject);
-      }
-      return didSet;
-    }
-  });
-  return proxy;
-}
-function isObservable(value) {
-  switch (typeof value) {
-    case "object":
-    case "number":
-    case "string":
-    case "boolean":
-    case "undefined":
-      return true;
-    default:
-      return false;
-  }
-}
 function shadow(el, options = { mode: "open" }) {
   const shadowRoot = el.shadowRoot || el.attachShadow(options);
   const chain = { template, styles, replace };
@@ -262,28 +190,7 @@ function shadow(el, options = { mode: "open" }) {
     return chain;
   }
 }
-class ViewModel {
-  constructor(init) {
-    this.proxy = createObservable(init);
-  }
-  get(prop) {
-    return this.proxy[prop];
-  }
-  set(prop, value) {
-    this.proxy[prop] = value;
-  }
-  render(view, scope = this.proxy) {
-    return view.render(scope);
-  }
-  static map(view, list) {
-    return list.map(($) => view.render($));
-  }
-}
 export {
-  EffectsManager,
-  ViewModel,
-  createEffect,
-  createObservable,
   css,
   define,
   fx,

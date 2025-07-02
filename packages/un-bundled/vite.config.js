@@ -7,15 +7,18 @@ export default defineConfig({
   build: {
     minify: false,
     lib: {
-      entry: resolve(__dirname, "src/index.ts"),
-      name: "unbundled",
-      fileName: "unbundled",
-    },
+      entry: {
+        index: resolve(__dirname, "src/index.ts"),
+        effects: resolve(__dirname, "src/effects/index.ts"),
+        html: resolve(__dirname, "src/html/index.ts"),
+        viewModel: resolve(__dirname, "src/viewModel/index.ts")
+      }
+    }
   },
   plugins: [
     dts({
       insertTypesEntry: true,
-      rollupTypes: true,
-    }),
-  ],
+      rollupTypes: true
+    })
+  ]
 });

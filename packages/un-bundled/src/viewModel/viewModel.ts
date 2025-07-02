@@ -1,4 +1,4 @@
-import { ViewTemplate } from "./html.ts";
+import { ViewTemplate } from "../html";
 import { createObservable } from "./observable.ts";
 
 export class ViewModel<T extends object> {

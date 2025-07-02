@@ -1,4 +1,4 @@
-import { createEffect } from "./effects";
+import { createEffect } from "../effects/effects.ts";
 
 const parser = new DOMParser();
 

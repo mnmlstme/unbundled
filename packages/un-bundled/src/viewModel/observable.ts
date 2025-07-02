@@ -1,4 +1,4 @@
-import { EffectsManager } from "./effects.ts";
+import { EffectsManager } from "../effects/effects.ts";
 
 export function createObservable<T extends object>(root: T) {
   const subscriptions: EffectsManager<T> = new EffectsManager();
