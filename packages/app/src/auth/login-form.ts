@@ -1,4 +1,4 @@
-import { css, html, shadow, ViewModel } from "@un-/bundled";
+import { css, html, shadow, ViewModel, createEffect } from "@un-/bundled";
 import reset from "../styles/reset.css.js";
 import headings from "../styles/headings.css.js";
 
@@ -26,12 +26,16 @@ export class LoginFormElement extends HTMLElement {
     }
   `;
 
-  inputs = new ObservableInputs(this, {
-    username: "",
-    password: ""
-  });
-
-  viewModel = new ViewModel<LoginFormData>(this.inputs);
+  viewModel = new ViewModel<LoginFormData>(
+    {},
+    fromInputs(
+      {
+        username: "",
+        password: ""
+      },
+      this
+    )
+  );
 
   constructor() {
     super();
@@ -41,6 +45,14 @@ export class LoginFormElement extends HTMLElement {
 
     this.shadowRoot?.addEventListener("submit", (ev: Event) =>
       this.submitLogin(ev as SubmitEvent, this.getAttribute("api"))
+    );
+
+    createEffect(() =>
+      console.log(
+        "Credentials:",
+        this.viewModel.get("username"),
+        this.viewModel.get("password")
+      )
     );
   }
 
@@ -73,22 +85,49 @@ export class LoginFormElement extends HTMLElement {
   }
 }
 
-function $input(target: HTMLElement, name: string) {
-  return new ViewModelEffect((viewModel) => viewModel.set(name));
+function fromInputs<P extends { [key: string]: string }>(
+  init: P,
+  target: HTMLElement
+) {
+  return (vm: ViewModel) => new ObservableInputs(target, init, vm);
 }
 
-class ObservableInputs {
+class ObservableInputs<T> {
   inputs: { [key: string]: string };
+  proxy: object;
 
-  constructor(target: HTMLElement, init: { [key: string]: string }) {
+  constructor(
+    target: HTMLElement,
+    init: { [key: string]: string },
+    vm: ViewModel<T>
+  ) {
     this.inputs = init;
+    const handler = {
+      get: function (target: { [key: string]: string }, property: string) {
+        console.log(`Getting property ${property}`);
+        return target[property];
+      },
+      set: function (
+        target: { [key: string]: string },
+        property: string,
+        value: string
+      ) {
+        console.log(`Setting property ${property} to ${value}`);
+        target[property] = value;
+        vm.set(property, value);
+        return true; // indicates that the setting has been done successfully
+      }
+    };
+    this.proxy = new Proxy(this.inputs, handler);
     target.addEventListener("change", (event: Event) => {
+      console.log("Change event received:", event, this.inputs);
       const input = event.target as HTMLInputElement;
       if (input) {
         const name = input.name as string;
         const value = input.value;
 
-        if (name in this.inputs) this.inputs[name] = value;
+        if (name in this.inputs) this.proxy[name] = value;
+        console.log("Set input:", name, this.inputs);
       }
     });
   }

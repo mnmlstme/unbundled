@@ -3,9 +3,6 @@ function createObservable(root) {
   const subscriptions = new EffectsManager();
   let proxy = new Proxy(root, {
     get: (subject, prop, receiver) => {
-      if (prop === "then") {
-        return void 0;
-      }
       const value = Reflect.get(subject, prop, receiver);
       if (isObservable(value)) {
         console.log("Observed: ", prop, value, subject);
@@ -15,8 +12,8 @@ function createObservable(root) {
     },
     set: (subject, prop, newValue, receiver) => {
       const didSet = Reflect.set(subject, prop, newValue, receiver);
+      console.log("Changed: ", prop, newValue, subject);
       if (didSet && isObservable(newValue)) {
-        console.log("Changed: ", prop, newValue, subject);
         subscriptions.runEffects(prop, subject);
       }
       return didSet;
@@ -37,9 +34,10 @@ function isObservable(value) {
   }
 }
 class ViewModel {
-  constructor(init) {
+  constructor(init, ...specs) {
     this.object = initializeViewModel(init);
     this.proxy = createObservable(this.object);
+    this.observers = specs.map((s) => s(this));
   }
   get(prop) {
     return this.proxy[prop];

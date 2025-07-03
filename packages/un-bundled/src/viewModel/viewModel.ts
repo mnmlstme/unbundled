@@ -1,16 +1,19 @@
 import { ViewTemplate } from "../html";
-import { createEffect } from "../effects";
 import { createObservable } from "./observable.ts";
 
-type ViewModelValue = string | number | boolean | object | undefined;
+// type ViewModelValue = string | number | boolean | object | undefined;
+
+export type ObserverSpec<T extends object> = (host: ViewModel<T>) => object;
 
 export class ViewModel<T extends object> {
   object: T;
   proxy: T;
+  observers: object[];
 
-  constructor(init: T) {
+  constructor(init: T, ...specs: ObserverSpec<T>[]) {
     this.object = initializeViewModel(init);
     this.proxy = createObservable(this.object);
+    this.observers = specs.map((s) => s(this));
   }
 
   get(prop: keyof T) {
@@ -36,4 +39,24 @@ export class ViewModel<T extends object> {
 
 function initializeViewModel<T extends object>(init: T): T {
   return init;
+}
+
+function createObserving<T extends object>(
+  viewModel: ViewModel<T>,
+  obj: Partial<T>
+) {
+  console.log("VM Setting up proxy:", viewModel, obj);
+  const handler = {
+    get: function (target: Partial<T>, property: string) {
+      console.log(`VM Getting property ${property}`);
+      return target[property];
+    },
+    set: function (target: Partial<T>, property: string, value: string) {
+      console.log(`VM Setting property ${property} to ${value}`);
+      target[property] = value;
+      return true; // indicates that the setting has been done successfully
+    }
+  };
+
+  return new Proxy(obj, handler);
 }

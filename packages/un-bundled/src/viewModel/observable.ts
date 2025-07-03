@@ -5,9 +5,6 @@ export function createObservable<T extends object>(root: T) {
 
   let proxy = new Proxy(root, {
     get: (subject: T, prop: string, receiver) => {
-      if (prop === "then") {
-        return undefined;
-      }
       const value = Reflect.get(subject, prop, receiver);
       if (isObservable(value)) {
         console.log("Observed: ", prop, value, subject);
@@ -17,8 +14,8 @@ export function createObservable<T extends object>(root: T) {
     },
     set: (subject: T, prop: string, newValue, receiver) => {
       const didSet = Reflect.set(subject, prop, newValue, receiver);
+      console.log("Changed: ", prop, newValue, subject);
       if (didSet && isObservable(newValue)) {
-        console.log("Changed: ", prop, newValue, subject);
         subscriptions.runEffects(prop, subject);
       }
       return didSet;
