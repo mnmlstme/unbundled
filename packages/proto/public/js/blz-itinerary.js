@@ -5,7 +5,6 @@ export class BlzItineraryElement extends HTMLElement {
     itinerary: {
       destinations: []
     }
-  });
 
   constructor() {
     super();

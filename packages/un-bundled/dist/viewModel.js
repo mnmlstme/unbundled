@@ -38,7 +38,8 @@ function isObservable(value) {
 }
 class ViewModel {
   constructor(init) {
-    this.proxy = createObservable(init);
+    this.object = initializeViewModel(init);
+    this.proxy = createObservable(this.object);
   }
   get(prop) {
     return this.proxy[prop];
@@ -46,12 +47,18 @@ class ViewModel {
   set(prop, value) {
     this.proxy[prop] = value;
   }
+  toObject() {
+    return Object.assign({}, this.object);
+  }
   render(view, scope = this.proxy) {
     return view.render(scope);
   }
   static map(view, list) {
     return list.map(($) => view.render($));
   }
+}
+function initializeViewModel(init) {
+  return init;
 }
 export {
   ViewModel,

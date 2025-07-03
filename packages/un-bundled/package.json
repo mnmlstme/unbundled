@@ -1,23 +1,22 @@
 {
   "name": "@un-/bundled",
   "version": "0.1.0",
-  "main": "dist/index.js",
+  "main": "src/index.ts",
   "type": "module",
-  "types": "./dist/index.d.ts",
   "exports": {
-    "@un-/bundled": {
+    ".": {
       "import": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
       }
     },
-    "@un-/html": {
+    "./html": {
       "import": {
         "types": "./dist/html.d.ts",
         "default": "./dist/html.js"
       }
     },
-    "@un-/viewModel": {
+    "./viewModel": {
       "import": {
         "types": "./dist/viewModel.d.ts",
         "default": "./dist/viewModel.js"
