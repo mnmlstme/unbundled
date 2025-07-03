@@ -12,3 +12,4 @@ exports.EffectsManager = effects.EffectsManager;
 exports.createEffect = effects.createEffect;
 exports.ViewModel = viewModel.ViewModel;
 exports.createObservable = viewModel.createObservable;
+exports.fromInputs = viewModel.fromInputs;

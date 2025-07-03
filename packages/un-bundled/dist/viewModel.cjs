@@ -36,10 +36,10 @@ function isObservable(value) {
   }
 }
 class ViewModel {
-  constructor(init, ...specs) {
-    this.object = initializeViewModel(init);
+  constructor(init, ...plugins) {
+    this.object = init;
     this.proxy = createObservable(this.object);
-    this.observers = specs.map((s) => s(this));
+    this.pluginsLoaded = plugins.map((s) => s(this));
   }
   get(prop) {
     return this.proxy[prop];
@@ -57,8 +57,23 @@ class ViewModel {
     return list.map(($) => view.render($));
   }
 }
-function initializeViewModel(init) {
-  return init;
+function fromInputs(target, init) {
+  return (vm) => new FromInputs(target, init, vm);
+}
+class FromInputs {
+  constructor(target, init, vm) {
+    this.inputNames = Object.keys(init);
+    for (const name in init) vm.set(name, init[name]);
+    target.addEventListener("change", (event) => {
+      const input = event.target;
+      if (input) {
+        const name = input.name;
+        const value = input.value;
+        if (this.inputNames.includes(name)) vm.set(name, value);
+      }
+    });
+  }
 }
 exports.ViewModel = ViewModel;
 exports.createObservable = createObservable;
+exports.fromInputs = fromInputs;

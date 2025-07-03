@@ -7,14 +7,12 @@ export function createObservable<T extends object>(root: T) {
     get: (subject: T, prop: string, receiver) => {
       const value = Reflect.get(subject, prop, receiver);
       if (isObservable(value)) {
-        console.log("Observed: ", prop, value, subject);
         subscriptions.subscribe(prop);
       }
       return value;
     },
     set: (subject: T, prop: string, newValue, receiver) => {
       const didSet = Reflect.set(subject, prop, newValue, receiver);
-      console.log("Changed: ", prop, newValue, subject);
       if (didSet && isObservable(newValue)) {
         subscriptions.runEffects(prop, subject);
       }

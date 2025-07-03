@@ -1,6 +1,6 @@
 import { css, define, fx, html, shadow } from "./html.js";
 import { EffectsManager, createEffect } from "./effects.js";
-import { ViewModel, createObservable } from "./viewModel.js";
+import { ViewModel, createObservable, fromInputs } from "./viewModel.js";
 export {
   EffectsManager,
   ViewModel,
@@ -8,6 +8,7 @@ export {
   createObservable,
   css,
   define,
+  fromInputs,
   fx,
   html,
   shadow
