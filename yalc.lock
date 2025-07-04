@@ -1,0 +1,10 @@
+{
+  "version": "v1",
+  "packages": {
+    "@cre.ative/kram-11ty": {
+      "signature": "928bfe9080409f963d9eaf14ab193073",
+      "file": true,
+      "replaced": "^1.6.1"
+    }
+  }
+}

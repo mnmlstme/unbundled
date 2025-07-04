@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,200;0,400;0,700;1,700&family=Merriweather:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles/reset.css" />
+    <link rel="stylesheet" href="/styles/tokens.css" />
+    <link rel="stylesheet" href="/styles/page.css" />
+    <script type="module">
+      import { define /* , Auth */ } from "@un-/bundled";
+      import { HeaderElement } from "/src/components/header-element.ts";
+      // import { Auth } from "/src/auth/auth.ts";
+
+      define({
+        // "un-auth": Auth.Provider,
+        "blazing-header": HeaderElement
+      });
+    </script>
+  </head>
+  <body>
+    <un-auth>
+      <blazing-header></blazing-header>
+    </un-auth>
+  </body>
+</html>
