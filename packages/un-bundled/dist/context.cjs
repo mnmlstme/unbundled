@@ -238,14 +238,13 @@ class ViewModel {
     if (observer) {
       const inputNames = Object.keys(other);
       observer.setEffect((name, value) => {
-        console.log("Merging effect", name, value);
         if (inputNames.includes(name)) merged.set(name, value);
       });
     }
     return merged;
   }
   createEffect(fn) {
-    effects.createEffect(fn, this.object);
+    effects.createEffect(fn, this.proxy);
   }
   render(view, scope = this.proxy) {
     console.log("Rendering view, scope=", scope);

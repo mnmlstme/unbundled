@@ -44,7 +44,7 @@ export class ViewModel<T extends object> {
   }
 
   createEffect(fn: Effector<T>) {
-    createEffect(fn, this.object);
+    createEffect(fn, this.proxy);
   }
 
   render(view: ViewTemplate<T>, scope = this.proxy) {
