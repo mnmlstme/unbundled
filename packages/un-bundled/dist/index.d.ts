@@ -83,7 +83,7 @@ export declare function createEffect<T extends object>(fn: Effector<T>, initialS
 
 export declare function createObservable<T extends object>(root: T): T;
 
-export declare function createViewModel<T extends object>(init?: T): ViewModel<T>;
+export declare function createViewModel<T extends object>(init?: Partial<T>): ViewModel<T>;
 
 export declare function css(template: TemplateStringsArray, ...params: string[]): CSSStyleSheet;
 
@@ -220,7 +220,7 @@ export declare interface TagContentPlace extends Place<"tag content"> {
 
 export declare type TagMutationFunction = (site: Element) => void;
 
-export declare type TemplateParameter = TemplateValue | Function | TemplatePlaceHolder;
+export declare type TemplateParameter = TemplateValue | TemplatePlaceHolder;
 
 export declare class TemplateParser {
     static parser: DOMParser;
@@ -263,7 +263,7 @@ export declare const View: {
 export declare class ViewModel<T extends object> {
     object: T;
     proxy: T;
-    constructor(init: T, adoptedProxy?: T);
+    constructor(init: Partial<T>, adoptedProxy?: T);
     get(prop: keyof T): T[keyof T];
     set(prop: keyof T, value: any): void;
     toObject(): T;

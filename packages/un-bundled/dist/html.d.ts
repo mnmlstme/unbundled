@@ -60,7 +60,7 @@ export declare interface TagContentPlace extends Place<"tag content"> {
 
 export declare type TagMutationFunction = (site: Element) => void;
 
-export declare type TemplateParameter = TemplateValue | Function | TemplatePlaceHolder;
+export declare type TemplateParameter = TemplateValue | TemplatePlaceHolder;
 
 export declare class TemplateParser {
     static parser: DOMParser;

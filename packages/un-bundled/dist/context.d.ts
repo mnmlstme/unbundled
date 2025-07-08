@@ -10,7 +10,7 @@ export declare function createContext<T extends object>(root: T, eventTarget: HT
 
 export declare function createObservable<T extends object>(root: T): T;
 
-export declare function createViewModel<T extends object>(init?: T): ViewModel<T>;
+export declare function createViewModel<T extends object>(init?: Partial<T>): ViewModel<T>;
 
 declare interface DynamicDocumentFragment extends DocumentFragment {
 }
@@ -37,7 +37,7 @@ export declare interface Observer<T extends object> {
 
 export declare type ObserverEffect<T> = (name: keyof T, value: any) => void;
 
-declare type TemplateParameter = TemplateValue | Function | TemplatePlaceHolder;
+declare type TemplateParameter = TemplateValue | TemplatePlaceHolder;
 
 declare interface TemplatePlaceHolder {
 }
@@ -52,7 +52,7 @@ export declare const View: {
 export declare class ViewModel<T extends object> {
     object: T;
     proxy: T;
-    constructor(init: T, adoptedProxy?: T);
+    constructor(init: Partial<T>, adoptedProxy?: T);
     get(prop: keyof T): T[keyof T];
     set(prop: keyof T, value: any): void;
     toObject(): T;

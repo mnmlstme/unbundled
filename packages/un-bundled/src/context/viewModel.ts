@@ -9,8 +9,8 @@ export class ViewModel<T extends object> {
   object: T;
   proxy: T;
 
-  constructor(init: T, adoptedProxy?: T) {
-    this.object = init;
+  constructor(init: Partial<T>, adoptedProxy?: T) {
+    this.object = init as T;
     this.proxy = adoptedProxy || createObservable(this.object);
   }
 
@@ -53,6 +53,8 @@ export class ViewModel<T extends object> {
   }
 }
 
-export function createViewModel<T extends object>(init?: T): ViewModel<T> {
-  return new ViewModel<T>(init || ({} as T));
+export function createViewModel<T extends object>(
+  init?: Partial<T>
+): ViewModel<T> {
+  return new ViewModel<T>(init || {});
 }

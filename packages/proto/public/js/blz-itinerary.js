@@ -1,7 +1,7 @@
 import { css, shadow, ViewModel, View } from "@un-bundled/unbundled";
 
 export class BlzItineraryElement extends HTMLElement {
-  viewModel = new ViewModel({
+  viewModel = createViewModel({
     itinerary: {
       destinations: []
     }
@@ -57,19 +57,18 @@ export class BlzItineraryElement extends HTMLElement {
     <button id="extend-stay">Extend Stay</button>`;
 
   destinationView = View.html`<div>
-      <dt>${($) => `${$.startDate} to ${$.endDate}`}</dt>
-      <dd>
-        <blz-destination
-          href=${($) => $.link}
-          start-date=${($) => $.startDate}
-          end-date=${($) => $.endDate}
-        >
-          ${($) => $.name}
-        </blz-destination>
-      </dd>
-    </div>`;
+    <dt>${($) => `${$.startDate} to ${$.endDate}`}</dt>
+    <dd>
+      <blz-destination
+        href=${($) => $.link}
+        start-date=${($) => $.startDate}
+        end-date=${($) => $.endDate}
+      >
+        ${($) => $.name}
+      </blz-destination>
+    </dd>
+  </div>`;
 
-  //
   hydrate(src) {
     return fetch(src)
       .then((response) => {

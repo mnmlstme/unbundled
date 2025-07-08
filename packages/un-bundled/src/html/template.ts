@@ -3,7 +3,7 @@ export interface DynamicDocumentFragment extends DocumentFragment {}
 export interface TemplatePlaceHolder {}
 
 export type TemplateValue = string | number | boolean | object | Node;
-export type TemplateParameter = TemplateValue | Function | TemplatePlaceHolder;
+export type TemplateParameter = TemplateValue | TemplatePlaceHolder;
 
 type KindOfPlace = "element content" | "attr value" | "tag content";
 
