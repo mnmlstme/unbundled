@@ -1,6 +1,7 @@
-import { Context, Provider } from "./context";
-import { Base, Dispatch } from "./message";
-import { MapFn, Update } from "./update";
+import { Context } from "../context";
+import { Provider } from "./provider.ts";
+import { Base, Dispatch } from "./message.ts";
+import { MapFn, Update } from "./update.ts";
 
 export class Service<Msg extends Base, T extends object> {
   _context: Context<T>;
@@ -45,23 +46,14 @@ export class Service<Msg extends Base, T extends object> {
     if (this._running) {
       this.process(message);
     } else {
-      console.log(
-        `Queueing ${this._eventType} message`,
-        message
-      );
+      console.log(`Queueing ${this._eventType} message`, message);
       this._pending.push(message);
     }
   }
 
   process(message: Msg) {
-    console.log(
-      `Processing ${this._eventType} message`,
-      message
-    );
-    const command = this._update(
-      message,
-      this.apply.bind(this)
-    );
+    console.log(`Processing ${this._eventType} message`, message);
+    const command = this._update(message, this.apply.bind(this));
     if (command) command(this._context.value);
   }
 }

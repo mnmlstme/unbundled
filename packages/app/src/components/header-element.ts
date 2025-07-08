@@ -1,4 +1,11 @@
-import { css, define, fx, html, shadow, ViewModel } from "@un-/bundled";
+import {
+  css,
+  define,
+  html,
+  shadow,
+  ViewModel,
+  createViewModel
+} from "@un-/bundled";
 import headings from "../styles/headings.css";
 import reset from "../styles/reset.css";
 
@@ -9,26 +16,23 @@ interface HeaderData {
 }
 
 export class HeaderElement extends HTMLElement {
-  viewModel = new ViewModel<HeaderData>({
+  viewModel: ViewModel<HeaderData> = createViewModel({
     loggedIn: false
   });
 
   view = html` <header>
     <h1>Blazing Travels</h1>
-    <p>Hello, ${fx(($) => $.userid || "traveler")}</p>
-    ${fx(
-      ($) =>
-        html`<nav class=${$.loggedIn ? "logged-in" : "logged-out"}>
-          <menu>
-            <li class="when-signed-in">
-              <a id="signout">Sign Out</a>
-            </li>
-            <li class="when-signed-out">
-              <a>Sign In</a>
-            </li>
-          </menu>
-        </nav>`
-    )}
+    <p>Hello, ${($: HeaderData) => $.userid || "traveler"}</p>
+    <nav class=${($: HeaderData) => ($.loggedIn ? "logged-in" : "logged-out")}>
+      <menu>
+        <li class="when-signed-in">
+          <a id="signout">Sign Out</a>
+        </li>
+        <li class="when-signed-out">
+          <a>Sign In</a>
+        </li>
+      </menu>
+    </nav>
   </header>`;
 
   static styles = css`

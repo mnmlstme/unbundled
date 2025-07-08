@@ -1,11 +1,4 @@
-import {
-  css,
-  html,
-  shadow,
-  ViewModel,
-  createEffect,
-  fromInputs
-} from "@un-/bundled";
+import { css, html, shadow, ViewModel, fromInputs } from "@un-/bundled";
 import reset from "../styles/reset.css.js";
 import headings from "../styles/headings.css.js";
 
@@ -35,7 +28,7 @@ export class LoginFormElement extends HTMLElement {
 
   viewModel = new ViewModel<LoginFormData>(
     {},
-    fromInputs(this, {
+    fromInputs<LoginFormData>(this, {
       username: "",
       password: ""
     })
@@ -48,10 +41,10 @@ export class LoginFormElement extends HTMLElement {
       .styles(reset.styles, headings.styles, LoginFormElement.styles);
 
     this.shadowRoot?.addEventListener("submit", (ev: Event) =>
-      this.submitLogin(ev as SubmitEvent, this.getAttribute("api"))
+      this.submitLogin(ev as SubmitEvent, this.getAttribute("api") || "#")
     );
 
-    createEffect(() =>
+    this.viewModel.createEffect(() =>
       console.log(
         "Credentials:",
         this.viewModel.get("username"),

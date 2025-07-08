@@ -1,26 +1,22 @@
-import { css, fx, html, shadow, ViewModel } from "@un-bundled/unbundled";
+import { css, shadow, View, createViewModel } from "@un-bundled/unbundled";
 
 export class BlzDestinationElement extends HTMLElement {
-  viewModel = new ViewModel({
+  viewModel = createViewModel({
     startDate: "2000-01-01",
     endDate: "2000-01-01",
     featuredImage: "none",
     link: "#"
   });
 
-  view = html`
+  view = View.html`
     <section>
       <header>
         <h2>
-          ${fx(
-            ($) => html`
-              <a href=${$.link}>
-                <slot>Unnamed Destination</slot>
-              </a>
-            `
-          )}
+          <a href=${($) => $.link}>
+            <slot>Unnamed Destination</slot>
+          </a>
         </h2>
-        <p>${fx(($) => nightsBetween($.startDate, $.endDate))} nights</p>
+        <p>${($) => nightsBetween($.startDate, $.endDate)} nights</p>
       </header>
       <slot name="highlights"></slot>
     </section>

@@ -1,7 +1,9 @@
-import { Context } from "./context.ts";
+import { Context } from "../context";
 
 export class Provider<T extends object> extends HTMLElement {
   readonly context: Context<T>;
+
+  static CONTEXT_CHANGE_EVENT = `un-provider:change`;
 
   constructor(init: T) {
     super();
@@ -11,12 +13,12 @@ export class Provider<T extends object> extends HTMLElement {
   }
 
   attach(observer: EventListener) {
-    this.addEventListener(CONTEXT_CHANGE_EVENT, observer);
+    this.addEventListener(Provider.CONTEXT_CHANGE_EVENT, observer);
     return observer;
   }
 
   detach(observer: EventListener) {
-    this.removeEventListener(CONTEXT_CHANGE_EVENT, observer);
+    this.removeEventListener(Provider.CONTEXT_CHANGE_EVENT, observer);
   }
 }
 

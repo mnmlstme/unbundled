@@ -1,10 +1,11 @@
-import { css, fx, html, shadow, ViewModel } from "@un-bundled/unbundled";
+import { css, html, shadow, ViewModel, View } from "@un-bundled/unbundled";
 
 export class BlzItineraryElement extends HTMLElement {
   viewModel = new ViewModel({
     itinerary: {
       destinations: []
     }
+  });
 
   constructor() {
     super();
@@ -44,40 +45,35 @@ export class BlzItineraryElement extends HTMLElement {
     if (name === "src") {
       this.hydrate(newValue).then((data) => {
         console.log("Got itinerary:", data);
-        console.log("Setting itinerary in viewmodel:", this.$);
+        console.log("Setting itinerary in viewmodel:", this.viewModel);
         this.viewModel.set("itinerary", data);
       });
     }
   }
 
-  view = html`
+  view = View.html`
     <dl>
-      ${fx(($) =>
-        ViewModel.map(this.destinationView, $.itinerary.destinations)
-      )}
+      ${($) => View.map(this.destinationView, $.itinerary.destinations)}
     </dl>
     <button id="extend-stay">Extend Stay</button>
   `;
 
-  destinationView = html`
+  destinationView = View.html`
     <div>
-      <dt>${fx(($) => `${$.startDate} to ${$.endDate}`)}</dt>
+      <dt>${($) => `${$.startDate} to ${$.endDate}`}</dt>
       <dd>
-        ${fx(
-          ($) => html`
-            <blz-destination
-              href=${$.link}
-              start-date=${$.startDate}
-              end-date=${$.endDate}
-            >
-              ${$.name}
-            </blz-destination>
-          `
-        )}
+        <blz-destination
+          href=${($) => $.link}
+          start-date=${($) => $.startDate}
+          end-date=${($) => $.endDate}
+        >
+          ${($) => $.name}
+        </blz-destination>
       </dd>
     </div>
   `;
 
+  //
   hydrate(src) {
     return fetch(src)
       .then((response) => {

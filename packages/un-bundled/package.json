@@ -16,10 +16,10 @@
         "default": "./dist/html.js"
       }
     },
-    "./viewModel": {
+    "./context": {
       "import": {
-        "types": "./dist/viewModel.d.ts",
-        "default": "./dist/viewModel.js"
+        "types": "./dist/context.d.ts",
+        "default": "./dist/context.js"
       }
     }
   },
