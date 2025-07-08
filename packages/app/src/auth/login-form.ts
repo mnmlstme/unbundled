@@ -1,11 +1,6 @@
-import { css, html, shadow, ViewModel, fromInputs } from "@un-/bundled";
+import { css, html, shadow, createViewModel, fromInputs } from "@un-/bundled";
 import reset from "../styles/reset.css.js";
 import headings from "../styles/headings.css.js";
-
-interface LoginFormData {
-  username?: string;
-  password?: string;
-}
 
 export class LoginFormElement extends HTMLElement {
   static template = html`<template>
@@ -26,12 +21,12 @@ export class LoginFormElement extends HTMLElement {
     }
   `;
 
-  viewModel = new ViewModel<LoginFormData>(
-    {},
-    fromInputs<LoginFormData>(this, {
+  viewModel = createViewModel().merge(
+    {
       username: "",
       password: ""
-    })
+    },
+    fromInputs(this)
   );
 
   constructor() {
@@ -44,12 +39,8 @@ export class LoginFormElement extends HTMLElement {
       this.submitLogin(ev as SubmitEvent, this.getAttribute("api") || "#")
     );
 
-    this.viewModel.createEffect(() =>
-      console.log(
-        "Credentials:",
-        this.viewModel.get("username"),
-        this.viewModel.get("password")
-      )
+    this.viewModel.createEffect(($) =>
+      console.log("Credentials:", $.username, $.password)
     );
   }
 
@@ -74,7 +65,7 @@ export class LoginFormElement extends HTMLElement {
           // [2]
           bubbles: true,
           composed: true,
-          detail: ["auth/signin", { token }] // [3]
+          detail: ["auth/signin", { token, redirect: "/" }] // [3]
         });
 
         this.dispatchEvent(customEvent); // [4]

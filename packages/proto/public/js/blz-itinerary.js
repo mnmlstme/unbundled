@@ -1,4 +1,4 @@
-import { css, html, shadow, ViewModel, View } from "@un-bundled/unbundled";
+import { css, shadow, ViewModel, View } from "@un-bundled/unbundled";
 
 export class BlzItineraryElement extends HTMLElement {
   viewModel = new ViewModel({
@@ -51,15 +51,12 @@ export class BlzItineraryElement extends HTMLElement {
     }
   }
 
-  view = View.html`
-    <dl>
+  view = View.html`<dl>
       ${($) => View.map(this.destinationView, $.itinerary.destinations)}
     </dl>
-    <button id="extend-stay">Extend Stay</button>
-  `;
+    <button id="extend-stay">Extend Stay</button>`;
 
-  destinationView = View.html`
-    <div>
+  destinationView = View.html`<div>
       <dt>${($) => `${$.startDate} to ${$.endDate}`}</dt>
       <dd>
         <blz-destination
@@ -70,8 +67,7 @@ export class BlzItineraryElement extends HTMLElement {
           ${($) => $.name}
         </blz-destination>
       </dd>
-    </div>
-  `;
+    </div>`;
 
   //
   hydrate(src) {
