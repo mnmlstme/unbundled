@@ -52,7 +52,7 @@ class ElementContentEffect<T extends object> extends Mutation {
         placeholder.replaceChildren(start, end);
         const parent = site.parentNode || fragment;
         parent.replaceChild(placeholder, site);
-        console.log("Placeholder inserted:", parent);
+        // console.log("Placeholder inserted:", parent);
         createEffect<T>((vm: T) => {
           const value = this.fn(vm);
           let node = value instanceof Node ? value : null;
@@ -72,7 +72,7 @@ class ElementContentEffect<T extends object> extends Mutation {
                 }
             }
           }
-          console.log("Rendered for view:", value, node);
+          // console.log("Rendered for view:", value, node);
           let p = start.nextSibling;
           while (p && p !== end) {
             parent.removeChild(p);

@@ -114,7 +114,6 @@ class ElementContentEffect extends template.Mutation {
         placeholder.replaceChildren(start, end);
         const parent = site.parentNode || fragment2;
         parent.replaceChild(placeholder, site);
-        console.log("Placeholder inserted:", parent);
         effects.createEffect((vm) => {
           const value = this.fn(vm);
           let node = value instanceof Node ? value : null;
@@ -134,7 +133,6 @@ class ElementContentEffect extends template.Mutation {
                 }
             }
           }
-          console.log("Rendered for view:", value, node);
           let p = start.nextSibling;
           while (p && p !== end) {
             parent.removeChild(p);
@@ -240,6 +238,7 @@ class ViewModel {
     if (observer) {
       const inputNames = Object.keys(other);
       observer.setEffect((name, value) => {
+        console.log("Merging effect", name, value);
         if (inputNames.includes(name)) merged.set(name, value);
       });
     }

@@ -35,6 +35,7 @@ export class ViewModel<T extends object> {
     if (observer) {
       const inputNames = Object.keys(other) as (keyof S)[];
       observer.setEffect((name: keyof S, value: any) => {
+        // console.log("Merging effect", name, value);
         if (inputNames.includes(name)) merged.set(name, value);
       });
     }
