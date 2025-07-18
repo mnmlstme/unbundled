@@ -19,7 +19,7 @@ export class FromService<T extends object> implements Source<T> {
   }
 
   start(fn: SourceEffect<T>): Promise<T> {
-    console.log("Starting to observe service", this.observer);
+    // console.log("Starting to observe service", this.observer);
     return this.observer.observe(this.client, (s: Signal<T, keyof T>) => {
       fn(s.property, s.value);
     });

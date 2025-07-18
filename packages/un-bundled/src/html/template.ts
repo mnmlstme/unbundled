@@ -121,7 +121,7 @@ export class TemplateParser {
         const param = params[i];
         const place = this.classifyPlace(i, template);
         const mutation = this.tryReplacements(place, param);
-        console.log("Place mutation:", i, place, mutation);
+        // console.log("Place mutation:", i, place, mutation);
         if (mutation) {
           const post = postProcess[place.nodeLabel];
           if (post) post.push(mutation);
@@ -135,7 +135,7 @@ export class TemplateParser {
               return [s, `<ins data-${place.nodeLabel}></ins>`];
           }
         } else {
-          console.log("Failed to render template parameter: ", i, s, param);
+          // console.log("Failed to render template parameter: ", i, s, param);
         }
         return [s];
       })
@@ -180,7 +180,7 @@ export class TemplateParser {
       }
     }
     if (tagOpen) {
-      console.log("Checking for attributes in open tag", template[i], tagOpen);
+      // console.log("Checking for attributes in open tag", template[i], tagOpen);
       const tagAttr = template[i].match(TemplateParser.ATTR_RE);
       if (tagAttr)
         return {

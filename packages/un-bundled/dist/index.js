@@ -1,9 +1,9 @@
 import { css, define, html, shadow } from "./html.js";
-import { M, T, a } from "./template-MgzVtejB.js";
-import { C as Context } from "./context-b5x5JHTg.js";
-import { E, S, c } from "./context-b5x5JHTg.js";
+import { M, T, a } from "./template-B9lxuhGz.js";
+import { C as Context } from "./context-BGcAQqoc.js";
+import { E, S, c } from "./context-BGcAQqoc.js";
 import { DirectEffect } from "./effects.js";
-import { View, ViewModel, createViewModel, fromInputs } from "./view.js";
+import { View, ViewModel, createViewModel, fromAttributes, fromInputs } from "./view.js";
 class Dispatch extends CustomEvent {
   constructor(msg, eventType = "mu:message") {
     super(eventType, {
@@ -25,18 +25,12 @@ const _Provider = class _Provider extends HTMLElement {
     this.context.setHost(this, _Provider.CHANGE_EVENT);
     this.addEventListener(_Provider.DISCOVERY_EVENT, (event) => {
       const [contextLabel, respondFn] = event.detail;
-      console.log(
-        "Provider checking for context",
-        this.contextLabel,
-        contextLabel
-      );
       if (contextLabel === this.contextLabel) {
         event.stopPropagation();
         respondFn(this);
       }
     });
     this.addEventListener(_Provider.CHANGE_EVENT, (event) => {
-      console.log("Provider change event:", event);
     });
   }
   attach(observer) {
@@ -51,7 +45,6 @@ _Provider.DISCOVERY_EVENT = "un-provider:discover";
 _Provider.CHANGE_EVENT = "un-provider:change";
 document.addEventListener(_Provider.DISCOVERY_EVENT, (event) => {
   const [contextLabel, respondFn] = event.detail;
-  console.log("No response from provider:", contextLabel);
   respondFn(null);
 });
 let Provider = _Provider;
@@ -67,30 +60,6 @@ function discover(observer, contextLabel) {
     });
     observer.dispatchEvent(discoveryEvent);
   });
-}
-function whenProviderReady(consumer, contextLabel) {
-  const provider = closestProvider(contextLabel, consumer);
-  return new Promise((resolve, reject) => {
-    if (provider) {
-      const name = provider.localName;
-      customElements.whenDefined(name).then(() => resolve(provider));
-    } else {
-      reject({
-        context: contextLabel,
-        reason: `No provider for this context "${contextLabel}:`
-      });
-    }
-  });
-}
-function closestProvider(contextLabel, el) {
-  const selector = `[provides="${contextLabel}"]`;
-  if (!el || el === document.getRootNode()) return void 0;
-  const closest = el.closest(selector);
-  if (closest) return closest;
-  const root = el.getRootNode();
-  if (root instanceof ShadowRoot)
-    return closestProvider(contextLabel, root.host);
-  return void 0;
 }
 class Service {
   constructor(update, context, eventType = "service:message", autostart = true) {
@@ -109,7 +78,6 @@ class Service {
   }
   start() {
     if (!this._running) {
-      console.log(`Starting ${this._eventType} service`);
       this._running = true;
       this._pending.forEach((msg) => this.process(msg));
     }
@@ -121,12 +89,10 @@ class Service {
     if (this._running) {
       this.process(message);
     } else {
-      console.log(`Queueing ${this._eventType} message`, message);
       this._pending.push(message);
     }
   }
   process(message) {
-    console.log(`Processing ${this._eventType} message`, message);
     const command = this._update(message, this.apply.bind(this));
     if (command) command(this._context);
   }
@@ -146,9 +112,7 @@ class Observer {
       if (this.provider) {
         resolve(this.attachObserver(fn));
       } else {
-        console.log("Initiating discovery for provider", this.contextLabel);
         discover(from, this.contextLabel).then((provider) => {
-          console.log("Observer found provider", this.contextLabel, provider);
           this.provider = provider;
           resolve(this.attachObserver(fn));
         }).catch((err) => reject(err));
@@ -159,13 +123,11 @@ class Observer {
     const effect = new DirectEffect(fn);
     const init = this.provider.attach((ev) => {
       const { property, value } = ev.detail;
-      console.log("Signal received:", property, value);
       if (this.observed) {
         this.observed[property] = value;
         effect.execute({ property, value });
       }
     });
-    console.log("Initial observation:", init);
     this.observed = init;
     return init;
   }
@@ -179,7 +141,6 @@ class FromService {
     this.observer = new Observer(contextLabel);
   }
   start(fn) {
-    console.log("Starting to observe service", this.observer);
     return this.observer.observe(this.client, (s) => {
       fn(s.property, s.value);
     });
@@ -258,7 +219,6 @@ class AuthenticatedUser extends APIUser {
   constructor(token) {
     super();
     const jsonPayload = jwtDecode(token);
-    console.log("Token payload", jsonPayload);
     this.token = token;
     this.authenticated = true;
     this.username = jsonPayload.username;
@@ -331,7 +291,6 @@ function redirection(redirect, query = {}) {
   const target = new URL(redirect, base);
   Object.entries(query).forEach(([k, v]) => target.searchParams.set(k, v));
   return () => {
-    console.log("Redirecting to ", redirect);
     window.location.assign(target);
   };
 }
@@ -407,12 +366,12 @@ export {
   discover,
   dispatch$1 as dispatch,
   dispatcher,
+  fromAttributes,
   fromAuth,
   fromInputs,
   fromService,
   html,
   identity,
   replace,
-  shadow,
-  whenProviderReady
+  shadow
 };

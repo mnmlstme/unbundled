@@ -47,7 +47,7 @@ class AuthenticatedUser extends APIUser {
   constructor(token: string) {
     super();
     const jsonPayload = jwtDecode(token) as PayloadModel;
-    console.log("Token payload", jsonPayload);
+    // onsole.log("Token payload", jsonPayload);
     this.token = token;
     this.authenticated = true;
     this.username = jsonPayload.username;
@@ -143,7 +143,7 @@ function redirection(
   Object.entries(query).forEach(([k, v]) => target.searchParams.set(k, v));
 
   return () => {
-    console.log("Redirecting to ", redirect);
+    //console.log("Redirecting to ", redirect);
     window.location.assign(target);
   };
 }

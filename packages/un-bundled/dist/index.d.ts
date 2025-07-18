@@ -8,6 +8,8 @@ declare class APIUser {
     static deauthenticate(user: APIUser): APIUser;
 }
 
+declare function apply<T extends object>(view: ViewTemplate<T>, $: T | undefined): "" | DynamicDocumentFragment;
+
 export declare type ApplyMap<M> = (fn: MapFn<M>) => void;
 
 export declare interface AttributeValuePlace extends Place<"attr value"> {
@@ -163,15 +165,23 @@ declare type ElementDefinitions = {
     [tag: string]: CustomElementConstructor;
 };
 
-export declare function fromAuth(target: HTMLElement, contextLabel?: string): FromService<Auth_2.Model>;
-
-declare class FromInputs<T extends object> implements Source<T> {
-    subject: HTMLElement;
-    constructor(subject: HTMLElement);
+declare class FromAttributes<T extends object> implements Source<T> {
+    subject: Element;
+    constructor(subject: Element);
     start(fn: SourceEffect<T>): Promise<T>;
 }
 
-export declare function fromInputs<T extends object>(subject: HTMLElement): FromInputs<T>;
+export declare function fromAttributes<T extends object>(subject: Element): FromAttributes<T>;
+
+export declare function fromAuth(target: HTMLElement, contextLabel?: string): FromService<Auth_2.Model>;
+
+declare class FromInputs<T extends object> implements Source<T> {
+    subject: Node;
+    constructor(subject: Node);
+    start(fn: SourceEffect<T>): Promise<T>;
+}
+
+export declare function fromInputs<T extends object>(subject: Node): FromInputs<T>;
 
 export declare class FromService<T extends object> implements Source<T> {
     private client;
@@ -323,6 +333,7 @@ declare type TypeCheckFunction = (param: TemplateParameter, sub: Replacement) =>
 export declare type Update<Msg extends Message.Base, M extends object> = (message: Msg, apply: ApplyMap<M>) => Command<M> | void;
 
 export declare const View: {
+    apply: typeof apply;
     html: typeof html_2;
     map: typeof map;
 };
@@ -330,7 +341,7 @@ export declare const View: {
 export declare class ViewModel<T extends object> extends Context<T> {
     constructor(init: Partial<T>, adoptedContext?: Context<T>);
     html(template: TemplateStringsArray, ...params: Array<TemplateParameter | RenderFunction<T>>): DynamicDocumentFragment;
-    merge<S extends object>(other: S, source?: Source<S>): ViewModel<T & S>;
+    merge<S extends object>(other: Partial<S>, source?: Source<S>): ViewModel<T & S>;
     render(view: ViewTemplate<T>): DynamicDocumentFragment;
 }
 
@@ -340,7 +351,5 @@ export declare interface ViewTemplate<T extends object> extends DynamicDocumentF
     render(context: Context<T>): DynamicDocumentFragment;
     effectors?: Map<string, Array<Effector_2<T>>>;
 }
-
-export declare function whenProviderReady<T extends object>(consumer: Element, contextLabel: string): Promise<Provider<T>>;
 
 export { }

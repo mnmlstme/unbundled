@@ -1,3 +1,5 @@
+declare function apply<T extends object>(view: ViewTemplate<T>, $: T | undefined): "" | DynamicDocumentFragment;
+
 export declare class Context<T extends object> {
     private manager;
     private object;
@@ -62,13 +64,21 @@ declare class EffectsManager<T extends object> {
     setHost(host: EventTarget, eventType?: string): void;
 }
 
-declare class FromInputs<T extends object> implements Source<T> {
-    subject: HTMLElement;
-    constructor(subject: HTMLElement);
+declare class FromAttributes<T extends object> implements Source<T> {
+    subject: Element;
+    constructor(subject: Element);
     start(fn: SourceEffect<T>): Promise<T>;
 }
 
-export declare function fromInputs<T extends object>(subject: HTMLElement): FromInputs<T>;
+export declare function fromAttributes<T extends object>(subject: Element): FromAttributes<T>;
+
+declare class FromInputs<T extends object> implements Source<T> {
+    subject: Node;
+    constructor(subject: Node);
+    start(fn: SourceEffect<T>): Promise<T>;
+}
+
+export declare function fromInputs<T extends object>(subject: Node): FromInputs<T>;
 
 declare function html<T extends object>(template: TemplateStringsArray, ...params: Array<TemplateParameter | RenderFunction<T>>): ViewTemplate<T>;
 
@@ -97,6 +107,7 @@ declare type TemplateValue = string | number | boolean | object | Node;
 declare type TemplateValue_2 = string | number | boolean | object | Node;
 
 export declare const View: {
+    apply: typeof apply;
     html: typeof html;
     map: typeof map;
 };
@@ -104,7 +115,7 @@ export declare const View: {
 export declare class ViewModel<T extends object> extends Context<T> {
     constructor(init: Partial<T>, adoptedContext?: Context<T>);
     html(template: TemplateStringsArray, ...params: Array<TemplateParameter_2 | RenderFunction<T>>): DynamicDocumentFragment_2;
-    merge<S extends object>(other: S, source?: Source<S>): ViewModel<T & S>;
+    merge<S extends object>(other: Partial<S>, source?: Source<S>): ViewModel<T & S>;
     render(view: ViewTemplate<T>): DynamicDocumentFragment_2;
 }
 

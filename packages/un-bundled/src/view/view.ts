@@ -34,6 +34,13 @@ function map<T extends object>(view: ViewTemplate<T>, list: Array<T>) {
   });
 }
 
+function apply<T extends object>(view: ViewTemplate<T>, $: T | undefined) {
+  if (!$) return "";
+
+  const context = new Context<T>($);
+  return view.render(context);
+}
+
 class ElementContentEffect<T extends object> extends Mutation {
   fn: RenderFunction<T>;
 
@@ -96,18 +103,18 @@ class AttributeEffect<T extends object> extends Mutation {
     super(place);
     this.fn = fn;
     this.name = place.attrName;
-    console.log("Created new attribute effect", this);
+    // console.log("Created new attribute effect", this);
   }
 
   override apply(_site: Element, fragment: DynamicDocumentFragment): void {
     const key = this.place.nodeLabel;
 
-    console.log("Applying AttributeEffect", this);
+    // console.log("Applying AttributeEffect", this);
     registerEffect(
       fragment as ViewTemplate<T>,
       key,
       (site: Element, _: DocumentFragment, viewModel: Context<T>) => {
-        console.log("Creating effect for AttributeEffect", this, site);
+        // console.log("Creating effect for AttributeEffect", this, site);
         viewModel.createEffect((vm: T) => {
           const value = this.fn(vm);
           site.setAttribute(this.name, value.toString());
@@ -186,6 +193,7 @@ function renderForEffects<T extends object>(
 }
 
 export const View = {
+  apply,
   html,
   map
 };

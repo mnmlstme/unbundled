@@ -1,4 +1,3 @@
-"use strict";
 class SignalEvent extends CustomEvent {
   constructor(eventType, signal) {
     super(eventType, {
@@ -19,11 +18,9 @@ class EffectsManager {
     return this.running.length > 0;
   }
   start(effect) {
-    console.log("Starting manager for effect", effect);
     this.running.push(effect);
   }
   stop() {
-    console.log("Stopping manager for effect");
     this.running.pop();
   }
   current() {
@@ -33,7 +30,6 @@ class EffectsManager {
   subscribe(key) {
     const current = this.current();
     if (current) {
-      console.log("Subscribing to signal", key);
       let signal = this.signals.get(key);
       if (!signal) this.signals.set(key, signal = /* @__PURE__ */ new Set());
       signal.add(current);
@@ -41,7 +37,6 @@ class EffectsManager {
   }
   runEffects(key, scope) {
     const signal = this.signals.get(key);
-    console.log("Running effects for signal", key, signal);
     if (signal) {
       for (const effect of signal) {
         effect.execute(scope);
@@ -97,7 +92,6 @@ const _Context = class _Context {
         manager.stop();
       }
     };
-    console.log("Executing created effect:", effect, fn);
     effect.execute(this.proxy);
   }
   setHost(host, eventType) {
@@ -110,7 +104,6 @@ function createContext(root, manager) {
   let proxy = new Proxy(root, {
     get: (subject, prop, receiver) => {
       const value = Reflect.get(subject, prop, receiver);
-      console.log("Got value of signal", prop, value);
       if (manager.isRunning() && isObservable(value)) {
         manager.subscribe(prop);
       }
@@ -138,7 +131,9 @@ function isObservable(value) {
       return false;
   }
 }
-exports.Context = Context;
-exports.EffectsManager = EffectsManager;
-exports.SignalEvent = SignalEvent;
-exports.createContext = createContext;
+export {
+  Context as C,
+  EffectsManager as E,
+  SignalEvent as S,
+  createContext as c
+};

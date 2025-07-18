@@ -12,12 +12,12 @@ export class EffectsManager<T extends object> {
   }
 
   start(effect: Effect<T>): void {
-    console.log("Starting manager for effect", effect);
+    // console.log("Starting manager for effect", effect);
     this.running.push(effect);
   }
 
   stop(): void {
-    console.log("Stopping manager for effect");
+    // console.log("Stopping manager for effect");
     this.running.pop();
   }
 
@@ -29,7 +29,7 @@ export class EffectsManager<T extends object> {
   subscribe(key: keyof T): void {
     const current = this.current();
     if (current) {
-      console.log("Subscribing to signal", key);
+      // console.log("Subscribing to signal", key);
       let signal = this.signals.get(key);
       if (!signal) this.signals.set(key, (signal = new Set()));
       signal.add(current);
@@ -38,7 +38,7 @@ export class EffectsManager<T extends object> {
 
   runEffects(key: keyof T, scope: T): void {
     const signal = this.signals.get(key);
-    console.log("Running effects for signal", key, signal);
+    // console.log("Running effects for signal", key, signal);
     if (signal) {
       for (const effect of signal) {
         effect.execute(scope);

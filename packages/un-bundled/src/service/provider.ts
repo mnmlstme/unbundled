@@ -11,7 +11,7 @@ export class Provider<T extends object> extends HTMLElement {
   static {
     document.addEventListener(Provider.DISCOVERY_EVENT, (event: Event) => {
       const [contextLabel, respondFn] = (event as CustomEvent).detail;
-      console.log("No response from provider:", contextLabel);
+      // console.log("No response from provider:", contextLabel);
       respondFn(null);
     });
   }
@@ -23,18 +23,18 @@ export class Provider<T extends object> extends HTMLElement {
     this.context.setHost(this, Provider.CHANGE_EVENT);
     this.addEventListener(Provider.DISCOVERY_EVENT, (event: Event) => {
       const [contextLabel, respondFn] = (event as CustomEvent).detail;
-      console.log(
-        "Provider checking for context",
-        this.contextLabel,
-        contextLabel
-      );
+      // console.log(
+      //  "Provider checking for context",
+      //   this.contextLabel,
+      //   contextLabel
+      // );
       if (contextLabel === this.contextLabel) {
         event.stopPropagation();
         respondFn(this);
       }
     });
     this.addEventListener(Provider.CHANGE_EVENT, (event: Event) => {
-      console.log("Provider change event:", event);
+      // console.log("Provider change event:", event);
     });
   }
 

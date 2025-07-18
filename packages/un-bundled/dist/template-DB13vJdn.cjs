@@ -1,3 +1,4 @@
+"use strict";
 class Mutation {
   constructor(place) {
     this.place = place;
@@ -51,7 +52,6 @@ const _TemplateParser = class _TemplateParser {
       const param = params[i];
       const place = this.classifyPlace(i, template);
       const mutation = this.tryReplacements(place, param);
-      console.log("Place mutation:", i, place, mutation);
       if (mutation) {
         const post = postProcess[place.nodeLabel];
         if (post) post.push(mutation);
@@ -64,8 +64,6 @@ const _TemplateParser = class _TemplateParser {
           case "element content":
             return [s, `<ins data-${place.nodeLabel}></ins>`];
         }
-      } else {
-        console.log("Failed to render template parameter: ", i, s, param);
       }
       return [s];
     }).flat().join("");
@@ -97,7 +95,6 @@ const _TemplateParser = class _TemplateParser {
       }
     }
     if (tagOpen) {
-      console.log("Checking for attributes in open tag", template[i], tagOpen);
       const tagAttr = template[i].match(_TemplateParser.ATTR_RE);
       if (tagAttr)
         return {
@@ -161,8 +158,6 @@ function checkType(param, sub) {
   if (typeof sub.types === "function") return sub.types(param, sub);
   return sub.types.includes(typeof param);
 }
-export {
-  Mutation as M,
-  TagContentMutation as T,
-  TemplateParser as a
-};
+exports.Mutation = Mutation;
+exports.TagContentMutation = TagContentMutation;
+exports.TemplateParser = TemplateParser;

@@ -15,10 +15,10 @@ export class Observer<T extends object> {
       if (this.provider) {
         resolve(this.attachObserver(fn));
       } else {
-        console.log("Initiating discovery for provider", this.contextLabel);
+        // console.log("Initiating discovery for provider", this.contextLabel);
         discover<T>(from, this.contextLabel)
           .then((provider: Provider<T>) => {
-            console.log("Observer found provider", this.contextLabel, provider);
+            // console.log("Observer found provider", this.contextLabel, provider);
             this.provider = provider;
             resolve(this.attachObserver(fn));
           })
@@ -31,13 +31,13 @@ export class Observer<T extends object> {
     const effect = new DirectEffect<Signal<T, keyof T>>(fn);
     const init = this.provider!!.attach((ev: SignalEvent<T, keyof T>) => {
       const { property, value } = ev.detail;
-      console.log("Signal received:", property, value);
+      // console.log("Signal received:", property, value);
       if (this.observed) {
         this.observed[property] = value;
         effect.execute({ property, value });
       }
     });
-    console.log("Initial observation:", init);
+    // console.log("Initial observation:", init);
     this.observed = init;
     return init;
   }

@@ -1,13 +1,13 @@
 import { Source, SourceEffect } from "./source.ts";
 
-export function fromInputs<T extends object>(subject: HTMLElement) {
+export function fromInputs<T extends object>(subject: Node) {
   return new FromInputs<T>(subject);
 }
 
 class FromInputs<T extends object> implements Source<T> {
-  subject: HTMLElement;
+  subject: Node;
 
-  constructor(subject: HTMLElement) {
+  constructor(subject: Node) {
     this.subject = subject;
   }
 

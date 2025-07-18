@@ -1,11 +1,16 @@
-import { C as Context } from "./context-b5x5JHTg.js";
-import { c } from "./context-b5x5JHTg.js";
-import { a as TemplateParser, M as Mutation } from "./template-MgzVtejB.js";
+import { C as Context } from "./context-BGcAQqoc.js";
+import { c } from "./context-BGcAQqoc.js";
+import { a as TemplateParser, M as Mutation } from "./template-B9lxuhGz.js";
 function map(view, list) {
   return list.map(($) => {
     const context = new Context($);
     view.render(context);
   });
+}
+function apply(view, $) {
+  if (!$) return "";
+  const context = new Context($);
+  return view.render(context);
 }
 class ElementContentEffect extends Mutation {
   constructor(place, fn) {
@@ -59,16 +64,13 @@ class AttributeEffect extends Mutation {
     super(place);
     this.fn = fn;
     this.name = place.attrName;
-    console.log("Created new attribute effect", this);
   }
   apply(_site, fragment) {
     const key = this.place.nodeLabel;
-    console.log("Applying AttributeEffect", this);
     registerEffect(
       fragment,
       key,
       (site, _, viewModel) => {
-        console.log("Creating effect for AttributeEffect", this, site);
         viewModel.createEffect((vm) => {
           const value = this.fn(vm);
           site.setAttribute(this.name, value.toString());
@@ -126,6 +128,7 @@ function renderForEffects(original, viewModel) {
   return fragment;
 }
 const View = {
+  apply,
   html,
   map
 };
@@ -145,22 +148,48 @@ class ViewModel extends Context {
     if (source) {
       const inputNames = Object.keys(other);
       source.start((name, value) => {
-        console.log("Merging effect", name, value, inputNames);
         if (inputNames.includes(name)) merged.set(name, value);
       }).then((firstObservation) => {
-        console.log("ViewModel source observed:", firstObservation);
         merged.update(firstObservation);
       });
     }
     return merged;
   }
   render(view) {
-    console.log("Rendering view, scope=", this.toObject());
     return view.render(this);
   }
 }
 function createViewModel(init) {
   return new ViewModel(init || {});
+}
+function fromAttributes(subject) {
+  return new FromAttributes(subject);
+}
+class FromAttributes {
+  constructor(subject) {
+    this.subject = subject;
+  }
+  start(fn) {
+    const observer = new MutationObserver(effectChanges);
+    const element = this.subject;
+    observer.observe(element, { attributes: true });
+    return new Promise((resolve, _reject) => {
+      const init = {};
+      const attributes = element.attributes;
+      for (const attr of attributes) {
+        init[attr.name] = attr.value;
+      }
+      resolve(init);
+    });
+    function effectChanges(mutations) {
+      mutations.forEach((mut) => {
+        const name = mut.attributeName;
+        const value = element.getAttribute(name);
+        console.log("Mutation!", name, value);
+        fn(name, value);
+      });
+    }
+  }
 }
 function fromInputs(subject) {
   return new FromInputs(subject);
@@ -188,5 +217,6 @@ export {
   ViewModel,
   c as createContext,
   createViewModel,
+  fromAttributes,
   fromInputs
 };

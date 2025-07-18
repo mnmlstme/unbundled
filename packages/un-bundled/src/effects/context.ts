@@ -50,7 +50,7 @@ export class Context<T extends object> {
         manager.stop();
       }
     };
-    console.log("Executing created effect:", effect, fn);
+    // console.log("Executing created effect:", effect, fn);
     effect.execute(this.proxy);
   }
 
@@ -66,7 +66,7 @@ export function createContext<T extends object>(
   let proxy = new Proxy(root, {
     get: (subject: T, prop: string, receiver) => {
       const value = Reflect.get(subject, prop, receiver);
-      console.log("Got value of signal", prop, value);
+      // console.log("Got value of signal", prop, value);
       if (manager.isRunning() && isObservable(value)) {
         manager.subscribe(prop as keyof T);
       }
