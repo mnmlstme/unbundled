@@ -23,6 +23,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var import_express = __toESM(require("express"));
 var import_auth = __toESM(require("./routes/auth"));
+var import_profiles = __toESM(require("./routes/profiles"));
 var import_mongo = require("./services/mongo");
 const app = (0, import_express.default)();
 const port = process.env.PORT || 3e3;
@@ -32,6 +33,7 @@ console.log("Serving static files from ", staticDir);
 app.use(import_express.default.static(staticDir));
 app.use(import_express.default.json());
 app.use("/auth", import_auth.default);
+app.use("/api/profiles", import_auth.authenticateUser, import_profiles.default);
 app.get("/ping", (_, res) => {
   res.send(
     `<h1>Hello!</h1>

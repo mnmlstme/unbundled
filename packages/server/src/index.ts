@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import fs from "node:fs/promises";
 import path from "node:path";
 import auth, { authenticateUser } from "./routes/auth";
+import profiles from "./routes/profiles";
 import { connect } from "./services/mongo";
 
 const app = express();
@@ -20,6 +21,9 @@ app.use(express.json());
 
 // Auth routes
 app.use("/auth", auth);
+
+// API routes:
+app.use("/api/profiles", authenticateUser, profiles);
 
 // Page Routes:
 app.get("/ping", (_: Request, res: Response) => {
