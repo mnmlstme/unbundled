@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,200;0,400;0,700;1,700&family=Merriweather:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles/reset.css" />
+    <link rel="stylesheet" href="/styles/tokens.css" />
+    <link rel="stylesheet" href="/styles/page.css" />
+    <script type="module">
+      import { define, Auth } from "@un-/bundled";
+      import { HeaderElement } from "/src/components/header-element.ts";
+      import { ProfileViewElement } from "/src/components/profile-view.ts";
+
+      define({
+        "auth-provider": Auth.Provider,
+        "blazing-header": HeaderElement,
+        "profile-view": ProfileViewElement
+      });
+    </script>
+  </head>
+  <body>
+    <auth-provider>
+      <article class="page">
+        <blazing-header></blazing-header>
+        <profile-view userid="blaze"></profile-view>
+      </article>
+    </auth-provider>
+  </body>
+</html>

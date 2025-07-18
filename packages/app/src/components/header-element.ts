@@ -25,17 +25,14 @@ export class HeaderElement extends HTMLElement {
 
   view = this.viewModel.html`<header>
     <h1>Blazing Travels</h1>
-    <nav class=${($) => {
-      console.log("Setting class for nav", $);
-      return $.authenticated ? "logged-in" : "logged-out";
-    }}>
-      <p>Hello, ${($) => {
-        console.log("Setting username", $);
-        return $.username || "traveler";
-      }}</p>
+    <nav class=${($) => ($.authenticated ? "logged-in" : "logged-out")}>
+      <p>Hello, ${($) => $.username || "traveler"}</p>
     <menu>
         <li class="when-signed-in">
-          <a ${(ref: Element) => ref.addEventListener("click", () => this.signout())}>Sign Out</a>
+          <a ${(ref: Element) =>
+            ref.addEventListener("click", () => this.signout())}>
+            Sign Out
+          </a>
         </li>
         <li class="when-signed-out">
           <a href="/login.html">Sign In</a>
@@ -98,10 +95,6 @@ export class HeaderElement extends HTMLElement {
     shadow(this)
       .styles(reset.styles, headings.styles, HeaderElement.styles)
       .replace(this.view);
-
-    this.viewModel.createEffect(($) => {
-      console.log("Username:", $.username);
-    });
   }
 
   signout() {
