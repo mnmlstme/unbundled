@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const html = require("./html.cjs");
-const template = require("./template-D9nobiMj.cjs");
+const template = require("./template-_2CniEel.cjs");
+const context = require("./context-Bd2U9W3u.cjs");
 const effects = require("./effects.cjs");
-const context = require("./context.cjs");
+const view = require("./view.cjs");
 class Dispatch extends CustomEvent {
   constructor(msg, eventType = "mu:message") {
     super(eventType, {
@@ -18,22 +19,56 @@ function dispatcher(eventType = "mu:message") {
 }
 const dispatch$1 = dispatcher();
 const _Provider = class _Provider extends HTMLElement {
-  constructor(init) {
+  constructor(init, label) {
     super();
-    console.log("Constructing context provider", this);
-    this.context = new context.Context(init, this);
-    this.style.display = "contents";
+    this.contextLabel = label;
+    this.context = new context.Context(init);
+    this.context.setHost(this, _Provider.CHANGE_EVENT);
+    this.addEventListener(_Provider.DISCOVERY_EVENT, (event) => {
+      const [contextLabel, respondFn] = event.detail;
+      console.log(
+        "Provider checking for context",
+        this.contextLabel,
+        contextLabel
+      );
+      if (contextLabel === this.contextLabel) {
+        event.stopPropagation();
+        respondFn(this);
+      }
+    });
+    this.addEventListener(_Provider.CHANGE_EVENT, (event) => {
+      console.log("Provider change event:", event);
+    });
   }
   attach(observer) {
-    this.addEventListener(_Provider.CONTEXT_CHANGE_EVENT, observer);
-    return observer;
+    this.addEventListener(_Provider.CHANGE_EVENT, observer);
+    return this.context.toObject();
   }
   detach(observer) {
-    this.removeEventListener(_Provider.CONTEXT_CHANGE_EVENT, observer);
+    this.removeEventListener(_Provider.CHANGE_EVENT, observer);
   }
 };
-_Provider.CONTEXT_CHANGE_EVENT = `un-provider:change`;
+_Provider.DISCOVERY_EVENT = "un-provider:discover";
+_Provider.CHANGE_EVENT = "un-provider:change";
+document.addEventListener(_Provider.DISCOVERY_EVENT, (event) => {
+  const [contextLabel, respondFn] = event.detail;
+  console.log("No response from provider:", contextLabel);
+  respondFn(null);
+});
 let Provider = _Provider;
+function discover(observer, contextLabel) {
+  return new Promise((resolve, reject) => {
+    const discoveryEvent = new CustomEvent(Provider.DISCOVERY_EVENT, {
+      bubbles: true,
+      composed: true,
+      detail: [
+        contextLabel,
+        (provider) => provider ? resolve(provider) : reject()
+      ]
+    });
+    observer.dispatchEvent(discoveryEvent);
+  });
+}
 function whenProviderReady(consumer, contextLabel) {
   const provider = closestProvider(contextLabel, consumer);
   return new Promise((resolve, reject) => {
@@ -94,7 +129,7 @@ class Service {
   process(message) {
     console.log(`Processing ${this._eventType} message`, message);
     const command = this._update(message, this.apply.bind(this));
-    if (command) command(this._context.value);
+    if (command) command(this._context);
   }
 }
 function identity(model) {
@@ -102,6 +137,54 @@ function identity(model) {
 }
 function replace(replacements) {
   return (model) => ({ ...model, ...replacements });
+}
+class Observer {
+  constructor(contextLabel) {
+    this.contextLabel = contextLabel;
+  }
+  observe(from, fn) {
+    return new Promise((resolve, reject) => {
+      if (this.provider) {
+        resolve(this.attachObserver(fn));
+      } else {
+        console.log("Initiating discovery for provider", this.contextLabel);
+        discover(from, this.contextLabel).then((provider) => {
+          console.log("Observer found provider", this.contextLabel, provider);
+          this.provider = provider;
+          resolve(this.attachObserver(fn));
+        }).catch((err) => reject(err));
+      }
+    });
+  }
+  attachObserver(fn) {
+    const effect = new effects.DirectEffect(fn);
+    const init = this.provider.attach((ev) => {
+      const { property, value } = ev.detail;
+      console.log("Signal received:", property, value);
+      if (this.observed) {
+        this.observed[property] = value;
+        effect.execute({ property, value });
+      }
+    });
+    console.log("Initial observation:", init);
+    this.observed = init;
+    return init;
+  }
+}
+function fromService(target, contextLabel) {
+  return new FromService(target, contextLabel);
+}
+class FromService {
+  constructor(client, contextLabel) {
+    this.client = client;
+    this.observer = new Observer(contextLabel);
+  }
+  start(fn) {
+    console.log("Starting to observe service", this.observer);
+    return this.observer.observe(this.client, (s) => {
+      fn(s.property, s.value);
+    });
+  }
 }
 class InvalidTokenError extends Error {
 }
@@ -157,10 +240,11 @@ function jwtDecode(token, options) {
     throw new InvalidTokenError(`Invalid token specified: invalid json for part #${pos + 1} (${e.message})`);
   }
 }
+const AUTH_CONTEXT_DEFAULT = "context:auth";
 const _APIUser = class _APIUser {
-  constructor() {
+  constructor(username) {
     this.authenticated = false;
-    this.username = "anonymous";
+    this.username = username || "anonymous";
   }
   static deauthenticate(user) {
     user.authenticated = false;
@@ -226,10 +310,15 @@ class AuthProvider extends Provider {
   }
   constructor() {
     const user = AuthenticatedUser.authenticateFromLocalStorage();
-    super({
-      user,
-      token: user.authenticated ? user.token : void 0
-    });
+    const { authenticated, username } = user;
+    super(
+      {
+        authenticated,
+        username,
+        token: authenticated ? user.token : void 0
+      },
+      AUTH_CONTEXT_DEFAULT
+    );
   }
   connectedCallback() {
     const service = new AuthService(this.context, this.redirect);
@@ -248,17 +337,21 @@ function redirection(redirect, query = {}) {
   };
 }
 function signIn(token) {
+  const user = AuthenticatedUser.authenticate(token);
+  const { authenticated, username } = user;
   return replace({
-    user: AuthenticatedUser.authenticate(token),
+    authenticated,
+    username,
     token
   });
 }
 function signOut() {
   return (model) => {
-    const oldUser = model.user;
+    const oldUser = APIUser.deauthenticate(new APIUser(model.username));
+    const { authenticated, username } = oldUser;
     return {
-      user: oldUser && oldUser.authenticated ? APIUser.deauthenticate(oldUser) : oldUser,
-      token: ""
+      username,
+      authenticated
     };
   };
 }
@@ -283,12 +376,16 @@ function tokenPayload(user) {
 const auth = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   AuthenticatedUser,
+  CONTEXT_DEFAULT: AUTH_CONTEXT_DEFAULT,
   Provider: AuthProvider,
   User: APIUser,
   dispatch,
   headers: authHeaders,
   payload: tokenPayload
 }, Symbol.toStringTag, { value: "Module" }));
+function fromAuth(target, contextLabel = AUTH_CONTEXT_DEFAULT) {
+  return new FromService(target, contextLabel);
+}
 exports.css = html.css;
 exports.define = html.define;
 exports.html = html.html;
@@ -296,21 +393,25 @@ exports.shadow = html.shadow;
 exports.Mutation = template.Mutation;
 exports.TagContentMutation = template.TagContentMutation;
 exports.TemplateParser = template.TemplateParser;
-exports.EffectsManager = effects.EffectsManager;
-exports.createEffect = effects.createEffect;
 exports.Context = context.Context;
-exports.View = context.View;
-exports.ViewModel = context.ViewModel;
+exports.EffectsManager = context.EffectsManager;
+exports.SignalEvent = context.SignalEvent;
 exports.createContext = context.createContext;
-exports.createObservable = context.createObservable;
-exports.createViewModel = context.createViewModel;
-exports.fromInputs = context.fromInputs;
+exports.DirectEffect = effects.DirectEffect;
+exports.View = view.View;
+exports.ViewModel = view.ViewModel;
+exports.createViewModel = view.createViewModel;
+exports.fromInputs = view.fromInputs;
 exports.Auth = auth;
 exports.Dispatch = Dispatch;
+exports.FromService = FromService;
 exports.Provider = Provider;
 exports.Service = Service;
+exports.discover = discover;
 exports.dispatch = dispatch$1;
 exports.dispatcher = dispatcher;
+exports.fromAuth = fromAuth;
+exports.fromService = fromService;
 exports.identity = identity;
 exports.replace = replace;
 exports.whenProviderReady = whenProviderReady;

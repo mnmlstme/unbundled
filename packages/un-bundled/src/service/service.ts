@@ -1,4 +1,4 @@
-import { Context } from "../context";
+import { Context } from "../view/index.ts";
 import { Provider } from "./provider.ts";
 import { Base, Dispatch } from "./message.ts";
 import { MapFn, Update } from "./update.ts";
@@ -54,6 +54,6 @@ export class Service<Msg extends Base, T extends object> {
   process(message: Msg) {
     console.log(`Processing ${this._eventType} message`, message);
     const command = this._update(message, this.apply.bind(this));
-    if (command) command(this._context.value);
+    if (command) command(this._context);
   }
 }

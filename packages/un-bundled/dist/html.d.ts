@@ -46,6 +46,7 @@ export declare function shadow(el: HTMLElement, options?: ShadowRootInit): {
     template: (fragment: DocumentFragment) => /*elided*/ any;
     styles: (...sheets: CSSStyleSheet[]) => /*elided*/ any;
     replace: (fragment: DocumentFragment) => /*elided*/ any;
+    root: ShadowRoot;
 };
 
 export declare class TagContentMutation extends Mutation {

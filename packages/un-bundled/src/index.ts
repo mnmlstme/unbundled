@@ -1,5 +1,5 @@
 export * from "./html";
 export * from "./effects";
-export * from "./context";
+export * from "./view";
 export * from "./service";
 export * from "./auth";

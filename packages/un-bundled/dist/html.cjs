@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const template = require("./template-D9nobiMj.cjs");
+const template = require("./template-_2CniEel.cjs");
 function css(template2, ...params) {
   const cssString = template2.map((s, i) => i ? [params[i - 1], s] : [s]).flat().join("");
   let sheet = new CSSStyleSheet();
@@ -19,7 +19,7 @@ function html(template2, ...params) {
 }
 function shadow(el, options = { mode: "open" }) {
   const shadowRoot = el.shadowRoot || el.attachShadow(options);
-  const chain = { template: template2, styles, replace };
+  const chain = { template: template2, styles, replace, root: shadowRoot };
   return chain;
   function template2(fragment) {
     const first = fragment.firstElementChild;

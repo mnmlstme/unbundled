@@ -9,27 +9,30 @@ import {
   TemplatePlugin,
   TemplateValue
 } from "../html";
-import { createEffect } from "../effects";
+import { Context } from "../effects";
 
 export default { map, html };
 
-type Effector<T> = (
+type Effector<T extends object> = (
   site: Element,
   fragment: DocumentFragment,
-  viewModel: T
+  viewModel: Context<T>
 ) => void;
 
 export interface ViewTemplate<T extends object>
   extends DynamicDocumentFragment {
-  render(init: T): void;
+  render(context: Context<T>): DynamicDocumentFragment;
   effectors?: Map<string, Array<Effector<T>>>;
 }
 
-function map<T extends object>(view: ViewTemplate<T>, list: Array<T>) {
-  return list.map(($) => view.render($));
-}
+export type RenderFunction<T extends object> = (data: T) => TemplateValue;
 
-type RenderFunction<T extends object> = (data: T) => TemplateValue;
+function map<T extends object>(view: ViewTemplate<T>, list: Array<T>) {
+  return list.map(($) => {
+    const context = new Context<T>($);
+    view.render(context);
+  });
+}
 
 class ElementContentEffect<T extends object> extends Mutation {
   fn: RenderFunction<T>;
@@ -45,7 +48,7 @@ class ElementContentEffect<T extends object> extends Mutation {
     registerEffect(
       fragment as ViewTemplate<T>,
       key,
-      (site: Element, fragment: DocumentFragment, viewModel: T) => {
+      (site: Element, fragment: DocumentFragment, viewModel: Context<T>) => {
         const start = new Comment(` <<< ${key} `);
         const end = new Comment(` >>> ${key} `);
         const placeholder = new DocumentFragment();
@@ -53,7 +56,7 @@ class ElementContentEffect<T extends object> extends Mutation {
         const parent = site.parentNode || fragment;
         parent.replaceChild(placeholder, site);
         // console.log("Placeholder inserted:", parent);
-        createEffect<T>((vm: T) => {
+        viewModel.createEffect((vm: T) => {
           const value = this.fn(vm);
           let node = value instanceof Node ? value : null;
           if (!node) {
@@ -79,7 +82,7 @@ class ElementContentEffect<T extends object> extends Mutation {
             p = start.nextSibling;
           }
           if (node) parent.insertBefore(node, end);
-        }, viewModel);
+        });
       }
     );
   }
@@ -93,19 +96,22 @@ class AttributeEffect<T extends object> extends Mutation {
     super(place);
     this.fn = fn;
     this.name = place.attrName;
+    console.log("Created new attribute effect", this);
   }
 
-  override apply(_site: Element, fragment: DocumentFragment): void {
+  override apply(_site: Element, fragment: DynamicDocumentFragment): void {
     const key = this.place.nodeLabel;
 
+    console.log("Applying AttributeEffect", this);
     registerEffect(
       fragment as ViewTemplate<T>,
       key,
-      (site: Element, _: DocumentFragment, viewModel: T) => {
-        createEffect<T>((vm: T) => {
+      (site: Element, _: DocumentFragment, viewModel: Context<T>) => {
+        console.log("Creating effect for AttributeEffect", this, site);
+        viewModel.createEffect((vm: T) => {
           const value = this.fn(vm);
           site.setAttribute(this.name, value.toString());
-        }, viewModel);
+        });
       }
     );
   }
@@ -132,12 +138,13 @@ const parser = initializeParser();
 
 function html<T extends object>(
   template: TemplateStringsArray,
-  ...params: Array<TemplateParameter>
+  ...params: Array<TemplateParameter | RenderFunction<T>>
 ): ViewTemplate<T> {
   const fragment = parser.parse(template, params);
 
   return Object.assign(fragment, {
-    render: (data: T) => renderForEffects(fragment as ViewTemplate<T>, data)
+    render: (context: Context<T>) =>
+      renderForEffects(fragment as ViewTemplate<T>, context)
   });
 }
 
@@ -163,7 +170,7 @@ function registerEffect<T extends object>(
 
 function renderForEffects<T extends object>(
   original: ViewTemplate<T>,
-  viewModel: T
+  viewModel: Context<T>
 ): DocumentFragment {
   const fragment = original.cloneNode(true) as DocumentFragment;
   // console.log("Rendering for effects:", fragment);

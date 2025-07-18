@@ -1,7 +1,7 @@
 import {
+  Auth,
   css,
-  define,
-  html,
+  fromAuth,
   shadow,
   ViewModel,
   createViewModel
@@ -10,26 +10,35 @@ import headings from "../styles/headings.css";
 import reset from "../styles/reset.css";
 
 interface HeaderData {
-  loggedIn: boolean;
-  userid?: string;
-  token?: string;
+  authenticated: boolean;
+  username?: string;
 }
 
 export class HeaderElement extends HTMLElement {
-  viewModel: ViewModel<HeaderData> = createViewModel({
-    loggedIn: false
-  });
+  viewModel: ViewModel<HeaderData> = createViewModel().merge(
+    {
+      authenticated: false,
+      username: undefined
+    },
+    fromAuth(this)
+  );
 
-  view = html` <header>
+  view = this.viewModel.html`<header>
     <h1>Blazing Travels</h1>
-    <p>Hello, ${($: HeaderData) => $.userid || "traveler"}</p>
-    <nav class=${($: HeaderData) => ($.loggedIn ? "logged-in" : "logged-out")}>
-      <menu>
+    <nav class=${($) => {
+      console.log("Setting class for nav", $);
+      return $.authenticated ? "logged-in" : "logged-out";
+    }}>
+      <p>Hello, ${($) => {
+        console.log("Setting username", $);
+        return $.username || "traveler";
+      }}</p>
+    <menu>
         <li class="when-signed-in">
-          <a id="signout">Sign Out</a>
+          <a ${(ref: Element) => ref.addEventListener("click", () => this.signout())}>Sign Out</a>
         </li>
         <li class="when-signed-out">
-          <a>Sign In</a>
+          <a href="/login.html">Sign In</a>
         </li>
       </menu>
     </nav>
@@ -68,10 +77,15 @@ export class HeaderElement extends HTMLElement {
     #userid:empty::before {
       content: "traveler";
     }
+    menu {
+      display: flex;
+      flex-direction: row;
+      gap: 1em;
+    }
     menu a {
-      color: var(--color-link);
+      color: var(--color-link-inverted);
       cursor: pointer;
-      text-decoration: underline;
+      text-decoration: none;
     }
     nav.logged-out .when-signed-in,
     nav.logged-in .when-signed-out {
@@ -83,6 +97,20 @@ export class HeaderElement extends HTMLElement {
     super();
     shadow(this)
       .styles(reset.styles, headings.styles, HeaderElement.styles)
-      .replace(this.viewModel.render(this.view));
+      .replace(this.view);
+
+    this.viewModel.createEffect(($) => {
+      console.log("Username:", $.username);
+    });
+  }
+
+  signout() {
+    const customEvent = new CustomEvent("auth:message", {
+      bubbles: true,
+      composed: true,
+      detail: ["auth/signout"]
+    });
+    this.dispatchEvent(customEvent);
+    Auth.dispatch(this, "auth/signout");
   }
 }

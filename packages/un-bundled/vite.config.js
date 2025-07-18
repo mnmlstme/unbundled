@@ -11,7 +11,7 @@ export default defineConfig({
         index: resolve(__dirname, "src/index.ts"),
         effects: resolve(__dirname, "src/effects/index.ts"),
         html: resolve(__dirname, "src/html/index.ts"),
-        context: resolve(__dirname, "src/context/index.ts")
+        view: resolve(__dirname, "src/view/index.ts")
       }
     }
   },

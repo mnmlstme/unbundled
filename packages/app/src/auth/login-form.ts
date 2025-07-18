@@ -26,7 +26,7 @@ export class LoginFormElement extends HTMLElement {
       username: "",
       password: ""
     },
-    fromInputs(this)
+    fromInputs(shadow(this).root)
   );
 
   constructor() {

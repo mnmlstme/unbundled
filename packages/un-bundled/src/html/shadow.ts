@@ -2,8 +2,8 @@ export function shadow(
   el: HTMLElement,
   options: ShadowRootInit = { mode: "open" }
 ) {
-  const shadowRoot = el.shadowRoot || el.attachShadow(options);
-  const chain = { template, styles, replace };
+  const shadowRoot: ShadowRoot = el.shadowRoot || el.attachShadow(options);
+  const chain = { template, styles, replace, root: shadowRoot };
 
   return chain;
 

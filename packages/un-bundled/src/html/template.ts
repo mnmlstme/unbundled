@@ -121,7 +121,7 @@ export class TemplateParser {
         const param = params[i];
         const place = this.classifyPlace(i, template);
         const mutation = this.tryReplacements(place, param);
-        // console.log("Place mutation:", i, place, mutation);
+        console.log("Place mutation:", i, place, mutation);
         if (mutation) {
           const post = postProcess[place.nodeLabel];
           if (post) post.push(mutation);
@@ -165,7 +165,7 @@ export class TemplateParser {
 
   static OPEN_RE = /<([a-zA-z][$a-zA-Z0-9-]*)\s+[^>]*$/;
   static IN_TAG_RE = /^(\s+|[^<>]*|"[^"]*"")*$/;
-  static ATTR_RE = /^([^>]*)\s+([a-zA-Z-]+)=$/;
+  static ATTR_RE = /([a-zA-Z-]+)=$/;
   static CLOSE_RE = /^(\s+)?>/;
 
   classifyPlace(i: number, template: TemplateStringsArray): ReplacementPlace {
@@ -180,13 +180,14 @@ export class TemplateParser {
       }
     }
     if (tagOpen) {
+      console.log("Checking for attributes in open tag", template[i], tagOpen);
       const tagAttr = template[i].match(TemplateParser.ATTR_RE);
       if (tagAttr)
         return {
           kind: "attr value",
           nodeLabel: `node${i}`,
           tagName: tagOpen[1],
-          attrName: tagAttr[2]
+          attrName: tagAttr[1]
         };
       return {
         kind: "tag content",
@@ -237,6 +238,12 @@ export class TemplateParser {
       types: (param: TemplateParameter) => param instanceof Node,
       mutator: (place: ElementContentPlace, value: TemplateParameter) =>
         new ElementContentMutation(place, value as Node)
+    },
+    {
+      place: "tag content",
+      types: ["function"],
+      mutator: (place: TagContentPlace, value: TemplateParameter) =>
+        new TagContentMutation(place, value as TagMutationFunction)
     }
   ];
 }

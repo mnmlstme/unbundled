@@ -51,7 +51,7 @@ export class BlzItineraryElement extends HTMLElement {
     }
   }
 
-  view = View.html`<dl>
+  view = this.viewModel.html`<dl>
       ${($) => View.map(this.destinationView, $.itinerary.destinations)}
     </dl>
     <button id="extend-stay">Extend Stay</button>`;

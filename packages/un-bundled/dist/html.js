@@ -1,5 +1,5 @@
-import { a as TemplateParser } from "./template-DgcdTw4L.js";
-import { M, T } from "./template-DgcdTw4L.js";
+import { a as TemplateParser } from "./template-MgzVtejB.js";
+import { M, T } from "./template-MgzVtejB.js";
 function css(template, ...params) {
   const cssString = template.map((s, i) => i ? [params[i - 1], s] : [s]).flat().join("");
   let sheet = new CSSStyleSheet();
@@ -18,7 +18,7 @@ function html(template, ...params) {
 }
 function shadow(el, options = { mode: "open" }) {
   const shadowRoot = el.shadowRoot || el.attachShadow(options);
-  const chain = { template, styles, replace };
+  const chain = { template, styles, replace, root: shadowRoot };
   return chain;
   function template(fragment) {
     const first = fragment.firstElementChild;

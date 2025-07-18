@@ -4,6 +4,7 @@ declare class APIUser {
     static TOKEN_KEY: string;
     authenticated: boolean;
     username: string;
+    constructor(username?: string);
     static deauthenticate(user: APIUser): APIUser;
 }
 
@@ -16,6 +17,7 @@ export declare interface AttributeValuePlace extends Place<"attr value"> {
 
 export declare namespace Auth {
     export {
+        AUTH_CONTEXT_DEFAULT as CONTEXT_DEFAULT,
         AuthenticatedUser,
         dispatch_2 as dispatch,
         authHeaders as headers,
@@ -29,6 +31,24 @@ export declare namespace Auth {
     }
 }
 
+declare namespace Auth_2 {
+    export {
+        AUTH_CONTEXT_DEFAULT as CONTEXT_DEFAULT,
+        AuthenticatedUser,
+        dispatch_2 as dispatch,
+        authHeaders as headers,
+        tokenPayload as payload,
+        AuthProvider as Provider,
+        APIUser as User,
+        AuthSuccessful,
+        AuthModel as Model,
+        AuthMsg as Msg,
+        AuthService as Service
+    }
+}
+
+declare const AUTH_CONTEXT_DEFAULT = "context:auth";
+
 declare class AuthenticatedUser extends APIUser {
     token: string | undefined;
     constructor(token: string);
@@ -41,7 +61,8 @@ declare function authHeaders(user: APIUser | AuthenticatedUser): {
 };
 
 declare interface AuthModel {
-    user?: APIUser | AuthenticatedUser;
+    authenticated: boolean;
+    username?: string;
     token?: string;
 }
 
@@ -67,27 +88,38 @@ declare interface AuthSuccessful {
 
 export declare type Base = Type<string, object | undefined>;
 
-export declare type Command<M> = (model: M) => void;
+export declare type Command<M extends object> = (model: Context<M>) => void;
 
 export declare class Context<T extends object> {
-    _proxy: T;
-    constructor(init: T, host: HTMLElement);
-    get value(): T;
-    set value(next: T);
-    apply(mapFn: (t: T) => T): void;
+    private manager;
+    private object;
+    private proxy;
+    static CHANGE_EVENT_TYPE: string;
+    constructor(init: T, adoptedContext?: Context<T>);
+    get(prop: keyof T): T[keyof T];
+    set(prop: keyof T, value: any): void;
+    toObject(): T;
+    update(next: Partial<T>): void;
+    apply(mapFn: (t: T) => Partial<T>): void;
+    createEffect(fn: Effector<T>): void;
+    setHost(host: EventTarget, eventType?: string): void;
 }
 
-export declare function createContext<T extends object>(root: T, eventTarget: HTMLElement): T;
-
-export declare function createEffect<T extends object>(fn: Effector<T>, initialScope: T): void;
-
-export declare function createObservable<T extends object>(root: T): T;
+export declare function createContext<T extends object>(root: T, manager: EffectsManager<T>): T;
 
 export declare function createViewModel<T extends object>(init?: Partial<T>): ViewModel<T>;
 
 export declare function css(template: TemplateStringsArray, ...params: string[]): CSSStyleSheet;
 
 export declare function define(defns: ElementDefinitions): CustomElementRegistry;
+
+export declare class DirectEffect<T extends object> implements Effect<T> {
+    private effectFn;
+    constructor(fn: Effector<T>);
+    execute(scope: T): void;
+}
+
+export declare function discover<T extends object>(observer: Element, contextLabel: string): Promise<Provider<T>>;
 
 export declare class Dispatch<Msg extends Base> extends CustomEvent<Msg> {
     constructor(msg: Msg, eventType?: string);
@@ -108,12 +140,20 @@ export declare interface Effect<T extends object> {
 
 export declare type Effector<T extends object> = (scope: T) => void;
 
-declare type Effector_2<T> = (site: Element, fragment: DocumentFragment, viewModel: T) => void;
+declare type Effector_2<T extends object> = (site: Element, fragment: DocumentFragment, viewModel: Context<T>) => void;
 
 export declare class EffectsManager<T extends object> {
-    signals: Map<string, Set<Effect<T>>>;
-    subscribe(key: string): void;
-    runEffects(key: string, scope: T): void;
+    private signals;
+    private running;
+    private host?;
+    private eventType;
+    isRunning(): boolean;
+    start(effect: Effect<T>): void;
+    stop(): void;
+    current(): Effect<T> | undefined;
+    subscribe(key: keyof T): void;
+    runEffects(key: keyof T, scope: T): void;
+    setHost(host: EventTarget, eventType?: string): void;
 }
 
 export declare interface ElementContentPlace extends Place<"element content"> {
@@ -123,17 +163,28 @@ declare type ElementDefinitions = {
     [tag: string]: CustomElementConstructor;
 };
 
-declare class FromInputs<T extends object> implements Observer<T> {
-    effectFn?: ObserverEffect<T>;
+export declare function fromAuth(target: HTMLElement, contextLabel?: string): FromService<Auth_2.Model>;
+
+declare class FromInputs<T extends object> implements Source<T> {
+    subject: HTMLElement;
     constructor(subject: HTMLElement);
-    setEffect(fn: ObserverEffect<T>): void;
+    start(fn: SourceEffect<T>): Promise<T>;
 }
 
 export declare function fromInputs<T extends object>(subject: HTMLElement): FromInputs<T>;
 
+export declare class FromService<T extends object> implements Source<T> {
+    private client;
+    private observer;
+    constructor(client: HTMLElement, contextLabel: string);
+    start(fn: SourceEffect<T>): Promise<T>;
+}
+
+export declare function fromService<T extends object>(target: HTMLElement, contextLabel: string): FromService<T>;
+
 export declare function html(template: TemplateStringsArray, ...params: Array<TemplateParameter>): DynamicDocumentFragment_2;
 
-declare function html_2<T extends object>(template: TemplateStringsArray, ...params: Array<TemplateParameter>): ViewTemplate<T>;
+declare function html_2<T extends object>(template: TemplateStringsArray, ...params: Array<TemplateParameter | RenderFunction<T>>): ViewTemplate<T>;
 
 export declare function identity<M>(model: M): M;
 
@@ -159,12 +210,6 @@ export declare class Mutation {
     apply(_site: Element, _fragment: DynamicDocumentFragment): void;
 }
 
-export declare interface Observer<T extends object> {
-    setEffect(fn: ObserverEffect<T>): void;
-}
-
-export declare type ObserverEffect<T> = (name: keyof T, value: any) => void;
-
 declare type Place<K extends KindOfPlace> = {
     kind: K;
     nodeLabel: string;
@@ -172,11 +217,15 @@ declare type Place<K extends KindOfPlace> = {
 
 export declare class Provider<T extends object> extends HTMLElement {
     readonly context: Context<T>;
-    static CONTEXT_CHANGE_EVENT: string;
-    constructor(init: T);
-    attach(observer: EventListener): EventListener;
-    detach(observer: EventListener): void;
+    contextLabel: string;
+    static DISCOVERY_EVENT: string;
+    static CHANGE_EVENT: string;
+    constructor(init: T, label: string);
+    attach(observer: SignalReceiver<T>): T;
+    detach(observer: SignalReceiver<T>): void;
 }
+
+export declare type RenderFunction<T extends object> = (data: T) => TemplateValue;
 
 export declare function replace<M>(replacements: Partial<M>): MapFn<M>;
 
@@ -206,7 +255,25 @@ export declare function shadow(el: HTMLElement, options?: ShadowRootInit): {
     template: (fragment: DocumentFragment) => /*elided*/ any;
     styles: (...sheets: CSSStyleSheet[]) => /*elided*/ any;
     replace: (fragment: DocumentFragment) => /*elided*/ any;
+    root: ShadowRoot;
 };
+
+export declare type Signal<T, K extends keyof T> = {
+    property: K;
+    value: T[K];
+};
+
+export declare class SignalEvent<T, K extends keyof T> extends CustomEvent<Signal<T, K>> {
+    constructor(eventType: string, signal: Signal<T, K>);
+}
+
+export declare type SignalReceiver<T> = (ev: SignalEvent<T, keyof T>) => void;
+
+export declare interface Source<T extends object> {
+    start(fn: SourceEffect<T>): Promise<T>;
+}
+
+export declare type SourceEffect<T> = (name: keyof T, value: any) => void;
 
 export declare class TagContentMutation extends Mutation {
     fn: TagMutationFunction;
@@ -260,22 +327,17 @@ export declare const View: {
     map: typeof map;
 };
 
-export declare class ViewModel<T extends object> {
-    object: T;
-    proxy: T;
-    constructor(init: Partial<T>, adoptedProxy?: T);
-    get(prop: keyof T): T[keyof T];
-    set(prop: keyof T, value: any): void;
-    toObject(): T;
-    merge<S extends object>(other: S, observer?: Observer<S>): ViewModel<T & S>;
-    createEffect(fn: Effector<T>): void;
-    render(view: ViewTemplate<T>, scope?: T): void;
+export declare class ViewModel<T extends object> extends Context<T> {
+    constructor(init: Partial<T>, adoptedContext?: Context<T>);
+    html(template: TemplateStringsArray, ...params: Array<TemplateParameter | RenderFunction<T>>): DynamicDocumentFragment;
+    merge<S extends object>(other: S, source?: Source<S>): ViewModel<T & S>;
+    render(view: ViewTemplate<T>): DynamicDocumentFragment;
 }
 
 export declare type ViewModelPlugin<T extends object> = (host: ViewModel<T>) => object;
 
 export declare interface ViewTemplate<T extends object> extends DynamicDocumentFragment {
-    render(init: T): void;
+    render(context: Context<T>): DynamicDocumentFragment;
     effectors?: Map<string, Array<Effector_2<T>>>;
 }
 

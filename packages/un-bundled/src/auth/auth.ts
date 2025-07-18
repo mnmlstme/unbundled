@@ -1,9 +1,12 @@
 import { jwtDecode } from "jwt-decode";
 import { ApplyMap, Provider, Service, dispatcher, replace } from "../service";
-import { Context } from "../context";
+import { Context } from "../view";
+
+const AUTH_CONTEXT_DEFAULT = "context:auth";
 
 interface AuthModel {
-  user?: APIUser | AuthenticatedUser;
+  authenticated: boolean;
+  username?: string;
   token?: string;
 }
 
@@ -20,7 +23,11 @@ type AuthMsg =
 class APIUser {
   static TOKEN_KEY = "un-auth:token";
   authenticated = false;
-  username = "anonymous";
+  username: string;
+
+  constructor(username?: string) {
+    this.username = username || "anonymous";
+  }
 
   static deauthenticate(user: APIUser) {
     user.authenticated = false;
@@ -105,10 +112,15 @@ class AuthProvider extends Provider<AuthModel> {
 
   constructor() {
     const user = AuthenticatedUser.authenticateFromLocalStorage();
-    super({
-      user,
-      token: user.authenticated ? (user as AuthenticatedUser).token : undefined
-    });
+    const { authenticated, username } = user;
+    super(
+      {
+        authenticated,
+        username,
+        token: authenticated ? (user as AuthenticatedUser).token : undefined
+      },
+      AUTH_CONTEXT_DEFAULT
+    );
   }
 
   connectedCallback() {
@@ -137,22 +149,23 @@ function redirection(
 }
 
 function signIn(token: string) {
+  const user = AuthenticatedUser.authenticate(token);
+  const { authenticated, username } = user;
   return replace<AuthModel>({
-    user: AuthenticatedUser.authenticate(token),
+    authenticated,
+    username,
     token
   });
 }
 
 function signOut() {
   return (model: AuthModel) => {
-    const oldUser = model.user;
+    const oldUser = APIUser.deauthenticate(new APIUser(model.username));
+    const { authenticated, username } = oldUser;
 
     return {
-      user:
-        oldUser && oldUser.authenticated
-          ? APIUser.deauthenticate(oldUser)
-          : oldUser,
-      token: ""
+      username,
+      authenticated
     };
   };
 }
@@ -180,6 +193,7 @@ function tokenPayload(user: APIUser | AuthenticatedUser): object {
 }
 
 export {
+  AUTH_CONTEXT_DEFAULT as CONTEXT_DEFAULT,
   AuthenticatedUser,
   dispatch,
   authHeaders as headers,

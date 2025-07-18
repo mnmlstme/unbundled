@@ -1,101 +1,12 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const effects = require("./effects.cjs");
-const template = require("./template-D9nobiMj.cjs");
-const EVENT_PREFIX = "un-context";
-const CONTEXT_CHANGE_EVENT = `${EVENT_PREFIX}:change`;
-class Context {
-  constructor(init, host) {
-    this._proxy = createContext(init, host);
-  }
-  get value() {
-    return this._proxy;
-  }
-  set value(next) {
-    Object.assign(this._proxy, next);
-  }
-  apply(mapFn) {
-    this.value = mapFn(this.value);
-  }
-}
-function createContext(root, eventTarget) {
-  let proxy = new Proxy(root, {
-    get: (target, prop, receiver) => {
-      if (prop === "then") {
-        return void 0;
-      }
-      const value = Reflect.get(target, prop, receiver);
-      console.log(`Context['${prop}'] => `, value);
-      return value;
-    },
-    set: (target, prop, newValue, receiver) => {
-      const oldValue = root[prop];
-      console.log(
-        `Context['${prop.toString()}'] <= `,
-        newValue
-      );
-      const didSet = Reflect.set(
-        target,
-        prop,
-        newValue,
-        receiver
-      );
-      if (didSet) {
-        let evt = new CustomEvent(CONTEXT_CHANGE_EVENT, {
-          bubbles: true,
-          cancelable: true,
-          composed: true
-        });
-        Object.assign(evt, {
-          property: prop,
-          oldValue,
-          value: newValue
-        });
-        eventTarget.dispatchEvent(evt);
-      } else {
-        console.log(
-          `Context['${prop}] was not set to ${newValue}`
-        );
-      }
-      return didSet;
-    }
-  });
-  return proxy;
-}
-function createObservable(root) {
-  const subscriptions = new effects.EffectsManager();
-  let proxy = new Proxy(root, {
-    get: (subject, prop, receiver) => {
-      const value = Reflect.get(subject, prop, receiver);
-      if (isObservable(value)) {
-        subscriptions.subscribe(prop);
-      }
-      return value;
-    },
-    set: (subject, prop, newValue, receiver) => {
-      const didSet = Reflect.set(subject, prop, newValue, receiver);
-      if (didSet && isObservable(newValue)) {
-        subscriptions.runEffects(prop, subject);
-      }
-      return didSet;
-    }
-  });
-  return proxy;
-}
-function isObservable(value) {
-  switch (typeof value) {
-    case "object":
-    case "number":
-    case "string":
-    case "boolean":
-    case "undefined":
-      return true;
-    default:
-      return false;
-  }
-}
+const context = require("./context-Bd2U9W3u.cjs");
+const template = require("./template-_2CniEel.cjs");
 function map(view, list) {
-  return list.map(($) => view.render($));
+  return list.map(($) => {
+    const context$1 = new context.Context($);
+    view.render(context$1);
+  });
 }
 class ElementContentEffect extends template.Mutation {
   constructor(place, fn) {
@@ -114,7 +25,7 @@ class ElementContentEffect extends template.Mutation {
         placeholder.replaceChildren(start, end);
         const parent = site.parentNode || fragment2;
         parent.replaceChild(placeholder, site);
-        effects.createEffect((vm) => {
+        viewModel.createEffect((vm) => {
           const value = this.fn(vm);
           let node = value instanceof Node ? value : null;
           if (!node) {
@@ -139,7 +50,7 @@ class ElementContentEffect extends template.Mutation {
             p = start.nextSibling;
           }
           if (node) parent.insertBefore(node, end);
-        }, viewModel);
+        });
       }
     );
   }
@@ -149,17 +60,20 @@ class AttributeEffect extends template.Mutation {
     super(place);
     this.fn = fn;
     this.name = place.attrName;
+    console.log("Created new attribute effect", this);
   }
   apply(_site, fragment) {
     const key = this.place.nodeLabel;
+    console.log("Applying AttributeEffect", this);
     registerEffect(
       fragment,
       key,
       (site, _, viewModel) => {
-        effects.createEffect((vm) => {
+        console.log("Creating effect for AttributeEffect", this, site);
+        viewModel.createEffect((vm) => {
           const value = this.fn(vm);
           site.setAttribute(this.name, value.toString());
-        }, viewModel);
+        });
       }
     );
   }
@@ -184,7 +98,7 @@ const parser = initializeParser();
 function html(template2, ...params) {
   const fragment = parser.parse(template2, params);
   return Object.assign(fragment, {
-    render: (data) => renderForEffects(fragment, data)
+    render: (context2) => renderForEffects(fragment, context2)
   });
 }
 function initializeParser() {
@@ -216,39 +130,34 @@ const View = {
   html,
   map
 };
-class ViewModel {
-  constructor(init, adoptedProxy) {
-    this.object = init;
-    this.proxy = adoptedProxy || createObservable(this.object);
+class ViewModel extends context.Context {
+  constructor(init, adoptedContext) {
+    super(init, adoptedContext);
   }
-  get(prop) {
-    return this.proxy[prop];
+  html(template2, ...params) {
+    const view = View.html(template2, ...params);
+    return this.render(view);
   }
-  set(prop, value) {
-    this.proxy[prop] = value;
-  }
-  toObject() {
-    return Object.assign({}, this.object);
-  }
-  merge(other, observer) {
+  merge(other, source) {
     const merged = new ViewModel(
-      Object.assign(this.object, other),
-      this.proxy
+      Object.assign(this.toObject(), other),
+      this
     );
-    if (observer) {
+    if (source) {
       const inputNames = Object.keys(other);
-      observer.setEffect((name, value) => {
+      source.start((name, value) => {
+        console.log("Merging effect", name, value, inputNames);
         if (inputNames.includes(name)) merged.set(name, value);
+      }).then((firstObservation) => {
+        console.log("ViewModel source observed:", firstObservation);
+        merged.update(firstObservation);
       });
     }
     return merged;
   }
-  createEffect(fn) {
-    effects.createEffect(fn, this.proxy);
-  }
-  render(view, scope = this.proxy) {
-    console.log("Rendering view, scope=", scope);
-    return view.render(scope);
+  render(view) {
+    console.log("Rendering view, scope=", this.toObject());
+    return view.render(this);
   }
 }
 function createViewModel(init) {
@@ -259,23 +168,24 @@ function fromInputs(subject) {
 }
 class FromInputs {
   constructor(subject) {
-    subject.addEventListener("change", (event) => {
+    this.subject = subject;
+  }
+  start(fn) {
+    this.subject.addEventListener("change", (event) => {
       const input = event.target;
-      if (input && this.effectFn) {
+      if (input) {
         const name = input.name;
         const value = input.value;
-        this.effectFn(name, value);
+        fn(name, value);
       }
     });
-  }
-  setEffect(fn) {
-    this.effectFn = fn;
+    return new Promise((_resolve, _reject) => {
+    });
   }
 }
-exports.Context = Context;
+exports.Context = context.Context;
+exports.createContext = context.createContext;
 exports.View = View;
 exports.ViewModel = ViewModel;
-exports.createContext = createContext;
-exports.createObservable = createObservable;
 exports.createViewModel = createViewModel;
 exports.fromInputs = fromInputs;

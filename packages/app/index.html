@@ -12,19 +12,18 @@
     <link rel="stylesheet" href="/styles/tokens.css" />
     <link rel="stylesheet" href="/styles/page.css" />
     <script type="module">
-      import { define /* , Auth */ } from "@un-/bundled";
+      import { define, Auth } from "@un-/bundled";
       import { HeaderElement } from "/src/components/header-element.ts";
-      // import { Auth } from "/src/auth/auth.ts";
 
       define({
-        // "un-auth": Auth.Provider,
+        "auth-provider": Auth.Provider,
         "blazing-header": HeaderElement
       });
     </script>
   </head>
   <body>
-    <un-auth>
+    <auth-provider>
       <blazing-header></blazing-header>
-    </un-auth>
+    </auth-provider>
   </body>
 </html>

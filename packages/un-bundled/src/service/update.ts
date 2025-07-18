@@ -1,6 +1,7 @@
+import { Context } from "../effects";
 import * as Message from "./message";
 
-type Command<M> = (model: M) => void;
+type Command<M extends object> = (model: Context<M>) => void;
 type MapFn<M> = (model: M) => M;
 type ApplyMap<M> = (fn: MapFn<M>) => void;
 
