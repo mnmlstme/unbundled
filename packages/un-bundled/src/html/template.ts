@@ -135,7 +135,7 @@ export class TemplateParser {
               return [s, `<ins data-${place.nodeLabel}></ins>`];
           }
         } else {
-          // console.log("Failed to render template parameter: ", i, s, param);
+          console.log("Failed to render template parameter: ", i, s, param);
         }
         return [s];
       })
@@ -146,6 +146,7 @@ export class TemplateParser {
       stringToParse,
       this.docType
     );
+
     const collection = doc.head.childElementCount
       ? doc.head.children
       : doc.body.children;
@@ -164,20 +165,20 @@ export class TemplateParser {
   }
 
   static OPEN_RE = /<([a-zA-z][$a-zA-Z0-9-]*)\s+[^>]*$/;
-  static IN_TAG_RE = /^(\s+|[^<>]*|"[^"]*"")*$/;
-  static ATTR_RE = /([a-zA-Z-]+)=$/;
-  static CLOSE_RE = /^(\s+)?>/;
+  static IN_TAG_RE = /^(\s+|[^<>]*|"[^"]*")*$/;
+  static ATTR_RE = /([a-zA-Z-]+)=\s*$/;
+  static CLOSE_RE = /[/]?>[^<]*$/;
 
   classifyPlace(i: number, template: TemplateStringsArray): ReplacementPlace {
-    let prev = i;
     let tagOpen = null;
-    while (prev >= 0 && !tagOpen) {
+    // console.log("Classifying place", i, template);
+    for (let prev = i; prev >= 0; prev--) {
+      const tagEnd = template[prev].match(TemplateParser.CLOSE_RE);
+      if (tagEnd) break;
       tagOpen = template[prev].match(TemplateParser.OPEN_RE);
-      if (!tagOpen) {
-        const tagContinue = template[prev].match(TemplateParser.IN_TAG_RE);
-        if (tagContinue) prev = prev - 1;
-        else break;
-      }
+      if (tagOpen) break;
+      const tagContinue = template[prev].match(TemplateParser.IN_TAG_RE);
+      if (!tagContinue) break;
     }
     if (tagOpen) {
       // console.log("Checking for attributes in open tag", template[i], tagOpen);
