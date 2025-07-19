@@ -31,7 +31,7 @@ const port = process.env.PORT || 3e3;
 const staticDir = process.env.STATIC || "public";
 console.log("Serving static files from ", staticDir);
 app.use(import_express.default.static(staticDir));
-app.use(import_express.default.json());
+app.use(import_express.default.json({ limit: "500kb" }));
 app.use("/auth", import_auth.default);
 app.use("/api/profiles", import_auth.authenticateUser, import_profiles.default);
 app.get("/ping", (_, res) => {

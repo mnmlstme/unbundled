@@ -17,6 +17,7 @@ interface ProfileViewData {
   profile?: Profile;
   username?: string;
   token?: string;
+  _avatar?: string;
 }
 
 export class ProfileViewElement extends HTMLElement {
@@ -45,6 +46,13 @@ export class ProfileViewElement extends HTMLElement {
       })
       .delegate("#cancel", {
         click: () => this.viewModel.set("mode", "view")
+      })
+      .delegate('input[name="avatar"]', {
+        change: (e: InputEvent) => {
+          const target = e.target as HTMLInputElement;
+          const files = target.files;
+          if (files && files.length) this.readAvatarBase64(files);
+        }
       })
       .listen({
         submit: (ev: Event) => this.submitForm(ev)
@@ -136,6 +144,11 @@ export class ProfileViewElement extends HTMLElement {
               value=${($) => $.color}
               aria-labelled-by="color-label"/>
           </span>
+        </dd>
+        <dt id="avatar-label">Upload Profile Image</dt>
+        <dd>
+            <input type="file" name="avatar"
+              aria-labelled-by="avatar-label"/>
         </dd>
       </dl>
       <button id="cancel" type="button">Cancel</button>
@@ -248,9 +261,27 @@ export class ProfileViewElement extends HTMLElement {
         k === "airports"
           ? [k, (v as string).split(",").map((s) => s.trim())]
           : [k, v]
+      )
+      .map(([k, v]) =>
+        k === "avatar" ? [k, this.viewModel.get("_avatar")] : [k, v]
       );
 
     const profile = Object.fromEntries(entries);
     return JSON.stringify(profile);
+  }
+
+  readAvatarBase64(files: FileList) {
+    if (files && files.length) {
+      const reader = new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(fr.result);
+        fr.onerror = (err) => reject(err);
+        fr.readAsDataURL(files[0]);
+      });
+
+      reader.then((result: unknown) => {
+        this.viewModel.set("_avatar", result as string);
+      });
+    }
   }
 }

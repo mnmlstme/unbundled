@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const context = require("./context-DycUTdK3.cjs");
-const template = require("./template-DB13vJdn.cjs");
+const template = require("./template-C9mJ8ely.cjs");
 function map(view, list) {
   return list.map(($) => {
     const context$1 = new context.Context($);

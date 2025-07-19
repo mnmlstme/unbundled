@@ -1,6 +1,6 @@
 import { C as Context } from "./context-BNE4sWaw.js";
 import { c } from "./context-BNE4sWaw.js";
-import { a as TemplateParser, M as Mutation } from "./template-B9lxuhGz.js";
+import { a as TemplateParser, M as Mutation } from "./template-C_oBIcRr.js";
 function map(view, list) {
   return list.map(($) => {
     const context = new Context($);

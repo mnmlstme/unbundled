@@ -1,5 +1,5 @@
-import { a as TemplateParser } from "./template-B9lxuhGz.js";
-import { M, T } from "./template-B9lxuhGz.js";
+import { a as TemplateParser } from "./template-C_oBIcRr.js";
+import { M, T } from "./template-C_oBIcRr.js";
 function css(template, ...params) {
   const cssString = template.map((s, i) => i ? [params[i - 1], s] : [s]).flat().join("");
   let sheet = new CSSStyleSheet();

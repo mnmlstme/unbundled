@@ -1,6 +1,4 @@
 import express, { Request, Response } from "express";
-import fs from "node:fs/promises";
-import path from "node:path";
 import auth, { authenticateUser } from "./routes/auth";
 import profiles from "./routes/profiles";
 import { connect } from "./services/mongo";
@@ -17,7 +15,7 @@ console.log("Serving static files from ", staticDir);
 app.use(express.static(staticDir));
 
 // Middleware:
-app.use(express.json());
+app.use(express.json({ limit: "500kb" }));
 
 // Auth routes
 app.use("/auth", auth);

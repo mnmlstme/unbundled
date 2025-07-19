@@ -1,3 +1,4 @@
+"use strict";
 class Mutation {
   constructor(place) {
     this.place = place;
@@ -51,6 +52,7 @@ const _TemplateParser = class _TemplateParser {
       const param = params[i];
       const place = this.classifyPlace(i, template);
       const mutation = this.tryReplacements(place, param);
+      console.log("Place mutation:", i, place, mutation);
       if (mutation) {
         const post = postProcess[place.nodeLabel];
         if (post) post.push(mutation);
@@ -63,6 +65,8 @@ const _TemplateParser = class _TemplateParser {
           case "element content":
             return [s, `<ins data-${place.nodeLabel}></ins>`];
         }
+      } else {
+        console.log("Failed to render template parameter: ", i, s, param);
       }
       return [s];
     }).flat().join("");
@@ -83,15 +87,15 @@ const _TemplateParser = class _TemplateParser {
     return Object.assign(fragment, {});
   }
   classifyPlace(i, template) {
-    let prev = i;
     let tagOpen = null;
-    while (prev >= 0 && !tagOpen) {
+    console.log("Classifying place", i, template);
+    for (let prev = i; prev >= 0; prev--) {
+      const tagEnd = template[prev].match(_TemplateParser.CLOSE_RE);
+      if (tagEnd) break;
       tagOpen = template[prev].match(_TemplateParser.OPEN_RE);
-      if (!tagOpen) {
-        const tagContinue = template[prev].match(_TemplateParser.IN_TAG_RE);
-        if (tagContinue) prev = prev - 1;
-        else break;
-      }
+      if (tagOpen) break;
+      const tagContinue = template[prev].match(_TemplateParser.IN_TAG_RE);
+      if (!tagContinue) break;
     }
     if (tagOpen) {
       const tagAttr = template[i].match(_TemplateParser.ATTR_RE);
@@ -124,9 +128,9 @@ const _TemplateParser = class _TemplateParser {
 };
 _TemplateParser.parser = new DOMParser();
 _TemplateParser.OPEN_RE = /<([a-zA-z][$a-zA-Z0-9-]*)\s+[^>]*$/;
-_TemplateParser.IN_TAG_RE = /^(\s+|[^<>]*|"[^"]*"")*$/;
-_TemplateParser.ATTR_RE = /([a-zA-Z-]+)=$/;
-_TemplateParser.CLOSE_RE = /^(\s+)?>/;
+_TemplateParser.IN_TAG_RE = /^(\s+|[^<>]*|"[^"]*")*$/;
+_TemplateParser.ATTR_RE = /([a-zA-Z-]+)=\s*$/;
+_TemplateParser.CLOSE_RE = /[/]?>[^<]*$/;
 _TemplateParser.basicReplacements = [
   {
     place: "element content",
@@ -157,8 +161,6 @@ function checkType(param, sub) {
   if (typeof sub.types === "function") return sub.types(param, sub);
   return sub.types.includes(typeof param);
 }
-export {
-  Mutation as M,
-  TagContentMutation as T,
-  TemplateParser as a
-};
+exports.Mutation = Mutation;
+exports.TagContentMutation = TagContentMutation;
+exports.TemplateParser = TemplateParser;

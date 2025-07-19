@@ -45,14 +45,12 @@ function get(userid) {
 }
 function update(userid, profile) {
   return ProfileModel.findOne({ userid }).then((found) => {
-    console.log("Ready to update", found, profile);
     if (!found) throw `${userid} Not Found`;
     else
       return ProfileModel.findByIdAndUpdate(found._id, profile, {
         new: true
       });
   }).then((updated) => {
-    console.log("Updated Profile:", JSON.stringify(updated));
     if (!updated) throw `${userid} not updated`;
     else return updated;
   });
