@@ -29,6 +29,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var auth_exports = {};
 __export(auth_exports, {
   authenticateUser: () => authenticateUser,
+  authorizeUser: () => authorizeUser,
   default: () => auth_default
 });
 module.exports = __toCommonJS(auth_exports);
@@ -83,8 +84,7 @@ function authenticateUser(req, res, next) {
   } else {
     import_jsonwebtoken.default.verify(token, TOKEN_SECRET, (_, decoded) => {
       if (decoded) {
-        const payload = decoded;
-        req.params.username = payload.username;
+        req.jwtPayload = decoded;
         next();
       } else {
         res.status(401).end();
@@ -92,8 +92,18 @@ function authenticateUser(req, res, next) {
     });
   }
 }
+function authorizeUser(checkFn) {
+  const middleware = (req, res, next) => {
+    const { username } = req.jwtPayload;
+    console.log("Checking auth for user", username);
+    if (checkFn(req, username)) next();
+    else res.status(403).send();
+  };
+  return middleware;
+}
 var auth_default = router;
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  authenticateUser
+  authenticateUser,
+  authorizeUser
 });

@@ -7,8 +7,7 @@
     "strict": true,
     "esModuleInterop": true,
     "moduleResolution": "bundler",
-    "forceConsistentCasingInFileNames": true,
-    "allowImportingTsExtensions": true
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"],

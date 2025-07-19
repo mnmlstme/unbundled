@@ -1,5 +1,6 @@
 import {
   css,
+  html,
   View,
   createViewModel,
   fromAttributes,
@@ -11,16 +12,19 @@ import headings from "../styles/headings.css.js";
 import { Profile } from "server/models";
 
 interface ProfileViewData {
+  mode: "view" | "edit" | "new";
   userid?: string;
   profile?: Profile;
+  username?: string;
   token?: string;
 }
 
 export class ProfileViewElement extends HTMLElement {
-  viewModel = createViewModel<ProfileViewData>()
+  viewModel = createViewModel<ProfileViewData>({ mode: "view" })
     .merge(
       {
-        token: undefined
+        token: undefined,
+        username: undefined
       },
       fromAuth(this)
     )
@@ -31,43 +35,113 @@ export class ProfileViewElement extends HTMLElement {
       fromAttributes(this)
     );
 
-  view = this.viewModel.html`
-      <section>
-        ${($) => View.apply<Profile>(this.mainView, $.profile)}
-      </section>`;
-
-  mainView = View.html<Profile>`
-      <img src=${($) => $.avatar} alt=${($) => $.name} />
-      <h1>${($) => $.name}</h1>
-      <dl>
-        <dt>Username</dt>
-        <dd>${($) => $.userid}</dd>
-        <dt>Nickname</dt>
-        <dd>${($) => $.nickname}</dd>
-        <dt>Home City</dt>
-        <dd>${($) => $.home}</dd>
-        <dt>Airports</dt>
-        <dd>${($) => $.airports.join(", ")}</dd>
-        <dt>Favorite Color</dt>
-        <dd>
-          <span
-            class="swatch"
-            style=${($) => `background: ${$.color}`}></span>
-          <span>${($) => $.color}</span>
-        </dd>
-      </dl>
-  `;
-
   constructor() {
     super();
     shadow(this)
       .styles(reset.styles, headings.styles, ProfileViewElement.styles)
-      .replace(this.view);
+      .replace(this.view)
+      .delegate("#edit-mode", {
+        click: () => this.viewModel.set("mode", "edit")
+      })
+      .delegate("#cancel", {
+        click: () => this.viewModel.set("mode", "view")
+      })
+      .listen({
+        submit: (ev: Event) => this.submitForm(ev)
+      });
+
     this.viewModel.createEffect(($) => {
-      console.log("Hydrate maybe?", $.userid, $.token);
+      console.log("Maybe hydrate?", $.userid, $.token);
       if ($.userid && $.token) this.hydrate($.userid, $.token);
     });
   }
+
+  view = this.viewModel.html`
+    <section>
+      ${($) =>
+        View.apply<Profile>(
+          $.mode === "view" ? this.mainView : this.editView,
+          $.profile
+        )}
+    </section>`;
+
+  mainView = View.html<Profile>`
+    ${($) =>
+      $.userid === this.viewModel.get("username")
+        ? html`<button id="edit-mode">Edit</button>`
+        : ""}
+    <img src=${($) => $.avatar} alt=${($) => $.name} />
+    <h1>${($) => $.name}</h1>
+    <dl>
+      <dt>Username</dt>
+      <dd>${($) => $.userid}</dd>
+      <dt>Nickname</dt>
+      <dd>${($) => $.nickname}</dd>
+      <dt>Home City</dt>
+      <dd>${($) => $.home}</dd>
+      <dt>Airports</dt>
+      <dd>${($) => $.airports.join(", ")}</dd>
+      <dt>Favorite Color</dt>
+      <dd>
+        <span
+          class="swatch"
+          style=${($) => `background: ${$.color}`}></span>
+        <span>${($) => $.color}</span>
+      </dd>
+    </dl>
+  `;
+
+  editView = View.html<Profile>`
+    <form>
+      <img src=${($) => $.avatar} alt=${($) => $.name} />
+      <h1>
+        <span class="aria-only" name="name-label">Display Name</span>
+        <input name="name"
+          value=${($) => $.name}
+          aria-labelled-by="name-label/>
+      </h1>
+      <dl>
+        <dt id="userid-label">Username</dt>
+        <dd>
+            <input disabled name="userid"
+              value=${($) => $.userid}
+              aria-labelled-by="userid-label"/>
+        </dd>
+        <dt id="nickname-label">Nickname</dt>
+        <dd>
+            <input name="nickname"
+              value=${($) => $.nickname}
+              aria-labelled-by="nickname-label"/>
+        </dd>
+        <dt id="home-label">Home City</dt>
+        <dd>
+            <input name="home"
+              value=${($) => $.home}
+              aria-labelled-by="home-label"/>
+        </dd>
+        <dt id="airports-label">Airports</dt>
+        <dd>
+          <input name="airports"
+            value=${($) => $.airports.join(", ")}
+            aria-labelled-by="airports-label"/>
+        </dd>
+        <dt id="color-label">Favorite Color</dt>
+        <dd>
+          <span
+            class="swatch"
+            style=${($) => `background: ${$.color}`}>
+          </span>
+          <span>
+            <input type="color" name="color"
+              value=${($) => $.color}
+              aria-labelled-by="color-label"/>
+          </span>
+        </dd>
+      </dl>
+      <button id="cancel" type="button">Cancel</button>
+      <button type="submit">Save</button>
+     </form>
+  `;
 
   static styles = css`
     :host {
@@ -137,5 +211,46 @@ export class ProfileViewElement extends HTMLElement {
       .catch((error) => {
         console.log("Could not fetch:", error);
       });
+  }
+
+  submitForm(ev: Event) {
+    ev.preventDefault();
+
+    const form = ev.target as HTMLFormElement;
+    const json = this.formDataToJSON(form);
+    const userid = this.viewModel.get("userid");
+    const token = this.viewModel.get("token");
+
+    fetch(`/api/profiles/${userid}`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: json
+    })
+      .then((res: Response) => {
+        if (res.status !== 200) throw `HTTP status ${res.status}`;
+        return res.json();
+      })
+      .then((json: unknown) => {
+        this.viewModel.set("profile", json as Profile);
+        this.viewModel.set("mode", "view");
+      })
+      .catch((err) => console.log("Failed to PUT form data", err));
+  }
+
+  formDataToJSON(form: HTMLFormElement): string {
+    const formdata = new FormData(form);
+    const entries = Array.from(formdata.entries())
+      .map(([k, v]) => (v === "" ? [k] : [k, v]))
+      .map(([k, v]) =>
+        k === "airports"
+          ? [k, (v as string).split(",").map((s) => s.trim())]
+          : [k, v]
+      );
+
+    const profile = Object.fromEntries(entries);
+    return JSON.stringify(profile);
   }
 }

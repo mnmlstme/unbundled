@@ -28,23 +28,18 @@ function get(userid: String): Promise<Profile> {
     });
 }
 
-function update(
-  userid: String,
-  profile: Profile
-): Promise<Profile> {
+function update(userid: String, profile: Profile): Promise<Profile> {
   return ProfileModel.findOne({ userid })
     .then((found) => {
+      console.log("Ready to update", found, profile);
       if (!found) throw `${userid} Not Found`;
       else
-        return ProfileModel.findByIdAndUpdate(
-          found._id,
-          profile,
-          {
-            new: true
-          }
-        );
+        return ProfileModel.findByIdAndUpdate(found._id, profile, {
+          new: true
+        });
     })
     .then((updated) => {
+      console.log("Updated Profile:", JSON.stringify(updated));
       if (!updated) throw `${userid} not updated`;
       else return updated as Profile;
     });
@@ -56,11 +51,9 @@ function create(profile: Profile): Promise<Profile> {
 }
 
 function remove(userid: String): Promise<void> {
-  return ProfileModel.findOneAndDelete({ userid }).then(
-    (deleted) => {
-      if (!deleted) throw `${userid} not deleted`;
-    }
-  );
+  return ProfileModel.findOneAndDelete({ userid }).then((deleted) => {
+    if (!deleted) throw `${userid} not deleted`;
+  });
 }
 
 export default { index, get, create, update, remove };
