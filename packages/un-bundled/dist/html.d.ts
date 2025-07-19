@@ -19,6 +19,12 @@ declare type ElementDefinitions = {
     [tag: string]: CustomElementConstructor;
 };
 
+declare type EventListener_2 = (ev: Event) => void;
+
+declare type EventMap = {
+    [key: string]: EventListener_2;
+};
+
 export declare function html(template: TemplateStringsArray, ...params: Array<TemplateParameter>): DynamicDocumentFragment_2;
 
 declare type KindOfPlace = "element content" | "attr value" | "tag content";
@@ -47,6 +53,8 @@ export declare function shadow(el: HTMLElement, options?: ShadowRootInit): {
     styles: (...sheets: CSSStyleSheet[]) => /*elided*/ any;
     replace: (fragment: DocumentFragment) => /*elided*/ any;
     root: ShadowRoot;
+    delegate: (selector: string, map: EventMap) => /*elided*/ any;
+    listen: (map: EventMap) => /*elided*/ any;
 };
 
 export declare class TagContentMutation extends Mutation {

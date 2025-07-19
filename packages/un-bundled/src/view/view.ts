@@ -117,7 +117,18 @@ class AttributeEffect<T extends object> extends Mutation {
         // console.log("Creating effect for AttributeEffect", this, site);
         viewModel.createEffect((vm: T) => {
           const value = this.fn(vm);
-          site.setAttribute(this.name, value.toString());
+          switch (typeof value) {
+            case "string":
+              site.setAttribute(this.name, value);
+              break;
+            case "undefined":
+            case "boolean":
+              if (value) site.setAttribute(this.name, this.name);
+              else site.removeAttribute(this.name);
+              break;
+            default:
+              site.setAttribute(this.name, value.toString());
+          }
         });
       }
     );

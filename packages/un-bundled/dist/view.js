@@ -1,5 +1,5 @@
-import { C as Context } from "./context-BGcAQqoc.js";
-import { c } from "./context-BGcAQqoc.js";
+import { C as Context } from "./context-BNE4sWaw.js";
+import { c } from "./context-BNE4sWaw.js";
 import { a as TemplateParser, M as Mutation } from "./template-B9lxuhGz.js";
 function map(view, list) {
   return list.map(($) => {
@@ -73,7 +73,18 @@ class AttributeEffect extends Mutation {
       (site, _, viewModel) => {
         viewModel.createEffect((vm) => {
           const value = this.fn(vm);
-          site.setAttribute(this.name, value.toString());
+          switch (typeof value) {
+            case "string":
+              site.setAttribute(this.name, value);
+              break;
+            case "undefined":
+            case "boolean":
+              if (value) site.setAttribute(this.name, this.name);
+              else site.removeAttribute(this.name);
+              break;
+            default:
+              site.setAttribute(this.name, value.toString());
+          }
         });
       }
     );
@@ -173,6 +184,7 @@ class FromAttributes {
     const observer = new MutationObserver(effectChanges);
     const element = this.subject;
     observer.observe(element, { attributes: true });
+    console.log("Observing attributes of", element);
     return new Promise((resolve, _reject) => {
       const init = {};
       const attributes = element.attributes;

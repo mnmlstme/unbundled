@@ -1,4 +1,4 @@
-import { C, E, S, c } from "./context-BGcAQqoc.js";
+import { C, E, S, c } from "./context-BNE4sWaw.js";
 class DirectEffect {
   constructor(fn) {
     this.effectFn = fn;

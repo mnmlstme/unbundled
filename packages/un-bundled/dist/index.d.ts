@@ -165,6 +165,12 @@ declare type ElementDefinitions = {
     [tag: string]: CustomElementConstructor;
 };
 
+declare type EventListener_2 = (ev: Event) => void;
+
+declare type EventMap = {
+    [key: string]: EventListener_2;
+};
+
 declare class FromAttributes<T extends object> implements Source<T> {
     subject: Element;
     constructor(subject: Element);
@@ -266,6 +272,8 @@ export declare function shadow(el: HTMLElement, options?: ShadowRootInit): {
     styles: (...sheets: CSSStyleSheet[]) => /*elided*/ any;
     replace: (fragment: DocumentFragment) => /*elided*/ any;
     root: ShadowRoot;
+    delegate: (selector: string, map: EventMap) => /*elided*/ any;
+    listen: (map: EventMap) => /*elided*/ any;
 };
 
 export declare type Signal<T, K extends keyof T> = {

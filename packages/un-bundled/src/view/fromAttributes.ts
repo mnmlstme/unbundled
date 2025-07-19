@@ -15,6 +15,7 @@ class FromAttributes<T extends object> implements Source<T> {
     const observer = new MutationObserver(effectChanges);
     const element = this.subject;
     observer.observe(element, { attributes: true });
+    console.log("Observing attributes of", element);
 
     return new Promise<T>((resolve, _reject) => {
       const init: { [name: string]: string } = {};

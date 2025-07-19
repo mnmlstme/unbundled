@@ -1,9 +1,18 @@
+import { Events, EventMap } from "./events.ts";
+
 export function shadow(
   el: HTMLElement,
   options: ShadowRootInit = { mode: "open" }
 ) {
   const shadowRoot: ShadowRoot = el.shadowRoot || el.attachShadow(options);
-  const chain = { template, styles, replace, root: shadowRoot };
+  const chain = {
+    template,
+    styles,
+    replace,
+    root: shadowRoot,
+    delegate,
+    listen
+  };
 
   return chain;
 
@@ -29,6 +38,16 @@ export function shadow(
 
   function replace(fragment: DocumentFragment) {
     shadowRoot.replaceChildren(fragment);
+    return chain;
+  }
+
+  function listen(map: EventMap) {
+    Events.listen(shadowRoot, map);
+    return chain;
+  }
+
+  function delegate(selector: string, map: EventMap) {
+    Events.delegate(shadowRoot, selector, map);
     return chain;
   }
 }

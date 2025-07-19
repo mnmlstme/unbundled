@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const context = require("./context-B4acCruC.cjs");
+const context = require("./context-DycUTdK3.cjs");
 const template = require("./template-DB13vJdn.cjs");
 function map(view, list) {
   return list.map(($) => {
@@ -74,7 +74,18 @@ class AttributeEffect extends template.Mutation {
       (site, _, viewModel) => {
         viewModel.createEffect((vm) => {
           const value = this.fn(vm);
-          site.setAttribute(this.name, value.toString());
+          switch (typeof value) {
+            case "string":
+              site.setAttribute(this.name, value);
+              break;
+            case "undefined":
+            case "boolean":
+              if (value) site.setAttribute(this.name, this.name);
+              else site.removeAttribute(this.name);
+              break;
+            default:
+              site.setAttribute(this.name, value.toString());
+          }
         });
       }
     );
@@ -174,6 +185,7 @@ class FromAttributes {
     const observer = new MutationObserver(effectChanges);
     const element = this.subject;
     observer.observe(element, { attributes: true });
+    console.log("Observing attributes of", element);
     return new Promise((resolve, _reject) => {
       const init = {};
       const attributes = element.attributes;

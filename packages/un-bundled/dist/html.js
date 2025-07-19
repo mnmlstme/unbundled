@@ -16,9 +16,36 @@ const parser = new TemplateParser();
 function html(template, ...params) {
   return parser.parse(template, params);
 }
+function listen(element, map) {
+  for (const eventType in map) {
+    element.addEventListener(eventType, map[eventType]);
+  }
+}
+function delegate(element, selector, map) {
+  for (const eventType in map) {
+    const listener = function(ev) {
+      const target = ev.target;
+      if (target && target instanceof HTMLElement && target.matches(selector)) {
+        map[eventType](ev);
+      }
+    };
+    element.addEventListener(eventType, listener);
+  }
+}
+const Events = {
+  listen,
+  delegate
+};
 function shadow(el, options = { mode: "open" }) {
   const shadowRoot = el.shadowRoot || el.attachShadow(options);
-  const chain = { template, styles, replace, root: shadowRoot };
+  const chain = {
+    template,
+    styles,
+    replace,
+    root: shadowRoot,
+    delegate: delegate2,
+    listen: listen2
+  };
   return chain;
   function template(fragment) {
     const first = fragment.firstElementChild;
@@ -34,6 +61,14 @@ function shadow(el, options = { mode: "open" }) {
   }
   function replace(fragment) {
     shadowRoot.replaceChildren(fragment);
+    return chain;
+  }
+  function listen2(map) {
+    Events.listen(shadowRoot, map);
+    return chain;
+  }
+  function delegate2(selector, map) {
+    Events.delegate(shadowRoot, selector, map);
     return chain;
   }
 }

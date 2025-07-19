@@ -1,7 +1,7 @@
 import { css, define, html, shadow } from "./html.js";
 import { M, T, a } from "./template-B9lxuhGz.js";
-import { C as Context } from "./context-BGcAQqoc.js";
-import { E, S, c } from "./context-BGcAQqoc.js";
+import { C as Context } from "./context-BNE4sWaw.js";
+import { E, S, c } from "./context-BNE4sWaw.js";
 import { DirectEffect } from "./effects.js";
 import { View, ViewModel, createViewModel, fromAttributes, fromInputs } from "./view.js";
 class Dispatch extends CustomEvent {
@@ -30,8 +30,6 @@ const _Provider = class _Provider extends HTMLElement {
         respondFn(this);
       }
     });
-    this.addEventListener(_Provider.CHANGE_EVENT, (event) => {
-    });
   }
   attach(observer) {
     this.addEventListener(_Provider.CHANGE_EVENT, observer);
@@ -45,6 +43,7 @@ _Provider.DISCOVERY_EVENT = "un-provider:discover";
 _Provider.CHANGE_EVENT = "un-provider:change";
 document.addEventListener(_Provider.DISCOVERY_EVENT, (event) => {
   const [contextLabel, respondFn] = event.detail;
+  console.log("No response from provider:", contextLabel);
   respondFn(null);
 });
 let Provider = _Provider;

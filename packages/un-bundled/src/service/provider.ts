@@ -11,7 +11,7 @@ export class Provider<T extends object> extends HTMLElement {
   static {
     document.addEventListener(Provider.DISCOVERY_EVENT, (event: Event) => {
       const [contextLabel, respondFn] = (event as CustomEvent).detail;
-      // console.log("No response from provider:", contextLabel);
+      console.log("No response from provider:", contextLabel);
       respondFn(null);
     });
   }
@@ -33,9 +33,9 @@ export class Provider<T extends object> extends HTMLElement {
         respondFn(this);
       }
     });
-    this.addEventListener(Provider.CHANGE_EVENT, (event: Event) => {
-      // console.log("Provider change event:", event);
-    });
+    // this.addEventListener(Provider.CHANGE_EVENT, (event: Event) => {
+    //   console.log("Provider change event:", event);
+    // });
   }
 
   attach(observer: SignalReceiver<T>): T {

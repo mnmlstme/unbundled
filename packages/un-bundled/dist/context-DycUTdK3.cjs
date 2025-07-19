@@ -125,6 +125,7 @@ function isObservable(value) {
     case "object":
     case "number":
     case "string":
+    case "symbol":
     case "boolean":
     case "undefined":
       return true;

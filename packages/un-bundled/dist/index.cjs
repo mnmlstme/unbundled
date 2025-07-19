@@ -2,7 +2,7 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const html = require("./html.cjs");
 const template = require("./template-DB13vJdn.cjs");
-const context = require("./context-B4acCruC.cjs");
+const context = require("./context-DycUTdK3.cjs");
 const effects = require("./effects.cjs");
 const view = require("./view.cjs");
 class Dispatch extends CustomEvent {
@@ -31,8 +31,6 @@ const _Provider = class _Provider extends HTMLElement {
         respondFn(this);
       }
     });
-    this.addEventListener(_Provider.CHANGE_EVENT, (event) => {
-    });
   }
   attach(observer) {
     this.addEventListener(_Provider.CHANGE_EVENT, observer);
@@ -46,6 +44,7 @@ _Provider.DISCOVERY_EVENT = "un-provider:discover";
 _Provider.CHANGE_EVENT = "un-provider:change";
 document.addEventListener(_Provider.DISCOVERY_EVENT, (event) => {
   const [contextLabel, respondFn] = event.detail;
+  console.log("No response from provider:", contextLabel);
   respondFn(null);
 });
 let Provider = _Provider;
