@@ -1,5 +1,5 @@
 import { css, define, html, shadow } from "./html.js";
-import { M, T, a } from "./template-C_oBIcRr.js";
+import { M, T, a } from "./template-Dw4ZMR70.js";
 import { C as Context } from "./context-BNE4sWaw.js";
 import { E, S, c } from "./context-BNE4sWaw.js";
 import { DirectEffect } from "./effects.js";

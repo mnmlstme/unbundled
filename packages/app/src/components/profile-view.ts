@@ -1,5 +1,6 @@
 import {
   css,
+  define,
   html,
   View,
   createViewModel,
@@ -10,6 +11,7 @@ import {
 import reset from "../styles/reset.css.js";
 import headings from "../styles/headings.css.js";
 import { Profile } from "server/models";
+import { InputArrayElement } from "./input-array.js";
 
 interface ProfileViewData {
   mode: "view" | "edit" | "new";
@@ -21,6 +23,10 @@ interface ProfileViewData {
 }
 
 export class ProfileViewElement extends HTMLElement {
+  static uses = define({
+    "input-array": InputArrayElement
+  });
+
   viewModel = createViewModel<ProfileViewData>({ mode: "view" })
     .merge(
       {
@@ -129,9 +135,13 @@ export class ProfileViewElement extends HTMLElement {
         </dd>
         <dt id="airports-label">Airports</dt>
         <dd>
-          <input name="airports"
-            value=${($) => $.airports.join(", ")}
+          <input-array name="airports"
             aria-labelled-by="airports-label"/>
+              ${($) =>
+                $.airports.map(
+                  (s, i) => html`<input name=${`airports.${i}`} value=${s} />`
+                )}
+          </input-array>
         </dd>
         <dt id="color-label">Favorite Color</dt>
         <dd>

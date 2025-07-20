@@ -51,7 +51,6 @@ const _TemplateParser = class _TemplateParser {
       const param = params[i];
       const place = this.classifyPlace(i, template);
       const mutation = this.tryReplacements(place, param);
-      console.log("Place mutation:", i, place, mutation);
       if (mutation) {
         const post = postProcess[place.nodeLabel];
         if (post) post.push(mutation);
@@ -87,7 +86,6 @@ const _TemplateParser = class _TemplateParser {
   }
   classifyPlace(i, template) {
     let tagOpen = null;
-    console.log("Classifying place", i, template);
     for (let prev = i; prev >= 0; prev--) {
       const tagEnd = template[prev].match(_TemplateParser.CLOSE_RE);
       if (tagEnd) break;
