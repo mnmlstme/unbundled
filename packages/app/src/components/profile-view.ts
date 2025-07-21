@@ -142,7 +142,6 @@ export class ProfileViewElement extends HTMLElement {
         <dt id="airports-label">Airports</dt>
         <dd>
           <input-array ${($, ref) => {
-            console.log("Setting airports value", $.airports);
             (ref as InputArrayElement).value = $.airports;
           }}
             name="airports"

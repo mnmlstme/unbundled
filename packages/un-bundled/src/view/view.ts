@@ -36,7 +36,7 @@ export type RenderFunction<T extends object> = (
 function map<T extends object>(view: ViewTemplate<T>, list: Array<T>) {
   return list.map(($) => {
     const context = new Context<T>($);
-    view.render(context);
+    return view.render(context);
   });
 }
 

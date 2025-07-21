@@ -208,7 +208,7 @@ export declare function identity<M>(model: M): M;
 
 declare type KindOfPlace = "element content" | "attr value" | "tag content";
 
-declare function map<T extends object>(view: ViewTemplate<T>, list: Array<T>): void[];
+declare function map<T extends object>(view: ViewTemplate<T>, list: Array<T>): DynamicDocumentFragment[];
 
 export declare type MapFn<M> = (model: M) => M;
 

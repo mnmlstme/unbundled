@@ -84,7 +84,7 @@ export declare function fromInputs<T extends object>(subject: Node): FromInputs<
 
 declare function html<T extends object>(template: TemplateStringsArray, ...params: Array<TemplateParameter | RenderFunction<T>>): ViewTemplate<T>;
 
-declare function map<T extends object>(view: ViewTemplate<T>, list: Array<T>): void[];
+declare function map<T extends object>(view: ViewTemplate<T>, list: Array<T>): DynamicDocumentFragment[];
 
 export declare type RenderFunction<T extends object> = (data: T, el: Element) => TemplateValue;
 

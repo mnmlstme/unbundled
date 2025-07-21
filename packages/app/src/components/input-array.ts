@@ -52,27 +52,42 @@ export class InputArrayElement extends HTMLElement {
     <fieldset name=${($) => $.name}>
       <slot></slot>
       <ul>
-        ${($) =>
-          $.values.map(
-            (s, i) => View.html`
-              <li>
-           <input name=${i} value=${s}/>
-           <button>Remove</Button>
-              </li>`
-          )}
+        ${($) => {
+          const inits = $.values.map((s) => ({ value: s }));
+          return View.map(this.itemView, inits);
+        }}
       </ul>
     </fieldset>
   `);
 
   itemView = createView<{ value: string }>(html`
-    <input value=${($) => $.value} />
-    <button>Remove</button>
+    <li>
+      <input value=${($) => $.value} />
+      <button>Remove</button>
+    </li>
   `);
 
   static styles = css`
     fieldset {
+      display: grid;
+      grid-template-columns: subgrid;
+      gap: var(--size-spacing-medium);
       padding: 0;
       border: none;
+    }
+    ul {
+      display: contents;
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      display: contents;
+      button {
+        grid-column: auto/-1;
+      }
+      input {
+        grid-column: auto/-2;
+      }
     }
   `;
 

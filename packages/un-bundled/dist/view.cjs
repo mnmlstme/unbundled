@@ -8,7 +8,7 @@ function createView(html2) {
 function map(view, list) {
   return list.map(($) => {
     const context$1 = new context.Context($);
-    view.render(context$1);
+    return view.render(context$1);
   });
 }
 function apply(view, $) {
