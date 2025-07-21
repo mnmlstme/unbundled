@@ -1,8 +1,9 @@
 import {
   css,
   define,
-  html,
   View,
+  ViewModel,
+  ViewTemplate,
   createViewModel,
   fromAttributes,
   fromAuth,
@@ -13,8 +14,9 @@ import headings from "../styles/headings.css.js";
 import { Profile } from "server/models";
 import { InputArrayElement } from "./input-array.js";
 
+type ProfileMode = "view" | "edit" | "new";
 interface ProfileViewData {
-  mode: "view" | "edit" | "new";
+  mode: ProfileMode;
   userid?: string;
   profile?: Profile;
   username?: string;
@@ -22,12 +24,21 @@ interface ProfileViewData {
   _avatar?: string;
 }
 
+function createView<T extends object>(html: ViewTemplate<T>) {
+  return html;
+}
+
+const html = View.html;
+
 export class ProfileViewElement extends HTMLElement {
   static uses = define({
     "input-array": InputArrayElement
   });
 
-  viewModel = createViewModel<ProfileViewData>({ mode: "view" })
+  viewModel = createViewModel({
+    mode: "view",
+    profile: undefined
+  })
     .merge(
       {
         token: undefined,
@@ -46,7 +57,7 @@ export class ProfileViewElement extends HTMLElement {
     super();
     shadow(this)
       .styles(reset.styles, headings.styles, ProfileViewElement.styles)
-      .replace(this.view)
+      .replace(this.viewModel.render(this.view))
       .delegate("#edit-mode", {
         click: () => this.viewModel.set("mode", "edit")
       })
@@ -70,16 +81,17 @@ export class ProfileViewElement extends HTMLElement {
     });
   }
 
-  view = this.viewModel.html`
-    <section>
+  view = createView<ProfileViewData>(
+    html` <section>
       ${($) =>
         View.apply<Profile>(
           $.mode === "view" ? this.mainView : this.editView,
           $.profile
         )}
-    </section>`;
+    </section>`
+  );
 
-  mainView = View.html<Profile>`
+  mainView = createView<Profile>(html`
     ${($) =>
       $.userid === this.viewModel.get("username")
         ? html`<button id="edit-mode">Edit</button>`
@@ -97,15 +109,13 @@ export class ProfileViewElement extends HTMLElement {
       <dd>${($) => $.airports.join(", ")}</dd>
       <dt>Favorite Color</dt>
       <dd>
-        <span
-          class="swatch"
-          style=${($) => `background: ${$.color}`}></span>
+        <span class="swatch" style=${($) => `background: ${$.color}`}></span>
         <span>${($) => $.color}</span>
       </dd>
     </dl>
-  `;
+  `);
 
-  editView = View.html<Profile>`
+  editView = createView<Profile>(html`
     <form>
       <img src=${($) => $.avatar} alt=${($) => $.name} />
       <h1>
@@ -135,10 +145,12 @@ export class ProfileViewElement extends HTMLElement {
         </dd>
         <dt id="airports-label">Airports</dt>
         <dd>
-          <input-array name="airports"
+          <input-array ${($, ref) => {
+            console.log("Setting airports value", $.airports);
+            (ref as InputArrayElement).value = $.airports;
+          }}
+            name="airports"
             aria-labelled-by="airports-label"/>
-            <legend slot="legend">Airports</legend>
-              ${($) => $.airports.map((s, i) => html`<input value=${s} />`)}
           </input-array>
         </dd>
         <dt id="color-label">Favorite Color</dt>
@@ -162,7 +174,7 @@ export class ProfileViewElement extends HTMLElement {
       <button id="cancel" type="button">Cancel</button>
       <button type="submit">Save</button>
      </form>
-  `;
+  `);
 
   static styles = css`
     :host {
@@ -236,6 +248,12 @@ export class ProfileViewElement extends HTMLElement {
     ev.preventDefault();
 
     const form = ev.target as HTMLFormElement;
+    const inputs = Array.from(form.elements).filter(
+      (el) => el.tagName !== "BUTTON" && "name" in el
+    ) as Array<HTMLInputElement>;
+    console.log("Inputs:", inputs);
+    const entries = inputs.map((el) => [el.name, el.value]);
+    console.log("Entries:", entries);
     const json = this.formDataToJSON(form);
     const userid = this.viewModel.get("userid");
     const token = this.viewModel.get("token");

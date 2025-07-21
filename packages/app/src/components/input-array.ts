@@ -21,9 +21,13 @@ export class InputArrayElement extends HTMLElement {
   }).merge({ name: "" }, fromAttributes(this));
 
   static formAssociated = true;
-  formInternals: ElementInternals;
-  private formData;
+  //formInternals: ElementInternals;
+  //private formData;
   inputSlot?: HTMLSlotElement | null;
+
+  get name(): string {
+    return this.viewModel.$.name;
+  }
 
   get value(): Array<string> {
     return this.viewModel.$.values;
@@ -35,8 +39,8 @@ export class InputArrayElement extends HTMLElement {
 
   constructor() {
     super();
-    this.formInternals = this.attachInternals();
-    this.formData = new FormData();
+    //this.formInternals = this.attachInternals();
+    //this.formData = new FormData();
     shadow(this)
       .styles(InputArrayElement.styles)
       .replace(this.view)
@@ -52,18 +56,13 @@ export class InputArrayElement extends HTMLElement {
 
   view = this.viewModel.html`
     <fieldset name=${($) => $.name}>
-      <slot name="legend">
-        <legend>Input Array</legend>
-      </slot>
-      <slot>${($) =>
-        View.map(
-          this.itemView,
-          $.values.map((s, i) => ({
-            name: `${$.name}.${i}`,
-            value: s
-          }))
+      <slot></slot>
+      ${($) =>
+        $.values.map(
+          (s, i) => View.html`
+           <input value=${s}/>
+           <button>Remove</Button>`
         )}
-        </slot>
     </fieldset>
   `;
 
@@ -81,8 +80,7 @@ export class InputArrayElement extends HTMLElement {
 
   changeFormValue(input: HTMLElement, value: string) {
     const index = this.getElementIndex(input);
-    this.formData.set(`${this.viewModel.$.name}[${index}]`, value);
-    this.formInternals.setFormValue(this.formData);
+    if (index) this.viewModel.$.values[index] = value;
   }
 
   getElementIndex(input: HTMLElement): number | undefined {

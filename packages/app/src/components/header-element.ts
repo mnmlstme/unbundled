@@ -3,6 +3,7 @@ import {
   css,
   fromAuth,
   shadow,
+  View,
   ViewModel,
   createViewModel
 } from "@un-/bundled";
@@ -23,13 +24,13 @@ export class HeaderElement extends HTMLElement {
     fromAuth(this)
   );
 
-  view = this.viewModel.html`<header>
+  view = View.html<HeaderData>`<header>
     <h1>Blazing Travels</h1>
     <nav class=${($) => ($.authenticated ? "logged-in" : "logged-out")}>
       <p>Hello, ${($) => $.username || "traveler"}</p>
     <menu>
         <li class="when-signed-in">
-          <a ${(ref: Element) =>
+          <a ${(_, ref: Element) =>
             ref.addEventListener("click", () => this.signout())}>
             Sign Out
           </a>
@@ -94,7 +95,7 @@ export class HeaderElement extends HTMLElement {
     super();
     shadow(this)
       .styles(reset.styles, headings.styles, HeaderElement.styles)
-      .replace(this.view);
+      .replace(this.viewModel.render(this.view));
   }
 
   signout() {
