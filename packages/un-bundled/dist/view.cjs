@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const context = require("./context-DycUTdK3.cjs");
-const template = require("./template-DrT5NJ5p.cjs");
+const template = require("./template-Dj3CUNbv.cjs");
 function map(view, list) {
   return list.map(($) => {
     const context$1 = new context.Context($);
@@ -31,7 +31,7 @@ class ElementContentEffect extends template.Mutation {
         const parent = site.parentNode || fragment2;
         parent.replaceChild(placeholder, site);
         viewModel.createEffect((vm) => {
-          const value = this.fn(vm);
+          const value = this.fn(vm, site);
           let node = value instanceof Node ? value : null;
           if (!node) {
             switch (typeof value) {
@@ -73,7 +73,7 @@ class AttributeEffect extends template.Mutation {
       key,
       (site, _, viewModel) => {
         viewModel.createEffect((vm) => {
-          const value = this.fn(vm);
+          const value = this.fn(vm, site);
           switch (typeof value) {
             case "string":
               site.setAttribute(this.name, value);
@@ -91,20 +91,42 @@ class AttributeEffect extends template.Mutation {
     );
   }
 }
+class TagEffect extends template.Mutation {
+  constructor(place, fn) {
+    super(place);
+    this.fn = fn;
+    console.log("Created new tag effect", this);
+  }
+  apply(_site, fragment) {
+    const key = this.place.nodeLabel;
+    console.log("Applying TagEffect", this);
+    registerEffect(
+      fragment,
+      key,
+      (site, _, viewModel) => {
+        console.log("Creating effect for TagEffect", this, site);
+        viewModel.createEffect((vm) => {
+          this.fn(vm, site);
+        });
+      }
+    );
+  }
+}
 const viewReplacements = [
   {
     place: "element content",
     types: ["function"],
-    mutator: (place, param) => {
-      return new ElementContentEffect(place, param);
-    }
+    mutator: (place, param) => new ElementContentEffect(place, param)
   },
   {
     place: "attr value",
     types: ["function"],
-    mutator: (place, param) => {
-      return new AttributeEffect(place, param);
-    }
+    mutator: (place, param) => new AttributeEffect(place, param)
+  },
+  {
+    place: "tag content",
+    types: ["function"],
+    mutator: (place, param) => new TagEffect(place, param)
   }
 ];
 const parser = initializeParser();

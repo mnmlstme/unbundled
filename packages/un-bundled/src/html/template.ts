@@ -239,12 +239,6 @@ export class TemplateParser {
       types: (param: TemplateParameter) => param instanceof Node,
       mutator: (place: ElementContentPlace, value: TemplateParameter) =>
         new ElementContentMutation(place, value as Node)
-    },
-    {
-      place: "tag content",
-      types: ["function"],
-      mutator: (place: TagContentPlace, value: TemplateParameter) =>
-        new TagContentMutation(place, value as TagMutationFunction)
     }
   ];
 }

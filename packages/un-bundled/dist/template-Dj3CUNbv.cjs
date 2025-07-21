@@ -1,3 +1,4 @@
+"use strict";
 class Mutation {
   constructor(place) {
     this.place = place;
@@ -146,11 +147,6 @@ _TemplateParser.basicReplacements = [
     place: "element content",
     types: (param) => param instanceof Node,
     mutator: (place, value) => new ElementContentMutation(place, value)
-  },
-  {
-    place: "tag content",
-    types: ["function"],
-    mutator: (place, value) => new TagContentMutation(place, value)
   }
 ];
 let TemplateParser = _TemplateParser;
@@ -158,8 +154,6 @@ function checkType(param, sub) {
   if (typeof sub.types === "function") return sub.types(param, sub);
   return sub.types.includes(typeof param);
 }
-export {
-  Mutation as M,
-  TagContentMutation as T,
-  TemplateParser as a
-};
+exports.Mutation = Mutation;
+exports.TagContentMutation = TagContentMutation;
+exports.TemplateParser = TemplateParser;

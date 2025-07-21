@@ -84,7 +84,7 @@ declare function html<T extends object>(template: TemplateStringsArray, ...param
 
 declare function map<T extends object>(view: ViewTemplate<T>, list: Array<T>): void[];
 
-export declare type RenderFunction<T extends object> = (data: T) => TemplateValue;
+export declare type RenderFunction<T extends object> = (data: T, el: Element) => TemplateValue;
 
 export declare interface Source<T extends object> {
     start(fn: SourceEffect<T>): Promise<T>;

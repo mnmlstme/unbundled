@@ -241,7 +241,7 @@ export declare class Provider<T extends object> extends HTMLElement {
     detach(observer: SignalReceiver<T>): void;
 }
 
-export declare type RenderFunction<T extends object> = (data: T) => TemplateValue;
+export declare type RenderFunction<T extends object> = (data: T, el: Element) => TemplateValue;
 
 export declare function replace<M>(replacements: Partial<M>): MapFn<M>;
 

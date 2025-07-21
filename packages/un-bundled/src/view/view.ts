@@ -2,6 +2,7 @@ import {
   AttributeValuePlace,
   DynamicDocumentFragment,
   ElementContentPlace,
+  TagContentPlace,
   Mutation,
   Replacement,
   TemplateParameter,
@@ -25,7 +26,10 @@ export interface ViewTemplate<T extends object>
   effectors?: Map<string, Array<Effector<T>>>;
 }
 
-export type RenderFunction<T extends object> = (data: T) => TemplateValue;
+export type RenderFunction<T extends object> = (
+  data: T,
+  el: Element
+) => TemplateValue;
 
 function map<T extends object>(view: ViewTemplate<T>, list: Array<T>) {
   return list.map(($) => {
@@ -64,7 +68,7 @@ class ElementContentEffect<T extends object> extends Mutation {
         parent.replaceChild(placeholder, site);
         // console.log("Placeholder inserted:", parent);
         viewModel.createEffect((vm: T) => {
-          const value = this.fn(vm);
+          const value = this.fn(vm, site);
           let node = value instanceof Node ? value : null;
           if (!node) {
             switch (typeof value) {
@@ -116,7 +120,7 @@ class AttributeEffect<T extends object> extends Mutation {
       (site: Element, _: DocumentFragment, viewModel: Context<T>) => {
         // console.log("Creating effect for AttributeEffect", this, site);
         viewModel.createEffect((vm: T) => {
-          const value = this.fn(vm);
+          const value = this.fn(vm, site);
           switch (typeof value) {
             case "string":
               site.setAttribute(this.name, value);
@@ -135,20 +139,50 @@ class AttributeEffect<T extends object> extends Mutation {
   }
 }
 
+class TagEffect<T extends object> extends Mutation {
+  fn: RenderFunction<T>;
+
+  constructor(place: TagContentPlace, fn: RenderFunction<T>) {
+    super(place);
+    this.fn = fn;
+    console.log("Created new tag effect", this);
+  }
+
+  override apply(_site: Element, fragment: DynamicDocumentFragment): void {
+    const key = this.place.nodeLabel;
+
+    console.log("Applying TagEffect", this);
+    registerEffect(
+      fragment as ViewTemplate<T>,
+      key,
+      (site: Element, _: DocumentFragment, viewModel: Context<T>) => {
+        console.log("Creating effect for TagEffect", this, site);
+        viewModel.createEffect((vm: T) => {
+          this.fn(vm, site);
+        });
+      }
+    );
+  }
+}
+
 const viewReplacements: Array<Replacement> = [
   {
     place: "element content",
     types: ["function"],
-    mutator: (place: ElementContentPlace, param: TemplateParameter) => {
-      return new ElementContentEffect(place, param as RenderFunction<any>);
-    }
+    mutator: (place: ElementContentPlace, param: TemplateParameter) =>
+      new ElementContentEffect(place, param as RenderFunction<any>)
   },
   {
     place: "attr value",
     types: ["function"],
-    mutator: (place: AttributeValuePlace, param: TemplateParameter) => {
-      return new AttributeEffect(place, param as RenderFunction<any>);
-    }
+    mutator: (place: AttributeValuePlace, param: TemplateParameter) =>
+      new AttributeEffect(place, param as RenderFunction<any>)
+  },
+  {
+    place: "tag content",
+    types: ["function"],
+    mutator: (place: TagContentPlace, param: TemplateParameter) =>
+      new TagEffect(place, param as RenderFunction<any>)
   }
 ];
 
