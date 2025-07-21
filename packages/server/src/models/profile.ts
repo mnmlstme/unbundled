@@ -3,7 +3,7 @@ export interface Profile {
   name: string;
   nickname?: string;
   home: string;
-  airports: Array<String>;
+  airports: Array<string>;
   avatar?: undefined;
   color?: string;
 }
