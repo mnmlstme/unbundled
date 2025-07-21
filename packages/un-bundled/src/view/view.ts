@@ -41,6 +41,7 @@ function map<T extends object>(view: ViewTemplate<T>, list: Array<T>) {
 }
 
 function apply<T extends object>(view: ViewTemplate<T>, $: T | undefined) {
+  // console.log("Applying viewmodel", $);
   if (!$) return "";
 
   const context = new Context<T>($);
@@ -89,7 +90,7 @@ class ElementContentEffect<T extends object> extends Mutation {
                 }
             }
           }
-          console.log("Rendered for view:", value, node);
+          // console.log("Rendered for view:", value, node);
           let p = start.nextSibling;
           while (p && p !== end) {
             parent.removeChild(p);
@@ -159,7 +160,7 @@ class TagEffect<T extends object> extends Mutation {
       fragment as ViewTemplate<T>,
       key,
       (site: Element, _: DocumentFragment, viewModel: Context<T>) => {
-        console.log("Creating effect for TagEffect", this, site);
+        // console.log("Creating effect for TagEffect", this, site);
         viewModel.createEffect((vm: T) => {
           this.fn(vm, site);
         });

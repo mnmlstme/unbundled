@@ -2,7 +2,7 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const html = require("./html.cjs");
 const template = require("./template-Dj3CUNbv.cjs");
-const context = require("./context-DycUTdK3.cjs");
+const context = require("./context-CnKIlkcw.cjs");
 const effects = require("./effects.cjs");
 const view = require("./view.cjs");
 class Dispatch extends CustomEvent {

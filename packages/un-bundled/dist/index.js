@@ -1,7 +1,7 @@
 import { css, define, html, shadow } from "./html.js";
 import { M, T, a } from "./template-C15yP-vD.js";
-import { C as Context } from "./context-BNE4sWaw.js";
-import { E, S, c } from "./context-BNE4sWaw.js";
+import { C as Context } from "./context-C8P65ok3.js";
+import { E, S, c } from "./context-C8P65ok3.js";
 import { DirectEffect } from "./effects.js";
 import { View, ViewModel, createView, createViewModel, fromAttributes, fromInputs } from "./view.js";
 class Dispatch extends CustomEvent {

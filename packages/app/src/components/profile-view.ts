@@ -37,16 +37,16 @@ export class ProfileViewElement extends HTMLElement {
   })
     .merge(
       {
+        userid: undefined
+      },
+      fromAttributes(this)
+    )
+    .merge(
+      {
         token: undefined,
         username: undefined
       },
       fromAuth(this)
-    )
-    .merge(
-      {
-        userid: undefined
-      },
-      fromAttributes(this)
     );
 
   constructor() {
@@ -72,7 +72,6 @@ export class ProfileViewElement extends HTMLElement {
       });
 
     this.viewModel.createEffect(($) => {
-      console.log("Maybe hydrate?", $.userid, $.token);
       if ($.userid && $.token) this.hydrate($.userid, $.token);
     });
   }

@@ -15,7 +15,7 @@ class FromAttributes<T extends object> implements Source<T> {
     const observer = new MutationObserver(effectChanges);
     const element = this.subject;
     observer.observe(element, { attributes: true });
-    console.log("Observing attributes of", element);
+    // console.log("Observing attributes of", element);
 
     return new Promise<T>((resolve, _reject) => {
       const init: { [name: string]: string } = {};
@@ -30,7 +30,7 @@ class FromAttributes<T extends object> implements Source<T> {
       mutations.forEach((mut) => {
         const name = mut.attributeName as keyof T;
         const value = element.getAttribute(name as string);
-        console.log("Mutation!", name, value);
+        // console.log("Attribute Mutation!", name, value);
         fn(name, value);
       });
     }

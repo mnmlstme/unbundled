@@ -41,7 +41,7 @@ export class EffectsManager<T extends object> {
     // console.log("Running effects for signal", key, signal);
     if (signal) {
       for (const effect of signal) {
-        effect.execute(scope);
+        setTimeout(() => effect.execute(scope));
       }
     }
     if (this.host) {

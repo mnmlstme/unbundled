@@ -1,4 +1,3 @@
-"use strict";
 class SignalEvent extends CustomEvent {
   constructor(eventType, signal) {
     super(eventType, {
@@ -40,7 +39,7 @@ class EffectsManager {
     const signal = this.signals.get(key);
     if (signal) {
       for (const effect of signal) {
-        effect.execute(scope);
+        setTimeout(() => effect.execute(scope));
       }
     }
     if (this.host) {
@@ -133,7 +132,9 @@ function isObservable(value) {
       return false;
   }
 }
-exports.Context = Context;
-exports.EffectsManager = EffectsManager;
-exports.SignalEvent = SignalEvent;
-exports.createContext = createContext;
+export {
+  Context as C,
+  EffectsManager as E,
+  SignalEvent as S,
+  createContext as c
+};

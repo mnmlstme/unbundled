@@ -32,7 +32,9 @@ export class ViewModel<T extends object> extends Context<T> {
         })
         .then((firstObservation: S) => {
           // console.log("ViewModel source observed:", firstObservation);
-          merged.update(firstObservation);
+          inputNames.forEach((name) =>
+            merged.set(name, firstObservation[name])
+          );
         });
     }
 

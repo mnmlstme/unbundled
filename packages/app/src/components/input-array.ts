@@ -41,7 +41,7 @@ export class InputArrayElement extends HTMLElement {
       .replace(this.viewModel.render(this.view))
       .delegate("input", {
         change: (ev: Event) => {
-          console.log("Changed!", ev);
+          // console.log("Changed!", ev);
           const input = ev.target as HTMLInputElement;
           this.changeFormValue(input, input.value);
         }
@@ -100,7 +100,7 @@ export class InputArrayElement extends HTMLElement {
     const item = input.closest("li");
     const list = item?.closest("ul");
     if (!list) return undefined;
-    console.log("Getting Index of input:", input);
+    // console.log("Getting Index of input:", input);
     const items = list.children;
     for (let i = 0; items && i < items.length; i++) {
       if (items[i] === item) return i;

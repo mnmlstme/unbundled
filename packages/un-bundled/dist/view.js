@@ -1,5 +1,5 @@
-import { C as Context } from "./context-BNE4sWaw.js";
-import { c } from "./context-BNE4sWaw.js";
+import { C as Context } from "./context-C8P65ok3.js";
+import { c } from "./context-C8P65ok3.js";
 import { a as TemplateParser, M as Mutation } from "./template-C15yP-vD.js";
 function createView(html2) {
   return html2;
@@ -51,7 +51,6 @@ class ElementContentEffect extends Mutation {
                 }
             }
           }
-          console.log("Rendered for view:", value, node);
           let p = start.nextSibling;
           while (p && p !== end) {
             parent.removeChild(p);
@@ -105,7 +104,6 @@ class TagEffect extends Mutation {
       fragment,
       key,
       (site, _, viewModel) => {
-        console.log("Creating effect for TagEffect", this, site);
         viewModel.createEffect((vm) => {
           this.fn(vm, site);
         });
@@ -184,7 +182,9 @@ class ViewModel extends Context {
       source.start((name, value) => {
         if (inputNames.includes(name)) merged.set(name, value);
       }).then((firstObservation) => {
-        merged.update(firstObservation);
+        inputNames.forEach(
+          (name) => merged.set(name, firstObservation[name])
+        );
       });
     }
     return merged;
@@ -207,7 +207,6 @@ class FromAttributes {
     const observer = new MutationObserver(effectChanges);
     const element = this.subject;
     observer.observe(element, { attributes: true });
-    console.log("Observing attributes of", element);
     return new Promise((resolve, _reject) => {
       const init = {};
       const attributes = element.attributes;
@@ -220,7 +219,6 @@ class FromAttributes {
       mutations.forEach((mut) => {
         const name = mut.attributeName;
         const value = element.getAttribute(name);
-        console.log("Mutation!", name, value);
         fn(name, value);
       });
     }

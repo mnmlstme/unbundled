@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const context = require("./context-DycUTdK3.cjs");
+const context = require("./context-CnKIlkcw.cjs");
 const template = require("./template-Dj3CUNbv.cjs");
 function createView(html2) {
   return html2;
@@ -52,7 +52,6 @@ class ElementContentEffect extends template.Mutation {
                 }
             }
           }
-          console.log("Rendered for view:", value, node);
           let p = start.nextSibling;
           while (p && p !== end) {
             parent.removeChild(p);
@@ -106,7 +105,6 @@ class TagEffect extends template.Mutation {
       fragment,
       key,
       (site, _, viewModel) => {
-        console.log("Creating effect for TagEffect", this, site);
         viewModel.createEffect((vm) => {
           this.fn(vm, site);
         });
@@ -185,7 +183,9 @@ class ViewModel extends context.Context {
       source.start((name, value) => {
         if (inputNames.includes(name)) merged.set(name, value);
       }).then((firstObservation) => {
-        merged.update(firstObservation);
+        inputNames.forEach(
+          (name) => merged.set(name, firstObservation[name])
+        );
       });
     }
     return merged;
@@ -208,7 +208,6 @@ class FromAttributes {
     const observer = new MutationObserver(effectChanges);
     const element = this.subject;
     observer.observe(element, { attributes: true });
-    console.log("Observing attributes of", element);
     return new Promise((resolve, _reject) => {
       const init = {};
       const attributes = element.attributes;
@@ -221,7 +220,6 @@ class FromAttributes {
       mutations.forEach((mut) => {
         const name = mut.attributeName;
         const value = element.getAttribute(name);
-        console.log("Mutation!", name, value);
         fn(name, value);
       });
     }
