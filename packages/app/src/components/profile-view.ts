@@ -140,10 +140,9 @@ export class ProfileViewElement extends HTMLElement {
         </dd>
         <dt id="airports-label">Airports</dt>
         <dd>
-          <input-array ${($, ref) => {
-            (ref as InputArrayElement).value = $.airports;
-          }}
+          <input-array
             name="airports"
+            .value=${($) => $.airports}
             aria-labelled-by="airports-label"/>
           </input-array>
         </dd>

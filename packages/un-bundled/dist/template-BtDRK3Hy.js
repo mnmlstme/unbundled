@@ -1,4 +1,3 @@
-"use strict";
 class Mutation {
   constructor(place) {
     this.place = place;
@@ -65,7 +64,7 @@ const _TemplateParser = class _TemplateParser {
             return [s, `<ins data-${place.nodeLabel}></ins>`];
         }
       } else {
-        console.log("Failed to render template parameter: ", i, s, param);
+        throw `Failed to render template parameter ${i} around ${s}`;
       }
       return [s];
     }).flat().join("");
@@ -77,7 +76,9 @@ const _TemplateParser = class _TemplateParser {
     const fragment = new DocumentFragment();
     fragment.replaceChildren(...collection);
     for (const label in postProcess) {
-      const site = fragment.querySelector(`[data-${label}]`);
+      const site = fragment.querySelector(
+        `[data-${label}]`
+      );
       if (site) {
         const mutations = postProcess[label];
         mutations.forEach((m) => m.apply(site, fragment));
@@ -125,9 +126,9 @@ const _TemplateParser = class _TemplateParser {
   }
 };
 _TemplateParser.parser = new DOMParser();
-_TemplateParser.OPEN_RE = /<([a-zA-z][$a-zA-Z0-9-]*)\s+[^>]*$/;
+_TemplateParser.OPEN_RE = /<([a-zA-z][$a-zA-Z0-9.-]*)\s+[^>]*$/;
 _TemplateParser.IN_TAG_RE = /^(\s+|[^<>]*|"[^"]*")*$/;
-_TemplateParser.ATTR_RE = /([a-zA-Z-]+)=\s*$/;
+_TemplateParser.ATTR_RE = /([$.]?[a-zA-Z][$a-zA-Z0-9.-]*)=\s*$/;
 _TemplateParser.CLOSE_RE = /[/]?>[^<]*$/;
 _TemplateParser.basicReplacements = [
   {
@@ -154,6 +155,8 @@ function checkType(param, sub) {
   if (typeof sub.types === "function") return sub.types(param, sub);
   return sub.types.includes(typeof param);
 }
-exports.Mutation = Mutation;
-exports.TagContentMutation = TagContentMutation;
-exports.TemplateParser = TemplateParser;
+export {
+  Mutation as M,
+  TagContentMutation as T,
+  TemplateParser as a
+};

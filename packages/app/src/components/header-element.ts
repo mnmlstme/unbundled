@@ -30,8 +30,7 @@ export class HeaderElement extends HTMLElement {
       <p>Hello, ${($) => $.username || "traveler"}</p>
     <menu>
         <li class="when-signed-in">
-          <a ${(_, ref: Element) =>
-            ref.addEventListener("click", () => this.signout())}>
+          <a>
             Sign Out
           </a>
         </li>
@@ -95,7 +94,10 @@ export class HeaderElement extends HTMLElement {
     super();
     shadow(this)
       .styles(reset.styles, headings.styles, HeaderElement.styles)
-      .replace(this.viewModel.render(this.view));
+      .replace(this.viewModel.render(this.view))
+      .delegate(".when-signed-in a", {
+        click: () => this.signout()
+      });
   }
 
   signout() {

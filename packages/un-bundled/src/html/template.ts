@@ -135,7 +135,7 @@ export class TemplateParser {
               return [s, `<ins data-${place.nodeLabel}></ins>`];
           }
         } else {
-          console.log("Failed to render template parameter: ", i, s, param);
+          throw `Failed to render template parameter ${i} around ${s}`;
         }
         return [s];
       })
@@ -154,7 +154,9 @@ export class TemplateParser {
     fragment.replaceChildren(...collection);
 
     for (const label in postProcess) {
-      const site: Element | null = fragment.querySelector(`[data-${label}]`);
+      const site: HTMLElement | null = fragment.querySelector(
+        `[data-${label}]`
+      );
       // console.log("Post-processing:", label, site);
       if (site) {
         const mutations = postProcess[label];
@@ -165,9 +167,9 @@ export class TemplateParser {
     return Object.assign(fragment, {});
   }
 
-  static OPEN_RE = /<([a-zA-z][$a-zA-Z0-9-]*)\s+[^>]*$/;
+  static OPEN_RE = /<([a-zA-z][$a-zA-Z0-9.-]*)\s+[^>]*$/;
   static IN_TAG_RE = /^(\s+|[^<>]*|"[^"]*")*$/;
-  static ATTR_RE = /([a-zA-Z-]+)=\s*$/;
+  static ATTR_RE = /([$.]?[a-zA-Z][$a-zA-Z0-9.-]*)=\s*$/;
   static CLOSE_RE = /[/]?>[^<]*$/;
 
   classifyPlace(i: number, template: TemplateStringsArray): ReplacementPlace {

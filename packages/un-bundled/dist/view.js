@@ -1,6 +1,6 @@
 import { C as Context } from "./context-C8P65ok3.js";
 import { c } from "./context-C8P65ok3.js";
-import { a as TemplateParser, M as Mutation } from "./template-C15yP-vD.js";
+import { a as TemplateParser, M as Mutation } from "./template-BtDRK3Hy.js";
 function createView(html2) {
   return html2;
 }
@@ -76,17 +76,33 @@ class AttributeEffect extends Mutation {
       (site, _, viewModel) => {
         viewModel.createEffect((vm) => {
           const value = this.fn(vm, site);
-          switch (typeof value) {
-            case "string":
-              site.setAttribute(this.name, value);
-              break;
-            case "undefined":
-            case "boolean":
-              if (value) site.setAttribute(this.name, this.name);
-              else site.removeAttribute(this.name);
-              break;
-            default:
-              site.setAttribute(this.name, value.toString());
+          const special = this.name.match(/^([.$])(.+)$/);
+          if (special) {
+            const [_2, pre, name] = special;
+            switch (pre) {
+              case ".":
+                console.log("Setting property", name, value);
+                site[name] = value;
+                break;
+              case "$":
+                if ("viewModel" in site && site.viewModel instanceof Context) {
+                  site.viewModel.set(name, value);
+                }
+                break;
+            }
+          } else {
+            switch (typeof value) {
+              case "string":
+                site.setAttribute(this.name, value);
+                break;
+              case "undefined":
+              case "boolean":
+                if (value) site.setAttribute(this.name, this.name);
+                else site.removeAttribute(this.name);
+                break;
+              default:
+                site.setAttribute(this.name, value.toString());
+            }
           }
         });
       }

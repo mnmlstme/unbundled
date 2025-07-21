@@ -125,17 +125,35 @@ class AttributeEffect<T extends object> extends Mutation {
         // console.log("Creating effect for AttributeEffect", this, site);
         viewModel.createEffect((vm: T) => {
           const value = this.fn(vm, site);
-          switch (typeof value) {
-            case "string":
-              site.setAttribute(this.name, value);
-              break;
-            case "undefined":
-            case "boolean":
-              if (value) site.setAttribute(this.name, this.name);
-              else site.removeAttribute(this.name);
-              break;
-            default:
-              site.setAttribute(this.name, value.toString());
+          const special = this.name.match(/^([.$])(.+)$/);
+          if (special) {
+            const [_, pre, name] = special;
+            switch (pre) {
+              case ".":
+                console.log("Setting property", name, value);
+                (site as unknown as { [name]: any })[name] = value;
+                break;
+              case "$":
+                if ("viewModel" in site && site.viewModel instanceof Context) {
+                  (
+                    site as unknown as { viewModel: Context<{ [name]: any }> }
+                  ).viewModel.set(name, value);
+                }
+                break;
+            }
+          } else {
+            switch (typeof value) {
+              case "string":
+                site.setAttribute(this.name, value);
+                break;
+              case "undefined":
+              case "boolean":
+                if (value) site.setAttribute(this.name, this.name);
+                else site.removeAttribute(this.name);
+                break;
+              default:
+                site.setAttribute(this.name, value.toString());
+            }
           }
         });
       }

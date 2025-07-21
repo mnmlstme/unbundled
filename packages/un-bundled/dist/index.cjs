@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const html = require("./html.cjs");
-const template = require("./template-Dj3CUNbv.cjs");
+const template = require("./template-c79EwCZk.cjs");
 const context = require("./context-CnKIlkcw.cjs");
 const effects = require("./effects.cjs");
 const view = require("./view.cjs");

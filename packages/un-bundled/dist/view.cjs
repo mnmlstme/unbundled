@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const context = require("./context-CnKIlkcw.cjs");
-const template = require("./template-Dj3CUNbv.cjs");
+const template = require("./template-c79EwCZk.cjs");
 function createView(html2) {
   return html2;
 }
@@ -77,17 +77,33 @@ class AttributeEffect extends template.Mutation {
       (site, _, viewModel) => {
         viewModel.createEffect((vm) => {
           const value = this.fn(vm, site);
-          switch (typeof value) {
-            case "string":
-              site.setAttribute(this.name, value);
-              break;
-            case "undefined":
-            case "boolean":
-              if (value) site.setAttribute(this.name, this.name);
-              else site.removeAttribute(this.name);
-              break;
-            default:
-              site.setAttribute(this.name, value.toString());
+          const special = this.name.match(/^([.$])(.+)$/);
+          if (special) {
+            const [_2, pre, name] = special;
+            switch (pre) {
+              case ".":
+                console.log("Setting property", name, value);
+                site[name] = value;
+                break;
+              case "$":
+                if ("viewModel" in site && site.viewModel instanceof context.Context) {
+                  site.viewModel.set(name, value);
+                }
+                break;
+            }
+          } else {
+            switch (typeof value) {
+              case "string":
+                site.setAttribute(this.name, value);
+                break;
+              case "undefined":
+              case "boolean":
+                if (value) site.setAttribute(this.name, this.name);
+                else site.removeAttribute(this.name);
+                break;
+              default:
+                site.setAttribute(this.name, value.toString());
+            }
           }
         });
       }
