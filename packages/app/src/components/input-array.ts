@@ -1,19 +1,19 @@
 import {
   css,
-  html,
   shadow,
   fromAttributes,
   ViewModel,
   View,
+  createView,
   createViewModel
 } from "@un-/bundled";
+
+const html = View.html;
 
 interface InputArrayData {
   name: string;
   values: Array<string>;
 }
-
-type InputItem<T> = { name: string; value: T };
 
 export class InputArrayElement extends HTMLElement {
   viewModel: ViewModel<InputArrayData> = createViewModel({
@@ -21,9 +21,6 @@ export class InputArrayElement extends HTMLElement {
   }).merge({ name: "" }, fromAttributes(this));
 
   static formAssociated = true;
-  //formInternals: ElementInternals;
-  //private formData;
-  inputSlot?: HTMLSlotElement | null;
 
   get name(): string {
     return this.viewModel.$.name;
@@ -39,37 +36,38 @@ export class InputArrayElement extends HTMLElement {
 
   constructor() {
     super();
-    //this.formInternals = this.attachInternals();
-    //this.formData = new FormData();
     shadow(this)
       .styles(InputArrayElement.styles)
-      .replace(this.view)
+      .replace(this.viewModel.render(this.view))
       .delegate("input", {
-        change: (ev) => {
+        change: (ev: Event) => {
           console.log("Changed!", ev);
           const input = ev.target as HTMLInputElement;
           this.changeFormValue(input, input.value);
         }
       });
-    this.inputSlot = this.shadowRoot?.querySelector("slot:not([name])");
   }
 
-  view = this.viewModel.html`
+  view = createView<InputArrayData>(html`
     <fieldset name=${($) => $.name}>
       <slot></slot>
-      ${($) =>
-        $.values.map(
-          (s, i) => View.html`
-           <input value=${s}/>
-           <button>Remove</Button>`
-        )}
+      <ul>
+        ${($) =>
+          $.values.map(
+            (s, i) => View.html`
+              <li>
+           <input name=${i} value=${s}/>
+           <button>Remove</Button>
+              </li>`
+          )}
+      </ul>
     </fieldset>
-  `;
+  `);
 
-  itemView = View.html<InputItem<string>>`
-    <input value=${($) => $.value}/>
-    <button>Remove</Button>
-  `;
+  itemView = createView<{ value: string }>(html`
+    <input value=${($) => $.value} />
+    <button>Remove</button>
+  `);
 
   static styles = css`
     fieldset {
@@ -84,11 +82,13 @@ export class InputArrayElement extends HTMLElement {
   }
 
   getElementIndex(input: HTMLElement): number | undefined {
-    if (!parent) return undefined;
-    const inputs = this.inputSlot?.assignedElements();
-    for (let i = 0; inputs && i < inputs.length; i++) {
-      console.log("Counting inputs:", i, inputs[i]);
-      if (inputs[i] === input) return i;
+    const item = input.closest("li");
+    const list = item?.closest("ul");
+    if (!list) return undefined;
+    console.log("Getting Index of input:", input);
+    const items = list.children;
+    for (let i = 0; items && i < items.length; i++) {
+      if (items[i] === item) return i;
     }
     return undefined;
   }

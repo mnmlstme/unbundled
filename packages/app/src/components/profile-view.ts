@@ -2,8 +2,7 @@ import {
   css,
   define,
   View,
-  ViewModel,
-  ViewTemplate,
+  createView,
   createViewModel,
   fromAttributes,
   fromAuth,
@@ -24,10 +23,6 @@ interface ProfileViewData {
   _avatar?: string;
 }
 
-function createView<T extends object>(html: ViewTemplate<T>) {
-  return html;
-}
-
 const html = View.html;
 
 export class ProfileViewElement extends HTMLElement {
@@ -37,7 +32,8 @@ export class ProfileViewElement extends HTMLElement {
 
   viewModel = createViewModel({
     mode: "view",
-    profile: undefined
+    profile: undefined,
+    _avatar: undefined
   })
     .merge(
       {
@@ -248,12 +244,6 @@ export class ProfileViewElement extends HTMLElement {
     ev.preventDefault();
 
     const form = ev.target as HTMLFormElement;
-    const inputs = Array.from(form.elements).filter(
-      (el) => el.tagName !== "BUTTON" && "name" in el
-    ) as Array<HTMLInputElement>;
-    console.log("Inputs:", inputs);
-    const entries = inputs.map((el) => [el.name, el.value]);
-    console.log("Entries:", entries);
     const json = this.formDataToJSON(form);
     const userid = this.viewModel.get("userid");
     const token = this.viewModel.get("token");
@@ -278,15 +268,21 @@ export class ProfileViewElement extends HTMLElement {
   }
 
   formDataToJSON(form: HTMLFormElement): string {
-    const formdata = new FormData(form);
-    const entries = Array.from(formdata.entries())
-      .map(([k, v]) => (v === "" ? [k] : [k, v]))
-      .map(([k, v]) =>
-        k === "avatar" ? [k, this.viewModel.get("_avatar")] : [k, v]
-      );
-
-    const profile = raiseStructure(entries as Array<FormEntry>);
-    return JSON.stringify(profile);
+    const inputs = Array.from(form.elements).filter(
+      (el) => el.tagName !== "BUTTON" && "name" in el
+    ) as Array<HTMLInputElement>;
+    console.log("Inputs:", inputs);
+    const entries = inputs.map((el) => {
+      const k = el.name;
+      switch (k) {
+        case "avatar":
+          return [k, this.viewModel.get("_avatar")];
+        default:
+          return [k, el.value];
+      }
+    });
+    console.log("Entries:", entries);
+    return JSON.stringify(Object.fromEntries(entries));
   }
 
   readAvatarBase64(files: FileList) {
@@ -302,46 +298,5 @@ export class ProfileViewElement extends HTMLElement {
         this.viewModel.set("_avatar", result as string);
       });
     }
-  }
-}
-
-type FormEntry = [string, string, ...rest: string[]];
-type PathedEntry = [Array<string>, string, ...rest: string[]];
-type ObjectEntry = [string, string | object | Array<any>];
-
-function raiseStructure(entries: Array<FormEntry>): object {
-  const pathed: Array<PathedEntry> = entries.map(([key, ...values]) => [
-    key
-      .split(/\]?\.|\[/)
-      .map((s) => (s.endsWith("]") ? s.substring(0, s.length - 1) : s)),
-    ...values
-  ]);
-
-  return fromPathedEntries(pathed);
-
-  function fromPathedEntries(pathed: Array<PathedEntry>): object {
-    const deepPaths = pathed.filter(([path]) => path.length > 1);
-    let entries: Array<ObjectEntry> = pathed
-      .filter(([path]) => path.length === 1)
-      .map(([path, ...values]) => [path[0], values[0]]);
-
-    if (deepPaths.length) {
-      const groups: Map<string | number, Array<PathedEntry>> = new Map();
-      pathed
-        .filter(([path]) => path.length > 1)
-        .forEach(([path, ...values]) => {
-          const [key, ...rest] = path;
-          const newEntry: PathedEntry = [rest, ...values];
-          const group = groups.get(key);
-          if (group) group.push(newEntry);
-          else groups.set(key, [newEntry]);
-        });
-
-      const flattenedEntries: Array<ObjectEntry> = Array.from(
-        groups.entries()
-      ).map(([key, pathedEntries]) => [key, fromPathedEntries(pathedEntries)]);
-      entries = entries.concat(flattenedEntries);
-    }
-    return Object.fromEntries(entries);
   }
 }
