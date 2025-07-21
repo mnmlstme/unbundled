@@ -348,6 +348,7 @@ export declare const View: {
 
 export declare class ViewModel<T extends object> extends Context<T> {
     constructor(init: Partial<T>, adoptedContext?: Context<T>);
+    get $(): T;
     html(template: TemplateStringsArray, ...params: Array<TemplateParameter | RenderFunction<T>>): DynamicDocumentFragment;
     merge<S extends object>(other: Partial<S>, source?: Source<S>): ViewModel<T & S>;
     render(view: ViewTemplate<T>): DynamicDocumentFragment;

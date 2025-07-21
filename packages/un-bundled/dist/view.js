@@ -147,6 +147,9 @@ class ViewModel extends Context {
   constructor(init, adoptedContext) {
     super(init, adoptedContext);
   }
+  get $() {
+    return this.toObject();
+  }
   html(template, ...params) {
     const view = View.html(template, ...params);
     return this.render(view);

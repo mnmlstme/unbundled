@@ -1,4 +1,12 @@
-import { fromAttributes, ViewModel, View, createViewModel } from "@un-/bundled";
+import {
+  css,
+  html,
+  shadow,
+  fromAttributes,
+  ViewModel,
+  View,
+  createViewModel
+} from "@un-/bundled";
 
 interface InputArrayData {
   name: string;
@@ -12,10 +20,42 @@ export class InputArrayElement extends HTMLElement {
     values: [] as Array<string>
   }).merge({ name: "" }, fromAttributes(this));
 
+  static formAssociated = true;
+  formInternals: ElementInternals;
+  private formData;
+  inputSlot?: HTMLSlotElement | null;
+
+  get value(): Array<string> {
+    return this.viewModel.$.values;
+  }
+
+  set value(array: Array<string>) {
+    this.viewModel.set("values", array);
+  }
+
+  constructor() {
+    super();
+    this.formInternals = this.attachInternals();
+    this.formData = new FormData();
+    shadow(this)
+      .styles(InputArrayElement.styles)
+      .replace(this.view)
+      .delegate("input", {
+        change: (ev) => {
+          console.log("Changed!", ev);
+          const input = ev.target as HTMLInputElement;
+          this.changeFormValue(input, input.value);
+        }
+      });
+    this.inputSlot = this.shadowRoot?.querySelector("slot:not([name])");
+  }
+
   view = this.viewModel.html`
     <fieldset name=${($) => $.name}>
-      <slot name="legend><legend>Input Array</legend></slot>
-      ${($) =>
+      <slot name="legend">
+        <legend>Input Array</legend>
+      </slot>
+      <slot>${($) =>
         View.map(
           this.itemView,
           $.values.map((s, i) => ({
@@ -23,10 +63,35 @@ export class InputArrayElement extends HTMLElement {
             value: s
           }))
         )}
+        </slot>
     </fieldset>
   `;
 
   itemView = View.html<InputItem<string>>`
-    <input name=${($) => $.name} value=${($) => $.value}/>
+    <input value=${($) => $.value}/>
+    <button>Remove</Button>
   `;
+
+  static styles = css`
+    fieldset {
+      padding: 0;
+      border: none;
+    }
+  `;
+
+  changeFormValue(input: HTMLElement, value: string) {
+    const index = this.getElementIndex(input);
+    this.formData.set(`${this.viewModel.$.name}[${index}]`, value);
+    this.formInternals.setFormValue(this.formData);
+  }
+
+  getElementIndex(input: HTMLElement): number | undefined {
+    if (!parent) return undefined;
+    const inputs = this.inputSlot?.assignedElements();
+    for (let i = 0; inputs && i < inputs.length; i++) {
+      console.log("Counting inputs:", i, inputs[i]);
+      if (inputs[i] === input) return i;
+    }
+    return undefined;
+  }
 }

@@ -10,6 +10,10 @@ export class ViewModel<T extends object> extends Context<T> {
     super(init as T, adoptedContext);
   }
 
+  get $() {
+    return this.toObject();
+  }
+
   html(
     template: TemplateStringsArray,
     ...params: Array<TemplateParameter | RenderFunction<T>>

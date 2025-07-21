@@ -112,7 +112,7 @@ export class ProfileViewElement extends HTMLElement {
         <span class="aria-only" name="name-label">Display Name</span>
         <input name="name"
           value=${($) => $.name}
-          aria-labelled-by="name-label/>
+          aria-labelled-by="name-label"/>
       </h1>
       <dl>
         <dt id="userid-label">Username</dt>
@@ -137,10 +137,8 @@ export class ProfileViewElement extends HTMLElement {
         <dd>
           <input-array name="airports"
             aria-labelled-by="airports-label"/>
-              ${($) =>
-                $.airports.map(
-                  (s, i) => html`<input name=${`airports.${i}`} value=${s} />`
-                )}
+            <legend slot="legend">Airports</legend>
+              ${($) => $.airports.map((s, i) => html`<input value=${s} />`)}
           </input-array>
         </dd>
         <dt id="color-label">Favorite Color</dt>
@@ -168,8 +166,6 @@ export class ProfileViewElement extends HTMLElement {
 
   static styles = css`
     :host {
-      display: contents;
-      grid-column: 2/-2;
       display: grid;
       grid-template-columns: subgrid;
     }
@@ -211,7 +207,7 @@ export class ProfileViewElement extends HTMLElement {
     dd {
       grid-column: 3 / -1;
     }
-    mu-form {
+    form {
       display: contents;
     }
     input {
@@ -268,15 +264,10 @@ export class ProfileViewElement extends HTMLElement {
     const entries = Array.from(formdata.entries())
       .map(([k, v]) => (v === "" ? [k] : [k, v]))
       .map(([k, v]) =>
-        k === "airports"
-          ? [k, (v as string).split(",").map((s) => s.trim())]
-          : [k, v]
-      )
-      .map(([k, v]) =>
         k === "avatar" ? [k, this.viewModel.get("_avatar")] : [k, v]
       );
 
-    const profile = Object.fromEntries(entries);
+    const profile = raiseStructure(entries as Array<FormEntry>);
     return JSON.stringify(profile);
   }
 
@@ -293,5 +284,46 @@ export class ProfileViewElement extends HTMLElement {
         this.viewModel.set("_avatar", result as string);
       });
     }
+  }
+}
+
+type FormEntry = [string, string, ...rest: string[]];
+type PathedEntry = [Array<string>, string, ...rest: string[]];
+type ObjectEntry = [string, string | object | Array<any>];
+
+function raiseStructure(entries: Array<FormEntry>): object {
+  const pathed: Array<PathedEntry> = entries.map(([key, ...values]) => [
+    key
+      .split(/\]?\.|\[/)
+      .map((s) => (s.endsWith("]") ? s.substring(0, s.length - 1) : s)),
+    ...values
+  ]);
+
+  return fromPathedEntries(pathed);
+
+  function fromPathedEntries(pathed: Array<PathedEntry>): object {
+    const deepPaths = pathed.filter(([path]) => path.length > 1);
+    let entries: Array<ObjectEntry> = pathed
+      .filter(([path]) => path.length === 1)
+      .map(([path, ...values]) => [path[0], values[0]]);
+
+    if (deepPaths.length) {
+      const groups: Map<string | number, Array<PathedEntry>> = new Map();
+      pathed
+        .filter(([path]) => path.length > 1)
+        .forEach(([path, ...values]) => {
+          const [key, ...rest] = path;
+          const newEntry: PathedEntry = [rest, ...values];
+          const group = groups.get(key);
+          if (group) group.push(newEntry);
+          else groups.set(key, [newEntry]);
+        });
+
+      const flattenedEntries: Array<ObjectEntry> = Array.from(
+        groups.entries()
+      ).map(([key, pathedEntries]) => [key, fromPathedEntries(pathedEntries)]);
+      entries = entries.concat(flattenedEntries);
+    }
+    return Object.fromEntries(entries);
   }
 }
