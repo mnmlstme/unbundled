@@ -358,6 +358,7 @@ exports.createContext = context.createContext;
 exports.DirectEffect = effects.DirectEffect;
 exports.View = view.View;
 exports.ViewModel = view.ViewModel;
+exports.createView = view.createView;
 exports.createViewModel = view.createViewModel;
 exports.fromAttributes = view.fromAttributes;
 exports.fromInputs = view.fromInputs;

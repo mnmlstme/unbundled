@@ -109,6 +109,8 @@ export declare class Context<T extends object> {
 
 export declare function createContext<T extends object>(root: T, manager: EffectsManager<T>): T;
 
+export declare function createView<T extends object>(html: ViewTemplate<T>): ViewTemplate<T>;
+
 export declare function createViewModel<T extends object>(init?: Partial<T>): ViewModel<T>;
 
 export declare function css(template: TemplateStringsArray, ...params: string[]): CSSStyleSheet;
@@ -349,7 +351,6 @@ export declare const View: {
 export declare class ViewModel<T extends object> extends Context<T> {
     constructor(init: Partial<T>, adoptedContext?: Context<T>);
     get $(): T;
-    html(template: TemplateStringsArray, ...params: Array<TemplateParameter | RenderFunction<T>>): DynamicDocumentFragment;
     merge<S extends object>(other: Partial<S>, source?: Source<S>): ViewModel<T & S>;
     render(view: ViewTemplate<T>): DynamicDocumentFragment;
 }

@@ -12,7 +12,9 @@ import {
 } from "../html";
 import { Context } from "../effects";
 
-export default { map, html };
+export function createView<T extends object>(html: ViewTemplate<T>) {
+  return html;
+}
 
 type Effector<T extends object> = (
   site: Element,
@@ -55,6 +57,7 @@ class ElementContentEffect<T extends object> extends Mutation {
 
   override apply(_: Element, fragment: DynamicDocumentFragment): void {
     const key = this.place.nodeLabel;
+    // console.log("Applying Element content effect", this);
 
     registerEffect(
       fragment as ViewTemplate<T>,
@@ -86,7 +89,7 @@ class ElementContentEffect<T extends object> extends Mutation {
                 }
             }
           }
-          // console.log("Rendered for view:", value, node);
+          console.log("Rendered for view:", value, node);
           let p = start.nextSibling;
           while (p && p !== end) {
             parent.removeChild(p);
@@ -145,13 +148,13 @@ class TagEffect<T extends object> extends Mutation {
   constructor(place: TagContentPlace, fn: RenderFunction<T>) {
     super(place);
     this.fn = fn;
-    console.log("Created new tag effect", this);
+    // console.log("Created new tag effect", this);
   }
 
   override apply(_site: Element, fragment: DynamicDocumentFragment): void {
     const key = this.place.nodeLabel;
 
-    console.log("Applying TagEffect", this);
+    // console.log("Applying TagEffect", this);
     registerEffect(
       fragment as ViewTemplate<T>,
       key,

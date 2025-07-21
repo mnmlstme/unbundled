@@ -1,7 +1,7 @@
 import { Context } from "../effects/index.ts";
 import { Source } from "./source.ts";
-import { RenderFunction, ViewTemplate, View } from "./view.ts";
-import { DynamicDocumentFragment, TemplateParameter } from "../html/index.ts";
+import { ViewTemplate } from "./view.ts";
+import { DynamicDocumentFragment } from "../html/index.ts";
 
 export type ViewModelPlugin<T extends object> = (host: ViewModel<T>) => object;
 
@@ -12,14 +12,6 @@ export class ViewModel<T extends object> extends Context<T> {
 
   get $() {
     return this.toObject();
-  }
-
-  html(
-    template: TemplateStringsArray,
-    ...params: Array<TemplateParameter | RenderFunction<T>>
-  ): DynamicDocumentFragment {
-    const view = View.html<T>(template, ...params);
-    return this.render(view);
   }
 
   merge<S extends object>(

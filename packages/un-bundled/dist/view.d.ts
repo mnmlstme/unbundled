@@ -32,6 +32,8 @@ declare class Context_2<T extends object> {
 
 export declare function createContext<T extends object>(root: T, manager: EffectsManager<T>): T;
 
+export declare function createView<T extends object>(html: ViewTemplate<T>): ViewTemplate<T>;
+
 export declare function createViewModel<T extends object>(init?: Partial<T>): ViewModel<T>;
 
 declare interface DynamicDocumentFragment extends DocumentFragment {
@@ -94,17 +96,10 @@ export declare type SourceEffect<T> = (name: keyof T, value: any) => void;
 
 declare type TemplateParameter = TemplateValue | TemplatePlaceHolder;
 
-declare type TemplateParameter_2 = TemplateValue_2 | TemplatePlaceHolder_2;
-
 declare interface TemplatePlaceHolder {
 }
 
-declare interface TemplatePlaceHolder_2 {
-}
-
 declare type TemplateValue = string | number | boolean | object | Node;
-
-declare type TemplateValue_2 = string | number | boolean | object | Node;
 
 export declare const View: {
     apply: typeof apply;
@@ -115,7 +110,6 @@ export declare const View: {
 export declare class ViewModel<T extends object> extends Context<T> {
     constructor(init: Partial<T>, adoptedContext?: Context<T>);
     get $(): T;
-    html(template: TemplateStringsArray, ...params: Array<TemplateParameter_2 | RenderFunction<T>>): DynamicDocumentFragment_2;
     merge<S extends object>(other: Partial<S>, source?: Source<S>): ViewModel<T & S>;
     render(view: ViewTemplate<T>): DynamicDocumentFragment_2;
 }

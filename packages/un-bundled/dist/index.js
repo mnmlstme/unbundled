@@ -3,7 +3,7 @@ import { M, T, a } from "./template-C15yP-vD.js";
 import { C as Context } from "./context-BNE4sWaw.js";
 import { E, S, c } from "./context-BNE4sWaw.js";
 import { DirectEffect } from "./effects.js";
-import { View, ViewModel, createViewModel, fromAttributes, fromInputs } from "./view.js";
+import { View, ViewModel, createView, createViewModel, fromAttributes, fromInputs } from "./view.js";
 class Dispatch extends CustomEvent {
   constructor(msg, eventType = "mu:message") {
     super(eventType, {
@@ -359,6 +359,7 @@ export {
   View,
   ViewModel,
   c as createContext,
+  createView,
   createViewModel,
   css,
   define,

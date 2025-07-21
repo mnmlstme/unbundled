@@ -155,6 +155,7 @@ export class TemplateParser {
 
     for (const label in postProcess) {
       const site: Element | null = fragment.querySelector(`[data-${label}]`);
+      // console.log("Post-processing:", label, site);
       if (site) {
         const mutations = postProcess[label];
         mutations.forEach((m) => m.apply(site, fragment));

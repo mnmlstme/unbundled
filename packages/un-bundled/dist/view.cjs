@@ -2,6 +2,9 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const context = require("./context-DycUTdK3.cjs");
 const template = require("./template-Dj3CUNbv.cjs");
+function createView(html2) {
+  return html2;
+}
 function map(view, list) {
   return list.map(($) => {
     const context$1 = new context.Context($);
@@ -49,6 +52,7 @@ class ElementContentEffect extends template.Mutation {
                 }
             }
           }
+          console.log("Rendered for view:", value, node);
           let p = start.nextSibling;
           while (p && p !== end) {
             parent.removeChild(p);
@@ -95,11 +99,9 @@ class TagEffect extends template.Mutation {
   constructor(place, fn) {
     super(place);
     this.fn = fn;
-    console.log("Created new tag effect", this);
   }
   apply(_site, fragment) {
     const key = this.place.nodeLabel;
-    console.log("Applying TagEffect", this);
     registerEffect(
       fragment,
       key,
@@ -172,10 +174,6 @@ class ViewModel extends context.Context {
   }
   get $() {
     return this.toObject();
-  }
-  html(template2, ...params) {
-    const view = View.html(template2, ...params);
-    return this.render(view);
   }
   merge(other, source) {
     const merged = new ViewModel(
@@ -253,6 +251,7 @@ exports.Context = context.Context;
 exports.createContext = context.createContext;
 exports.View = View;
 exports.ViewModel = ViewModel;
+exports.createView = createView;
 exports.createViewModel = createViewModel;
 exports.fromAttributes = fromAttributes;
 exports.fromInputs = fromInputs;

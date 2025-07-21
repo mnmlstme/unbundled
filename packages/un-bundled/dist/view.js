@@ -1,6 +1,9 @@
 import { C as Context } from "./context-BNE4sWaw.js";
 import { c } from "./context-BNE4sWaw.js";
 import { a as TemplateParser, M as Mutation } from "./template-C15yP-vD.js";
+function createView(html2) {
+  return html2;
+}
 function map(view, list) {
   return list.map(($) => {
     const context = new Context($);
@@ -48,6 +51,7 @@ class ElementContentEffect extends Mutation {
                 }
             }
           }
+          console.log("Rendered for view:", value, node);
           let p = start.nextSibling;
           while (p && p !== end) {
             parent.removeChild(p);
@@ -94,11 +98,9 @@ class TagEffect extends Mutation {
   constructor(place, fn) {
     super(place);
     this.fn = fn;
-    console.log("Created new tag effect", this);
   }
   apply(_site, fragment) {
     const key = this.place.nodeLabel;
-    console.log("Applying TagEffect", this);
     registerEffect(
       fragment,
       key,
@@ -171,10 +173,6 @@ class ViewModel extends Context {
   }
   get $() {
     return this.toObject();
-  }
-  html(template, ...params) {
-    const view = View.html(template, ...params);
-    return this.render(view);
   }
   merge(other, source) {
     const merged = new ViewModel(
@@ -253,6 +251,7 @@ export {
   View,
   ViewModel,
   c as createContext,
+  createView,
   createViewModel,
   fromAttributes,
   fromInputs
