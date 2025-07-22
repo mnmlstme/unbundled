@@ -9,6 +9,8 @@ export declare function css(template: TemplateStringsArray, ...params: string[])
 
 export declare function define(defns: ElementDefinitions): CustomElementRegistry;
 
+declare function delegate(element: Element | DocumentFragment, selector: string, map: EventMap): void;
+
 export declare interface DynamicDocumentFragment extends DocumentFragment {
 }
 
@@ -20,14 +22,27 @@ declare type ElementDefinitions = {
 };
 
 declare type EventListener_2 = (ev: Event) => void;
+export { EventListener_2 as EventListener }
 
-declare type EventMap = {
+export declare type EventMap = {
     [key: string]: EventListener_2;
+};
+
+export declare const Events: {
+    listen: typeof listen;
+    delegate: typeof delegate;
 };
 
 export declare function html(template: TemplateStringsArray, ...params: Array<TemplateParameter>): DynamicDocumentFragment_2;
 
 declare type KindOfPlace = "element content" | "attr value" | "tag content";
+
+/**
+ * Memory leak warning!
+ * Need to also clean up all the event listeners, probably
+ * on disconnectCallback();
+ */
+declare function listen(element: Element | DocumentFragment, map: EventMap): void;
 
 export declare class Mutation {
     place: ReplacementPlace;

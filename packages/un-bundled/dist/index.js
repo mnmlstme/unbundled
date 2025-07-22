@@ -1,4 +1,4 @@
-import { css, define, html, shadow } from "./html.js";
+import { Events, css, define, html, shadow } from "./html.js";
 import { M, T, a } from "./template-BtDRK3Hy.js";
 import { C as Context } from "./context-C8P65ok3.js";
 import { E, S, c } from "./context-C8P65ok3.js";
@@ -349,6 +349,7 @@ export {
   DirectEffect,
   Dispatch,
   E as EffectsManager,
+  Events,
   FromService,
   M as Mutation,
   Provider,

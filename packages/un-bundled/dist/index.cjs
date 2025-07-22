@@ -344,6 +344,7 @@ const auth = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty
 function fromAuth(target, contextLabel = AUTH_CONTEXT_DEFAULT) {
   return new FromService(target, contextLabel);
 }
+exports.Events = html.Events;
 exports.css = html.css;
 exports.define = html.define;
 exports.html = html.html;

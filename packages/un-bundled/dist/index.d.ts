@@ -117,6 +117,8 @@ export declare function css(template: TemplateStringsArray, ...params: string[])
 
 export declare function define(defns: ElementDefinitions): CustomElementRegistry;
 
+declare function delegate(element: Element | DocumentFragment, selector: string, map: EventMap): void;
+
 export declare class DirectEffect<T extends object> implements Effect<T> {
     private effectFn;
     constructor(fn: Effector<T>);
@@ -168,9 +170,15 @@ declare type ElementDefinitions = {
 };
 
 declare type EventListener_2 = (ev: Event) => void;
+export { EventListener_2 as EventListener }
 
-declare type EventMap = {
+export declare type EventMap = {
     [key: string]: EventListener_2;
+};
+
+export declare const Events: {
+    listen: typeof listen;
+    delegate: typeof delegate;
 };
 
 declare class FromAttributes<T extends object> implements Source<T> {
@@ -207,6 +215,13 @@ declare function html_2<T extends object>(template: TemplateStringsArray, ...par
 export declare function identity<M>(model: M): M;
 
 declare type KindOfPlace = "element content" | "attr value" | "tag content";
+
+/**
+ * Memory leak warning!
+ * Need to also clean up all the event listeners, probably
+ * on disconnectCallback();
+ */
+declare function listen(element: Element | DocumentFragment, map: EventMap): void;
 
 declare function map<T extends object>(view: ViewTemplate<T>, list: Array<T>): DynamicDocumentFragment[];
 

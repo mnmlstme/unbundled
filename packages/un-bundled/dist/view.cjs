@@ -82,7 +82,6 @@ class AttributeEffect extends template.Mutation {
             const [_2, pre, name] = special;
             switch (pre) {
               case ".":
-                console.log("Setting property", name, value);
                 site[name] = value;
                 break;
               case "$":
@@ -190,19 +189,13 @@ class ViewModel extends context.Context {
     return this.toObject();
   }
   merge(more, source) {
-    const merged = new ViewModel(
-      Object.assign(this.toObject(), more),
-      this
-    );
     if (source) {
       const inputNames = Object.keys(more);
       source.start((name, value) => {
         if (inputNames.includes(name))
-          merged.set(name, value);
+          this.set(name, value);
       }).then((firstObservation) => {
-        inputNames.forEach(
-          (name) => merged.set(name, firstObservation[name])
-        );
+        inputNames.forEach((name) => this.set(name, firstObservation[name]));
       });
     }
     return this;

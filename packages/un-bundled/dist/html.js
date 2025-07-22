@@ -25,9 +25,8 @@ function delegate(element, selector, map) {
   for (const eventType in map) {
     const listener = function(ev) {
       const target = ev.target;
-      if (target && target instanceof HTMLElement && target.matches(selector)) {
-        map[eventType](ev);
-      }
+      const match = target && target instanceof HTMLElement && (target.matches(selector) || element.contains(target.closest(selector)));
+      if (match) map[eventType](ev);
     };
     element.addEventListener(eventType, listener);
   }
@@ -73,6 +72,7 @@ function shadow(el, options = { mode: "open" }) {
   }
 }
 export {
+  Events,
   M as Mutation,
   T as TagContentMutation,
   TemplateParser,
