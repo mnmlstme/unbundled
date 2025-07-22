@@ -188,22 +188,23 @@ class ViewModel extends Context {
   get $() {
     return this.toObject();
   }
-  merge(other, source) {
+  merge(more, source) {
     const merged = new ViewModel(
-      Object.assign(this.toObject(), other),
+      Object.assign(this.toObject(), more),
       this
     );
     if (source) {
-      const inputNames = Object.keys(other);
+      const inputNames = Object.keys(more);
       source.start((name, value) => {
-        if (inputNames.includes(name)) merged.set(name, value);
+        if (inputNames.includes(name))
+          merged.set(name, value);
       }).then((firstObservation) => {
         inputNames.forEach(
           (name) => merged.set(name, firstObservation[name])
         );
       });
     }
-    return merged;
+    return this;
   }
   render(view) {
     return view.render(this);

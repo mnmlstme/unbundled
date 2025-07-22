@@ -3,6 +3,7 @@ import {
   define,
   View,
   createView,
+  ViewModel,
   createViewModel,
   fromAttributes,
   fromAuth,
@@ -30,14 +31,12 @@ export class ProfileViewElement extends HTMLElement {
     "input-array": InputArrayElement
   });
 
-  viewModel = createViewModel({
-    mode: "view",
-    profile: undefined,
-    _avatar: undefined
+  viewModel = createViewModel<ProfileViewData>({
+    mode: "view" as ProfileMode
   })
     .merge(
       {
-        userid: undefined
+        userid: "anonymous"
       },
       fromAttributes(this)
     )
@@ -77,7 +76,7 @@ export class ProfileViewElement extends HTMLElement {
   }
 
   view = createView<ProfileViewData>(
-    html` <section>
+    html`<section>
       ${($) =>
         View.apply<Profile>(
           $.mode === "view" ? this.mainView : this.editView,

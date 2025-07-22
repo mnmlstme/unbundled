@@ -52,10 +52,11 @@ export class InputArrayElement extends HTMLElement {
     <fieldset name=${($) => $.name}>
       <slot></slot>
       <ul>
-        ${($) => {
-          const inits = $.values.map((s) => ({ value: s }));
-          return View.map(this.itemView, inits);
-        }}
+        ${($) =>
+          View.map(
+            this.itemView,
+            $.values.map((s) => ({ value: s }))
+          )}
       </ul>
     </fieldset>
   `);

@@ -11,7 +11,7 @@ class FromInputs<T extends object> implements Source<T> {
     this.subject = subject;
   }
 
-  start(fn: SourceEffect<T>): Promise<T> {
+  start(fn: SourceEffect<T>): Promise<Partial<T>> {
     this.subject.addEventListener("change", (event: Event) => {
       const input = event.target as HTMLInputElement;
       if (input) {
@@ -21,8 +21,8 @@ class FromInputs<T extends object> implements Source<T> {
       }
     });
 
-    return new Promise<T>((_resolve, _reject) => {
-      // use FormData?
+    return new Promise<Partial<T>>((_resolve, _reject) => {
+      // use form.elements ...
     });
   }
 }

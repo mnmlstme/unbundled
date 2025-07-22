@@ -11,19 +11,19 @@ class FromAttributes<T extends object> implements Source<T> {
     this.subject = subject;
   }
 
-  start(fn: SourceEffect<T>): Promise<T> {
+  start(fn: SourceEffect<T>): Promise<Partial<T>> {
     const observer = new MutationObserver(effectChanges);
     const element = this.subject;
     observer.observe(element, { attributes: true });
     // console.log("Observing attributes of", element);
 
-    return new Promise<T>((resolve, _reject) => {
+    return new Promise<Partial<T>>((resolve, _reject) => {
       const init: { [name: string]: string } = {};
       const attributes = element.attributes;
       for (const attr of attributes) {
         init[attr.name] = attr.value;
       }
-      resolve(init as T);
+      resolve(init as Partial<T>);
     });
 
     function effectChanges(mutations: Array<MutationRecord>) {

@@ -15,22 +15,23 @@ export class ViewModel<T extends object> extends Context<T> {
   }
 
   merge<S extends object>(
-    other: Partial<S>,
+    more: Partial<T> & Partial<S>,
     source?: Source<S>
-  ): ViewModel<T & S> {
-    const merged = new ViewModel<T & S>(
-      Object.assign(this.toObject(), other),
-      this as unknown as Context<T & S>
+  ): ViewModel<T> {
+    const merged = new ViewModel<T>(
+      Object.assign(this.toObject(), more),
+      this as unknown as Context<T & typeof more>
     );
 
     if (source) {
-      const inputNames = Object.keys(other) as (keyof S)[];
+      const inputNames = Object.keys(more) as (keyof S & keyof T)[];
       source
         .start((name: keyof S, value: any) => {
           // console.log("Merging effect", name, value, inputNames);
-          if (inputNames.includes(name)) merged.set(name, value);
+          if (inputNames.includes(name as keyof T & keyof S))
+            merged.set(name as keyof T & keyof S, value);
         })
-        .then((firstObservation: S) => {
+        .then((firstObservation: Partial<S>) => {
           // console.log("ViewModel source observed:", firstObservation);
           inputNames.forEach((name) =>
             merged.set(name, firstObservation[name])
@@ -38,7 +39,7 @@ export class ViewModel<T extends object> extends Context<T> {
         });
     }
 
-    return merged;
+    return this;
   }
 
   render(view: ViewTemplate<T>): DynamicDocumentFragment {
@@ -47,8 +48,6 @@ export class ViewModel<T extends object> extends Context<T> {
   }
 }
 
-export function createViewModel<T extends object>(
-  init?: Partial<T>
-): ViewModel<T> {
+export function createViewModel<T extends object>(init?: T): ViewModel<T> {
   return new ViewModel<T>(init || {});
 }

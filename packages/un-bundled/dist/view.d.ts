@@ -34,7 +34,7 @@ export declare function createContext<T extends object>(root: T, manager: Effect
 
 export declare function createView<T extends object>(html: ViewTemplate<T>): ViewTemplate<T>;
 
-export declare function createViewModel<T extends object>(init?: Partial<T>): ViewModel<T>;
+export declare function createViewModel<T extends object>(init?: T): ViewModel<T>;
 
 declare interface DynamicDocumentFragment extends DocumentFragment {
 }
@@ -69,7 +69,7 @@ declare class EffectsManager<T extends object> {
 declare class FromAttributes<T extends object> implements Source<T> {
     subject: Element;
     constructor(subject: Element);
-    start(fn: SourceEffect<T>): Promise<T>;
+    start(fn: SourceEffect<T>): Promise<Partial<T>>;
 }
 
 export declare function fromAttributes<T extends object>(subject: Element): FromAttributes<T>;
@@ -77,7 +77,7 @@ export declare function fromAttributes<T extends object>(subject: Element): From
 declare class FromInputs<T extends object> implements Source<T> {
     subject: Node;
     constructor(subject: Node);
-    start(fn: SourceEffect<T>): Promise<T>;
+    start(fn: SourceEffect<T>): Promise<Partial<T>>;
 }
 
 export declare function fromInputs<T extends object>(subject: Node): FromInputs<T>;
@@ -89,7 +89,7 @@ declare function map<T extends object>(view: ViewTemplate<T>, list: Array<T>): D
 export declare type RenderFunction<T extends object> = (data: T, el: Element) => TemplateValue;
 
 export declare interface Source<T extends object> {
-    start(fn: SourceEffect<T>): Promise<T>;
+    start(fn: SourceEffect<T>): Promise<Partial<T>>;
 }
 
 export declare type SourceEffect<T> = (name: keyof T, value: any) => void;
@@ -110,7 +110,7 @@ export declare const View: {
 export declare class ViewModel<T extends object> extends Context<T> {
     constructor(init: Partial<T>, adoptedContext?: Context<T>);
     get $(): T;
-    merge<S extends object>(other: Partial<S>, source?: Source<S>): ViewModel<T & S>;
+    merge<S extends object>(more: Partial<T> & Partial<S>, source?: Source<S>): ViewModel<T>;
     render(view: ViewTemplate<T>): DynamicDocumentFragment_2;
 }
 

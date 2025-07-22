@@ -111,7 +111,7 @@ export declare function createContext<T extends object>(root: T, manager: Effect
 
 export declare function createView<T extends object>(html: ViewTemplate<T>): ViewTemplate<T>;
 
-export declare function createViewModel<T extends object>(init?: Partial<T>): ViewModel<T>;
+export declare function createViewModel<T extends object>(init?: T): ViewModel<T>;
 
 export declare function css(template: TemplateStringsArray, ...params: string[]): CSSStyleSheet;
 
@@ -176,7 +176,7 @@ declare type EventMap = {
 declare class FromAttributes<T extends object> implements Source<T> {
     subject: Element;
     constructor(subject: Element);
-    start(fn: SourceEffect<T>): Promise<T>;
+    start(fn: SourceEffect<T>): Promise<Partial<T>>;
 }
 
 export declare function fromAttributes<T extends object>(subject: Element): FromAttributes<T>;
@@ -186,7 +186,7 @@ export declare function fromAuth(target: HTMLElement, contextLabel?: string): Fr
 declare class FromInputs<T extends object> implements Source<T> {
     subject: Node;
     constructor(subject: Node);
-    start(fn: SourceEffect<T>): Promise<T>;
+    start(fn: SourceEffect<T>): Promise<Partial<T>>;
 }
 
 export declare function fromInputs<T extends object>(subject: Node): FromInputs<T>;
@@ -195,7 +195,7 @@ export declare class FromService<T extends object> implements Source<T> {
     private client;
     private observer;
     constructor(client: HTMLElement, contextLabel: string);
-    start(fn: SourceEffect<T>): Promise<T>;
+    start(fn: SourceEffect<T>): Promise<Partial<T>>;
 }
 
 export declare function fromService<T extends object>(target: HTMLElement, contextLabel: string): FromService<T>;
@@ -290,7 +290,7 @@ export declare class SignalEvent<T, K extends keyof T> extends CustomEvent<Signa
 export declare type SignalReceiver<T> = (ev: SignalEvent<T, keyof T>) => void;
 
 export declare interface Source<T extends object> {
-    start(fn: SourceEffect<T>): Promise<T>;
+    start(fn: SourceEffect<T>): Promise<Partial<T>>;
 }
 
 export declare type SourceEffect<T> = (name: keyof T, value: any) => void;
@@ -351,7 +351,7 @@ export declare const View: {
 export declare class ViewModel<T extends object> extends Context<T> {
     constructor(init: Partial<T>, adoptedContext?: Context<T>);
     get $(): T;
-    merge<S extends object>(other: Partial<S>, source?: Source<S>): ViewModel<T & S>;
+    merge<S extends object>(more: Partial<T> & Partial<S>, source?: Source<S>): ViewModel<T>;
     render(view: ViewTemplate<T>): DynamicDocumentFragment;
 }
 

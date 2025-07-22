@@ -18,7 +18,7 @@ export class FromService<T extends object> implements Source<T> {
     this.observer = new Observer<T>(contextLabel);
   }
 
-  start(fn: SourceEffect<T>): Promise<T> {
+  start(fn: SourceEffect<T>): Promise<Partial<T>> {
     // console.log("Starting to observe service", this.observer);
     return this.observer.observe(this.client, (s: Signal<T, keyof T>) => {
       fn(s.property, s.value);
