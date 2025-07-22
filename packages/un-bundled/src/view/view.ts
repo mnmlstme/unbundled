@@ -130,7 +130,7 @@ class AttributeEffect<T extends object> extends Mutation {
             const [_, pre, name] = special;
             switch (pre) {
               case ".":
-                console.log("Setting property", name, value);
+                // console.log("Setting property", name, value);
                 (site as unknown as { [name]: any })[name] = value;
                 break;
               case "$":

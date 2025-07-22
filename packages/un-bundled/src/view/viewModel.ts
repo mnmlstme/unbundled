@@ -18,24 +18,17 @@ export class ViewModel<T extends object> extends Context<T> {
     more: Partial<T> & Partial<S>,
     source?: Source<S>
   ): ViewModel<T> {
-    const merged = new ViewModel<T>(
-      Object.assign(this.toObject(), more),
-      this as unknown as Context<T & typeof more>
-    );
-
     if (source) {
       const inputNames = Object.keys(more) as (keyof S & keyof T)[];
       source
         .start((name: keyof S, value: any) => {
           // console.log("Merging effect", name, value, inputNames);
           if (inputNames.includes(name as keyof T & keyof S))
-            merged.set(name as keyof T & keyof S, value);
+            this.set(name as keyof T & keyof S, value);
         })
         .then((firstObservation: Partial<S>) => {
           // console.log("ViewModel source observed:", firstObservation);
-          inputNames.forEach((name) =>
-            merged.set(name, firstObservation[name])
-          );
+          inputNames.forEach((name) => this.set(name, firstObservation[name]));
         });
     }
 
