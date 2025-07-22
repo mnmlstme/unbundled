@@ -2,27 +2,26 @@ import {
   css,
   shadow,
   fromAttributes,
-  ViewModel,
   View,
   createView,
-  createViewModel
+  createViewModel,
 } from "@un-/bundled";
 
 const html = View.html;
 
 interface InputArrayData {
-  name: string;
+  name?: string;
   values: Array<string>;
 }
 
 export class InputArrayElement extends HTMLElement {
-  viewModel: ViewModel<InputArrayData> = createViewModel({
+  viewModel = createViewModel<InputArrayData>({
     values: [] as Array<string>
   }).merge({ name: "" }, fromAttributes(this));
 
   static formAssociated = true;
 
-  get name(): string {
+  get name(): string | undefined {
     return this.viewModel.$.name;
   }
 
@@ -41,16 +40,27 @@ export class InputArrayElement extends HTMLElement {
       .replace(this.viewModel.render(this.view))
       .delegate("input", {
         change: (ev: Event) => {
-          // console.log("Changed!", ev);
           const input = ev.target as HTMLInputElement;
-          this.changeFormValue(input, input.value);
+          const item = input.closest("li");
+          if (item) this.changeItem(item, input.value);
+        }
+      })
+      .delegate("button.add", {
+        click: (_: Event) => {
+          this.addItem("");
+        }
+      })
+      .delegate("button.remove", {
+        click: (ev: Event) => {
+          const button = ev.target as HTMLButtonElement;
+          const item = button.closest("li");
+          if (item) this.removeItem(item);
         }
       });
   }
 
   view = createView<InputArrayData>(html`
     <fieldset name=${($) => $.name}>
-      <slot></slot>
       <ul>
         ${($) =>
           View.map(
@@ -58,13 +68,16 @@ export class InputArrayElement extends HTMLElement {
             $.values.map((s) => ({ value: s }))
           )}
       </ul>
+      <button class="add">
+        <slot name="label-add"> Add an item </slot>
+      </button>
     </fieldset>
   `);
 
   itemView = createView<{ value: string }>(html`
     <li>
       <input value=${($) => $.value} />
-      <button>Remove</button>
+      <button class="remove">Remove</button>
     </li>
   `);
 
@@ -92,20 +105,30 @@ export class InputArrayElement extends HTMLElement {
     }
   `;
 
-  changeFormValue(input: HTMLElement, value: string) {
-    const index = this.getElementIndex(input);
+  changeItem(item: HTMLElement, value: string) {
+    const index = this.getItemIndex(item);
     if (index) this.viewModel.$.values[index] = value;
   }
 
-  getElementIndex(input: HTMLElement): number | undefined {
-    const item = input.closest("li");
-    const list = item?.closest("ul");
-    if (!list) return undefined;
-    // console.log("Getting Index of input:", input);
+  addItem(value: string) {
+    this.viewModel.set("values", this.viewModel.$.values.concat([value]));
+  }
+
+  removeItem(item: HTMLElement) {
+    const index = this.getItemIndex(item);
+    if (index >= 0)
+      this.viewModel.set("values",
+        this.viewModel.$.values.toSpliced(index, 1)
+      );
+  }
+
+  getItemIndex(item: HTMLElement): number {
+    const list = item.parentElement;
+    if (!list) return -1;
     const items = list.children;
     for (let i = 0; items && i < items.length; i++) {
       if (items[i] === item) return i;
     }
-    return undefined;
+    return -1;
   }
 }

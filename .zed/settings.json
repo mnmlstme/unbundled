@@ -3,6 +3,8 @@
 // For a full list of overridable settings, and general information on folder-specific settings,
 // see the documentation: https://zed.dev/docs/configuring-zed#settings-files
 {
+  "preferred_line_length": 64,
+  "tab_size": 2,
   "diagnostics": {
     "include_warnings": false
   },
@@ -14,8 +16,14 @@
         },
         "rulesCustomizations": [
           // set all eslint errors/warnings to show as warnings
-          { "rule": "*", "severity": "warn" },
-          { "rule": "80006", "severity": "off" }
+          {
+            "rule": "*",
+            "severity": "warn"
+          },
+          {
+            "rule": "80006",
+            "severity": "off"
+          }
         ]
       }
     },

@@ -3,7 +3,6 @@ import {
   define,
   View,
   createView,
-  ViewModel,
   createViewModel,
   fromAttributes,
   fromAuth,
@@ -36,14 +35,14 @@ export class ProfileViewElement extends HTMLElement {
   })
     .merge(
       {
-        userid: "anonymous"
+        userid: ""
       },
       fromAttributes(this)
     )
     .merge(
       {
-        token: undefined,
-        username: undefined
+        token: "",
+        username: ""
       },
       fromAuth(this)
     );
@@ -225,7 +224,8 @@ export class ProfileViewElement extends HTMLElement {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then((response: Response) => {
-        if (response.status !== 200) throw `HTTP Status: ${response.status}`;
+        if (response.status !== 200)
+          throw `HTTP Status: ${response.status}`;
         return response.json();
       })
       .then((json: object) => {
@@ -267,7 +267,7 @@ export class ProfileViewElement extends HTMLElement {
     const inputs = Array.from(form.elements).filter(
       (el) => el.tagName !== "BUTTON" && "name" in el
     ) as Array<HTMLInputElement>;
-    console.log("Inputs:", inputs);
+
     const entries = inputs.map((el) => {
       const k = el.name;
       switch (k) {
@@ -277,6 +277,7 @@ export class ProfileViewElement extends HTMLElement {
           return [k, el.value];
       }
     });
+
     console.log("Entries:", entries);
     return JSON.stringify(Object.fromEntries(entries));
   }
