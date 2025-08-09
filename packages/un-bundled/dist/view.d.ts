@@ -86,6 +86,10 @@ declare function html<T extends object>(template: TemplateStringsArray, ...param
 
 declare function map<T extends object>(view: ViewTemplate<T>, list: Array<T>): DynamicDocumentFragment[];
 
+export declare type NameMapping<T extends object, S extends object> = {
+    [K in keyof T]: keyof S;
+};
+
 export declare type RenderFunction<T extends object> = (data: T, el: Element) => TemplateValue;
 
 export declare interface Source<T extends object> {
@@ -110,11 +114,9 @@ export declare const View: {
 export declare class ViewModel<T extends object> extends Context<T> {
     constructor(init: Partial<T>, adoptedContext?: Context<T>);
     get $(): T;
-    merge<S extends object>(more: Partial<T> & Partial<S>, source?: Source<S>): ViewModel<T>;
+    merge<S extends object>(source: Source<S>, mapping: NameMapping<T, S> | Array<NameMapping<T, S> | (keyof T & keyof S)>): ViewModel<T>;
     render(view: ViewTemplate<T>): DynamicDocumentFragment_2;
 }
-
-export declare type ViewModelPlugin<T extends object> = (host: ViewModel<T>) => object;
 
 export declare interface ViewTemplate<T extends object> extends DynamicDocumentFragment {
     render(context: Context_2<T>): DynamicDocumentFragment;

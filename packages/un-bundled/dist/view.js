@@ -180,6 +180,12 @@ const View = {
   html,
   map
 };
+function mapEntries(mapping) {
+  return Object.entries(mapping).map(([k, v]) => [
+    k,
+    v
+  ]);
+}
 class ViewModel extends Context {
   constructor(init, adoptedContext) {
     super(init, adoptedContext);
@@ -187,14 +193,20 @@ class ViewModel extends Context {
   get $() {
     return this.toObject();
   }
-  merge(more, source) {
+  merge(source, mapping) {
+    const entries = !Array.isArray(
+      mapping
+    ) ? mapEntries(mapping) : mapping.map(
+      (m) => typeof m === "string" ? [[m, m]] : mapEntries(m)
+    ).flat();
     if (source) {
-      const inputNames = Object.keys(more);
       source.start((name, value) => {
-        if (inputNames.includes(name))
-          this.set(name, value);
+        const pair = entries.find(([t, s]) => s === name);
+        if (pair) this.set(pair[0], value);
       }).then((firstObservation) => {
-        inputNames.forEach((name) => this.set(name, firstObservation[name]));
+        entries.forEach(
+          ([t, s]) => this.set(t, firstObservation[s])
+        );
       });
     }
     return this;

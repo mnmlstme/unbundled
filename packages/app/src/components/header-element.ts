@@ -16,12 +16,9 @@ interface HeaderData {
 }
 
 export class HeaderElement extends HTMLElement {
-  viewModel: ViewModel<HeaderData> = createViewModel().merge(
-    {
-      authenticated: false,
-      username: undefined
-    },
-    fromAuth(this)
+  viewModel = createViewModel<HeaderData>().merge(
+    fromAuth(this),
+    ["authenticated", "username"]
   );
 
   view = View.html<HeaderData>`<header>
@@ -93,7 +90,11 @@ export class HeaderElement extends HTMLElement {
   constructor() {
     super();
     shadow(this)
-      .styles(reset.styles, headings.styles, HeaderElement.styles)
+      .styles(
+        reset.styles,
+        headings.styles,
+        HeaderElement.styles
+      )
       .replace(this.viewModel.render(this.view))
       .delegate(".when-signed-in a", {
         click: () => this.signout()

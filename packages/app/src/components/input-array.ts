@@ -4,7 +4,7 @@ import {
   fromAttributes,
   View,
   createView,
-  createViewModel,
+  createViewModel
 } from "@un-/bundled";
 
 const html = View.html;
@@ -17,7 +17,7 @@ interface InputArrayData {
 export class InputArrayElement extends HTMLElement {
   viewModel = createViewModel<InputArrayData>({
     values: [] as Array<string>
-  }).merge({ name: "" }, fromAttributes(this));
+  }).merge(fromAttributes(this), ["name"]);
 
   static formAssociated = true;
 
@@ -69,7 +69,7 @@ export class InputArrayElement extends HTMLElement {
           )}
       </ul>
       <button class="add">
-        <slot name="label-add"> Add an item </slot>
+        <slot name="label-add">Add an item</slot>
       </button>
     </fieldset>
   `);
@@ -111,13 +111,17 @@ export class InputArrayElement extends HTMLElement {
   }
 
   addItem(value: string) {
-    this.viewModel.set("values", this.viewModel.$.values.concat([value]));
+    this.viewModel.set(
+      "values",
+      this.viewModel.$.values.concat([value])
+    );
   }
 
   removeItem(item: HTMLElement) {
     const index = this.getItemIndex(item);
     if (index >= 0)
-      this.viewModel.set("values",
+      this.viewModel.set(
+        "values",
         this.viewModel.$.values.toSpliced(index, 1)
       );
   }

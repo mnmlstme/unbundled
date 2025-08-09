@@ -3,7 +3,18 @@ import { Source } from "./source.ts";
 import { ViewTemplate } from "./view.ts";
 import { DynamicDocumentFragment } from "../html/index.ts";
 
-export type ViewModelPlugin<T extends object> = (host: ViewModel<T>) => object;
+export type NameMapping<T extends object, S extends object> = {
+  [K in keyof T]: keyof S;
+};
+
+function mapEntries<T extends object, S extends object>(
+  mapping: NameMapping<T, S>
+): Array<[keyof T, keyof S]> {
+  return Object.entries(mapping).map(([k, v]) => [
+    k as keyof T,
+    v as keyof S
+  ]);
+}
 
 export class ViewModel<T extends object> extends Context<T> {
   constructor(init: Partial<T>, adoptedContext?: Context<T>) {
@@ -15,20 +26,37 @@ export class ViewModel<T extends object> extends Context<T> {
   }
 
   merge<S extends object>(
-    more: Partial<T> & Partial<S>,
-    source?: Source<S>
+    source: Source<S>,
+    mapping:
+      | NameMapping<T, S>
+      | Array<NameMapping<T, S> | (keyof T & keyof S)>
   ): ViewModel<T> {
+    const entries: Array<[keyof T, keyof S]> = !Array.isArray(
+      mapping
+    )
+      ? mapEntries<T, S>(mapping)
+      : mapping
+          .map((m) =>
+            typeof m === "string"
+              ? ([[m as keyof T, m as keyof S]] satisfies Array<
+                  [keyof T, keyof S]
+                >)
+              : mapEntries<T, S>(m as NameMapping<T, S>)
+          )
+          .flat();
+
     if (source) {
-      const inputNames = Object.keys(more) as (keyof S & keyof T)[];
       source
         .start((name: keyof S, value: any) => {
           // console.log("Merging effect", name, value, inputNames);
-          if (inputNames.includes(name as keyof T & keyof S))
-            this.set(name as keyof T & keyof S, value);
+          const pair = entries.find(([t, s]) => s === name);
+          if (pair) this.set(pair[0], value);
         })
         .then((firstObservation: Partial<S>) => {
           // console.log("ViewModel source observed:", firstObservation);
-          inputNames.forEach((name) => this.set(name, firstObservation[name]));
+          entries.forEach(([t, s]) =>
+            this.set(t, firstObservation[s])
+          );
         });
     }
 
@@ -41,6 +69,8 @@ export class ViewModel<T extends object> extends Context<T> {
   }
 }
 
-export function createViewModel<T extends object>(init?: T): ViewModel<T> {
+export function createViewModel<T extends object>(
+  init?: T
+): ViewModel<T> {
   return new ViewModel<T>(init || {});
 }

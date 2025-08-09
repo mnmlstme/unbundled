@@ -33,24 +33,17 @@ export class ProfileViewElement extends HTMLElement {
   viewModel = createViewModel<ProfileViewData>({
     mode: "view" as ProfileMode
   })
-    .merge(
-      {
-        userid: ""
-      },
-      fromAttributes(this)
-    )
-    .merge(
-      {
-        token: "",
-        username: ""
-      },
-      fromAuth(this)
-    );
+    .merge(fromAttributes(this), { userid: "user-id" })
+    .merge(fromAuth(this), ["token", "username"]);
 
   constructor() {
     super();
     shadow(this)
-      .styles(reset.styles, headings.styles, ProfileViewElement.styles)
+      .styles(
+        reset.styles,
+        headings.styles,
+        ProfileViewElement.styles
+      )
       .replace(this.viewModel.render(this.view))
       .delegate("#edit-mode", {
         click: () => this.viewModel.set("mode", "edit")
@@ -62,7 +55,8 @@ export class ProfileViewElement extends HTMLElement {
         change: (e: InputEvent) => {
           const target = e.target as HTMLInputElement;
           const files = target.files;
-          if (files && files.length) this.readAvatarBase64(files);
+          if (files && files.length)
+            this.readAvatarBase64(files);
         }
       })
       .listen({
@@ -74,20 +68,22 @@ export class ProfileViewElement extends HTMLElement {
     });
   }
 
-  view = createView<ProfileViewData>(
-    html`<section>
+  view = createView<ProfileViewData>(html`
+    <section>
       ${($) =>
         View.apply<Profile>(
           $.mode === "view" ? this.mainView : this.editView,
           $.profile
         )}
-    </section>`
-  );
+    </section>
+  `);
 
   mainView = createView<Profile>(html`
     ${($) =>
       $.userid === this.viewModel.get("username")
-        ? html`<button id="edit-mode">Edit</button>`
+        ? html`
+            <button id="edit-mode">Edit</button>
+          `
         : ""}
     <img src=${($) => $.avatar} alt=${($) => $.name} />
     <h1>${($) => $.name}</h1>
@@ -102,7 +98,9 @@ export class ProfileViewElement extends HTMLElement {
       <dd>${($) => $.airports.join(", ")}</dd>
       <dt>Favorite Color</dt>
       <dd>
-        <span class="swatch" style=${($) => `background: ${$.color}`}></span>
+        <span
+          class="swatch"
+          style=${($) => `background: ${$.color}`}></span>
         <span>${($) => $.color}</span>
       </dd>
     </dl>
@@ -240,11 +238,15 @@ export class ProfileViewElement extends HTMLElement {
     ev.preventDefault();
 
     const form = ev.target as HTMLFormElement;
-    const json = this.formDataToJSON(form);
+    const json: unknown = this.formDataToJSON(form);
+    this.update(json as Profile);
+  }
+
+  update(json: Profile) {
     const userid = this.viewModel.get("userid");
     const token = this.viewModel.get("token");
 
-    fetch(`/api/profiles/${userid}`, {
+    return fetch(`/api/profiles/${userid}`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -253,14 +255,17 @@ export class ProfileViewElement extends HTMLElement {
       body: json
     })
       .then((res: Response) => {
-        if (res.status !== 200) throw `HTTP status ${res.status}`;
+        if (res.status !== 200)
+          throw `HTTP status ${res.status}`;
         return res.json();
       })
       .then((json: unknown) => {
         this.viewModel.set("profile", json as Profile);
         this.viewModel.set("mode", "view");
       })
-      .catch((err) => console.log("Failed to PUT form data", err));
+      .catch((err) =>
+        console.log("Failed to PUT form data", err)
+      );
   }
 
   formDataToJSON(form: HTMLFormElement): string {
@@ -278,7 +283,7 @@ export class ProfileViewElement extends HTMLElement {
       }
     });
 
-    console.log("Entries:", entries);
+    // console.log("Entries:", entries);
     return JSON.stringify(Object.fromEntries(entries));
   }
 

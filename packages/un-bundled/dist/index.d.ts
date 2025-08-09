@@ -243,6 +243,10 @@ export declare class Mutation {
     apply(_site: Element, _fragment: DynamicDocumentFragment): void;
 }
 
+export declare type NameMapping<T extends object, S extends object> = {
+    [K in keyof T]: keyof S;
+};
+
 declare type Place<K extends KindOfPlace> = {
     kind: K;
     nodeLabel: string;
@@ -366,11 +370,9 @@ export declare const View: {
 export declare class ViewModel<T extends object> extends Context<T> {
     constructor(init: Partial<T>, adoptedContext?: Context<T>);
     get $(): T;
-    merge<S extends object>(more: Partial<T> & Partial<S>, source?: Source<S>): ViewModel<T>;
+    merge<S extends object>(source: Source<S>, mapping: NameMapping<T, S> | Array<NameMapping<T, S> | (keyof T & keyof S)>): ViewModel<T>;
     render(view: ViewTemplate<T>): DynamicDocumentFragment;
 }
-
-export declare type ViewModelPlugin<T extends object> = (host: ViewModel<T>) => object;
 
 export declare interface ViewTemplate<T extends object> extends DynamicDocumentFragment {
     render(context: Context<T>): DynamicDocumentFragment;
