@@ -12,6 +12,7 @@ type RouteParams = {
 interface RouteData {
   params: RouteParams;
   query: URLSearchParams;
+  user?: Auth.Model;
 }
 
 type RouteView = ViewTemplate<RouteData>;
@@ -63,7 +64,7 @@ export class Switch extends HTMLElement {
   _routeView: ViewTemplate<RouteData> = html`<h1>Routing...</h1>`;
   _routeViewModel = createViewModel<RouteData>({
     params: {},
-    query: new URLSearchParams()
+    query: new URLSearchParams(),
   });
 
   constructor(
@@ -77,7 +78,7 @@ export class Switch extends HTMLElement {
 
     this.viewModel.createEffect($ => {
       if ($.location) {
-        const nextView = this.routeToView($.location);
+        const nextView = this.routeToView($.location, $.authenticated, $.username);
         if (nextView !== this._routeView) {
           this._routeView = nextView
           shadow(this)
@@ -87,17 +88,11 @@ export class Switch extends HTMLElement {
     });
   }
 
-  routeToView(location: Location): ViewTemplate<RouteData> {
-    const { authenticated } = this.viewModel.toObject();
+  routeToView(location: Location, authenticated: boolean = false, username?: string): ViewTemplate<RouteData> {
     const m = this.matchRoute(location);
 
     if (m) {
       if ("view" in m) {
-        if (!authenticated) {
-          return html`
-              <h1>Authenticating</h1>
-            `;
-        }
         if (m.auth && m.auth !== "public" && !authenticated) {
           Auth.dispatch(this, "auth/redirect");
           return html`
@@ -107,7 +102,11 @@ export class Switch extends HTMLElement {
           console.log("Loading view, ", m.params, m.query);
           this._routeViewModel.update({
             params: m.params,
-            query: m.query
+            query: m.query,
+            user: {
+              authenticated,
+              username
+            }
           })
           return m.view;
         }

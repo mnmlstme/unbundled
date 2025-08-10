@@ -6,8 +6,22 @@ const html = View.html<Switch.Args>;
 
 const routes = [
   {
+    auth: "protected",
     path: "/app/profile/:userid",
     view: html`<profile-view user-id=${$ => $.params.userid}></profile-view>`
+  },
+  {
+    path: "/app",
+    view: html`<home-view
+      user-id=${$ => $.user?.authenticated ?
+        $.user?.username :
+        "anonymous"}
+      >
+      </home-view>`
+  },
+  {
+    path: "/",
+    redirect: "/app"
   }
 ];
 

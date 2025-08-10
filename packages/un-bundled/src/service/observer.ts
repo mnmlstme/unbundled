@@ -15,11 +15,11 @@ export class Observer<T extends object> {
       if (this.provider) {
         resolve(this.attachObserver(fn));
       } else {
-        console.log("Initiating discovery for provider", this.contextLabel, from);
+        // console.log("Initiating discovery for provider", this.contextLabel, from);
 
         discover<T>(from, this.contextLabel)
           .then((provider: Provider<T>) => {
-            console.log("Observer found provider", this.contextLabel, provider);
+            // console.log("Observer found provider", this.contextLabel, provider);
             this.provider = provider;
             resolve(this.attachObserver(fn));
           })

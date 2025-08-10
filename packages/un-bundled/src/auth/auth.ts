@@ -122,7 +122,7 @@ class AuthProvider extends Provider<AuthModel> {
     const user =
       AuthenticatedUser.authenticateFromLocalStorage();
     const { authenticated, username } = user;
-    console.log("Logged in user:", user);
+    // console.log("Logged in user:", user);
     super(
       {
         authenticated,
@@ -160,7 +160,7 @@ function redirection(
   );
 
   return () => {
-    //console.log("Redirecting to ", redirect);
+    console.log("Redirecting to ", redirect);
     window.location.assign(target);
   };
 }
@@ -184,7 +184,8 @@ function signOut() {
 
     return {
       username,
-      authenticated
+      authenticated,
+      token: undefined
     };
   };
 }

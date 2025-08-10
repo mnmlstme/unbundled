@@ -266,8 +266,10 @@ declare type HistoryMsg = [
 ];
 
 declare class HistoryProvider extends Provider<HistoryModel> {
+    get base(): string | undefined;
     constructor();
     connectedCallback(): void;
+    attributeChangedCallback(): void;
 }
 
 declare class HistoryService extends Service<HistoryMsg, HistoryModel> {
@@ -367,6 +369,7 @@ declare type ReplacementPlace = ElementContentPlace | AttributeValuePlace | TagC
 declare interface RouteData {
     params: RouteParams;
     query: URLSearchParams;
+    user?: Auth.Model;
 }
 
 declare type RouteParams = {
@@ -432,7 +435,7 @@ declare class Switch_2 extends HTMLElement {
     _routeView: ViewTemplate<RouteData>;
     _routeViewModel: ViewModel_2<RouteData>;
     constructor(routes: SwitchRoute[]);
-    routeToView(location: Location): ViewTemplate<RouteData>;
+    routeToView(location: Location, authenticated?: boolean, username?: string): ViewTemplate<RouteData>;
     matchRoute(location: Location): Match | undefined;
     redirect(href: string): void;
 }

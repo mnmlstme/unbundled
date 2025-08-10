@@ -8,10 +8,10 @@ import {
   fromAuth,
   shadow
 } from "@un-/bundled";
-import reset from "../styles/reset.css.js";
-import headings from "../styles/headings.css.js";
+import reset from "../styles/reset.css";
+import headings from "../styles/headings.css";
 import { Profile } from "server/models";
-import { InputArrayElement } from "../components/input-array.js";
+import { InputArrayElement } from "../components/input-array";
 
 type ProfileMode = "view" | "edit" | "new";
 

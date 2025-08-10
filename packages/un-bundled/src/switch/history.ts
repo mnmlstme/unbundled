@@ -10,19 +10,19 @@ interface HistoryModel {
 
 type HistoryMsg =
   | [
-      "history/navigate",
-      {
-        href: string;
-        state?: object;
-      }
-    ]
+    "history/navigate",
+    {
+      href: string;
+      state?: object;
+    }
+  ]
   | [
-      "history/redirect",
-      {
-        href: string;
-        state?: object;
-      }
-    ];
+    "history/redirect",
+    {
+      href: string;
+      state?: object;
+    }
+  ];
 
 class HistoryService extends Service<HistoryMsg, HistoryModel> {
   static EVENT_TYPE = "history:message";
@@ -52,6 +52,10 @@ class HistoryService extends Service<HistoryMsg, HistoryModel> {
 }
 
 export class HistoryProvider extends Provider<HistoryModel> {
+  get base() {
+    return this.getAttribute("base") || undefined;
+  }
+
   constructor() {
     super(
       {
@@ -66,10 +70,13 @@ export class HistoryProvider extends Provider<HistoryModel> {
       if (linkTarget) {
         // It's a left click on an <a href=...>.
         const url = new URL(linkTarget.href);
+
         const location = this.context.get(
           "location"
         ) as Location;
-        if (location && url.origin === location.origin) {
+        if (location && url.origin === location.origin
+          && url.pathname.startsWith(this.base || "/")
+        ) {
           console.log("Preventing Click Event on <A>", event);
           event.preventDefault();
           dispatch(linkTarget, "history/navigate", {
@@ -91,6 +98,10 @@ export class HistoryProvider extends Provider<HistoryModel> {
   connectedCallback() {
     const service = new HistoryService(this.context);
     service.attach(this);
+  }
+
+  attributeChangedCallback() {
+
   }
 }
 

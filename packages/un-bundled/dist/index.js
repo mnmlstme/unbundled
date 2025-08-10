@@ -27,11 +27,6 @@ const _Provider = class _Provider extends HTMLElement {
     this.context.setHost(this, _Provider.CHANGE_EVENT);
     this.addEventListener(_Provider.DISCOVERY_EVENT, (event) => {
       const [contextLabel, respondFn] = event.detail;
-      console.log(
-        "Provider checking for context",
-        this.contextLabel,
-        contextLabel
-      );
       if (contextLabel === this.contextLabel) {
         event.stopPropagation();
         respondFn(this);
@@ -67,7 +62,6 @@ document.addEventListener(_Provider.DISCOVERY_EVENT, (event) => {
 document.addEventListener(_Provider.REGISTRY_EVENT, (event) => {
   const [contextLabel, provider] = event.detail;
   registerProvider(contextLabel, provider);
-  console.log("Provider registered", contextLabel, provider);
 });
 let Provider = _Provider;
 function discover(observer, contextLabel) {
@@ -82,7 +76,6 @@ function discover(observer, contextLabel) {
     });
     if (observer.isConnected) observer.dispatchEvent(discoveryEvent);
     else {
-      console.log("!!! Observer is not connected ... Discovery will fail!", observer);
       document.dispatchEvent(discoveryEvent);
     }
   });
@@ -103,9 +96,7 @@ class Observer {
       if (this.provider) {
         resolve(this.attachObserver(fn));
       } else {
-        console.log("Initiating discovery for provider", this.contextLabel, from);
         discover(from, this.contextLabel).then((provider) => {
-          console.log("Observer found provider", this.contextLabel, provider);
           this.provider = provider;
           resolve(this.attachObserver(fn));
         }).catch((err) => reject(err));
@@ -308,7 +299,6 @@ class AuthProvider extends Provider {
   constructor() {
     const user = AuthenticatedUser.authenticateFromLocalStorage();
     const { authenticated, username } = user;
-    console.log("Logged in user:", user);
     super(
       {
         authenticated,
@@ -335,6 +325,7 @@ function redirection(redirect2, query = {}) {
     ([k, v]) => target.searchParams.set(k, v)
   );
   return () => {
+    console.log("Redirecting to ", redirect2);
     window.location.assign(target);
   };
 }
@@ -355,7 +346,8 @@ function signOut() {
     const { authenticated, username } = oldUser;
     return {
       username,
-      authenticated
+      authenticated,
+      token: void 0
     };
   };
 }
@@ -417,6 +409,9 @@ const _HistoryService = class _HistoryService extends Service {
 _HistoryService.EVENT_TYPE = "history:message";
 let HistoryService = _HistoryService;
 class HistoryProvider extends Provider {
+  get base() {
+    return this.getAttribute("base") || void 0;
+  }
   constructor() {
     super(
       {
@@ -432,7 +427,7 @@ class HistoryProvider extends Provider {
         const location = this.context.get(
           "location"
         );
-        if (location && url.origin === location.origin) {
+        if (location && url.origin === location.origin && url.pathname.startsWith(this.base || "/")) {
           console.log("Preventing Click Event on <A>", event);
           event.preventDefault();
           dispatch(linkTarget, "history/navigate", {
@@ -452,6 +447,8 @@ class HistoryProvider extends Provider {
   connectedCallback() {
     const service = new HistoryService(this.context);
     service.attach(this);
+  }
+  attributeChangedCallback() {
   }
 }
 function originalLinkTarget(event) {
@@ -1211,7 +1208,7 @@ class Switch extends HTMLElement {
     }));
     this.viewModel.createEffect(($) => {
       if ($.location) {
-        const nextView = this.routeToView($.location);
+        const nextView = this.routeToView($.location, $.authenticated, $.username);
         if (nextView !== this._routeView) {
           this._routeView = nextView;
           shadow(this).replace(this._routeViewModel.render(nextView));
@@ -1219,16 +1216,10 @@ class Switch extends HTMLElement {
       }
     });
   }
-  routeToView(location) {
-    const { authenticated } = this.viewModel.toObject();
+  routeToView(location, authenticated = false, username) {
     const m = this.matchRoute(location);
     if (m) {
       if ("view" in m) {
-        if (!authenticated) {
-          return html2`
-              <h1>Authenticating</h1>
-            `;
-        }
         if (m.auth && m.auth !== "public" && !authenticated) {
           dispatch$1(this, "auth/redirect");
           return html2`
@@ -1238,7 +1229,11 @@ class Switch extends HTMLElement {
           console.log("Loading view, ", m.params, m.query);
           this._routeViewModel.update({
             params: m.params,
-            query: m.query
+            query: m.query,
+            user: {
+              authenticated,
+              username
+            }
           });
           return m.view;
         }

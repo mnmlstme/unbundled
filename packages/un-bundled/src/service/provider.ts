@@ -22,7 +22,7 @@ export class Provider<T extends object> extends HTMLElement {
     document.addEventListener(Provider.REGISTRY_EVENT, (event: Event) => {
       const [contextLabel, provider] = (event as CustomEvent).detail;
       registerProvider(contextLabel, provider);
-      console.log("Provider registered", contextLabel, provider);
+      // console.log("Provider registered", contextLabel, provider);
     });
   }
 
@@ -33,11 +33,11 @@ export class Provider<T extends object> extends HTMLElement {
     this.context.setHost(this, Provider.CHANGE_EVENT);
     this.addEventListener(Provider.DISCOVERY_EVENT, (event: Event) => {
       const [contextLabel, respondFn] = (event as CustomEvent).detail;
-      console.log(
-        "Provider checking for context",
-        this.contextLabel,
-        contextLabel
-      );
+      // console.log(
+      //   "Provider checking for context",
+      //   this.contextLabel,
+      //   contextLabel
+      // );
       if (contextLabel === this.contextLabel) {
         event.stopPropagation();
         respondFn(this);
@@ -77,7 +77,7 @@ export function discover<T extends object>(
 
     if (observer.isConnected) observer.dispatchEvent(discoveryEvent);
     else {
-      console.log("!!! Observer is not connected ... Discovery will fail!", observer);
+      // console.log("!!! Observer is not connected ... Discovery will fail!", observer);
       document.dispatchEvent(discoveryEvent);
     }
 
