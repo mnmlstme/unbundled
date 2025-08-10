@@ -1,5 +1,11 @@
 import { jwtDecode } from "jwt-decode";
-import { ApplyMap, Provider, Service, dispatcher, replace } from "../service";
+import {
+  ApplyMap,
+  Provider,
+  Service,
+  dispatcher,
+  replace
+} from "../service";
 import { Context } from "../view";
 
 const AUTH_CONTEXT_DEFAULT = "context:auth";
@@ -47,7 +53,7 @@ class AuthenticatedUser extends APIUser {
   constructor(token: string) {
     super();
     const jsonPayload = jwtDecode(token) as PayloadModel;
-    // onsole.log("Token payload", jsonPayload);
+    console.log("Token payload", jsonPayload);
     this.token = token;
     this.authenticated = true;
     this.username = jsonPayload.username;
@@ -100,7 +106,9 @@ class AuthService extends Service<AuthMsg, AuthModel> {
         });
       default:
         const unhandled: never = message[0];
-        throw new Error(`Unhandled Auth message "${unhandled}"`);
+        throw new Error(
+          `Unhandled Auth message "${unhandled}"`
+        );
     }
   }
 }
@@ -111,20 +119,27 @@ class AuthProvider extends Provider<AuthModel> {
   }
 
   constructor() {
-    const user = AuthenticatedUser.authenticateFromLocalStorage();
+    const user =
+      AuthenticatedUser.authenticateFromLocalStorage();
     const { authenticated, username } = user;
+    console.log("Logged in user:", user);
     super(
       {
         authenticated,
         username,
-        token: authenticated ? (user as AuthenticatedUser).token : undefined
+        token: authenticated
+          ? (user as AuthenticatedUser).token
+          : undefined
       },
       AUTH_CONTEXT_DEFAULT
     );
   }
 
   connectedCallback() {
-    const service = new AuthService(this.context, this.redirect);
+    const service = new AuthService(
+      this.context,
+      this.redirect
+    );
     service.attach(this);
   }
 }
@@ -140,7 +155,9 @@ function redirection(
   const base = window.location.href;
   const target = new URL(redirect, base);
 
-  Object.entries(query).forEach(([k, v]) => target.searchParams.set(k, v));
+  Object.entries(query).forEach(([k, v]) =>
+    target.searchParams.set(k, v)
+  );
 
   return () => {
     //console.log("Redirecting to ", redirect);
@@ -160,7 +177,9 @@ function signIn(token: string) {
 
 function signOut() {
   return (model: AuthModel) => {
-    const oldUser = APIUser.deauthenticate(new APIUser(model.username));
+    const oldUser = APIUser.deauthenticate(
+      new APIUser(model.username)
+    );
     const { authenticated, username } = oldUser;
 
     return {
@@ -183,7 +202,9 @@ function authHeaders(user: APIUser | AuthenticatedUser): {
   }
 }
 
-function tokenPayload(user: APIUser | AuthenticatedUser): object {
+function tokenPayload(
+  user: APIUser | AuthenticatedUser
+): object {
   if (user.authenticated) {
     const authUser = user as AuthenticatedUser;
     return jwtDecode(authUser.token || "");
@@ -202,6 +223,6 @@ export {
   APIUser as User,
   type AuthSuccessful,
   type AuthModel as Model,
-  type AuthMsg as Msg,
+  type AuthMsg as Message,
   type AuthService as Service
 };

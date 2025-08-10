@@ -22,11 +22,8 @@ export class LoginFormElement extends HTMLElement {
   `;
 
   viewModel = createViewModel().merge(
-    {
-      username: "",
-      password: ""
-    },
-    fromInputs(shadow(this).root)
+    fromInputs(shadow(this).root),
+    ["username", "password"]
   );
 
   constructor() {

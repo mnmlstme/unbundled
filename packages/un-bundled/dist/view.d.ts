@@ -87,7 +87,7 @@ declare function html<T extends object>(template: TemplateStringsArray, ...param
 declare function map<T extends object>(view: ViewTemplate<T>, list: Array<T>): DynamicDocumentFragment[];
 
 export declare type NameMapping<T extends object, S extends object> = {
-    [K in keyof T]: keyof S;
+    [K in keyof Partial<T>]: keyof Partial<S>;
 };
 
 export declare type RenderFunction<T extends object> = (data: T, el: Element) => TemplateValue;

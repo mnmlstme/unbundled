@@ -1,4 +1,6 @@
+import { default as default_2 } from 'route-parser';
 import { DynamicDocumentFragment as DynamicDocumentFragment_2 } from './template.ts';
+import { ViewModel as ViewModel_2 } from '..';
 
 declare class APIUser {
     static TOKEN_KEY: string;
@@ -28,7 +30,7 @@ export declare namespace Auth {
         APIUser as User,
         AuthSuccessful,
         AuthModel as Model,
-        AuthMsg as Msg,
+        AuthMsg as Message,
         AuthService as Service
     }
 }
@@ -44,7 +46,7 @@ declare namespace Auth_2 {
         APIUser as User,
         AuthSuccessful,
         AuthModel as Model,
-        AuthMsg as Msg,
+        AuthMsg as Message,
         AuthService as Service
     }
 }
@@ -90,6 +92,12 @@ declare interface AuthSuccessful {
 
 export declare type Base = Type<string, object | undefined>;
 
+declare type Case = CaseRoute & (ViewCase | RedirectCase);
+
+declare interface CaseRoute {
+    route: default_2;
+}
+
 export declare type Command<M extends object> = (model: Context<M>) => void;
 
 export declare class Context<T extends object> {
@@ -134,6 +142,8 @@ export declare class Dispatch<Msg extends Base> extends CustomEvent<Msg> {
 export declare const dispatch: (target: HTMLElement, ...msg: Base) => boolean;
 
 declare const dispatch_2: (target: HTMLElement, ...msg: AuthMsg) => boolean;
+
+declare const dispatch_3: (target: HTMLElement, ...msg: HistoryMsg) => boolean;
 
 export declare function dispatcher<Msg extends Base>(eventType?: string): (target: HTMLElement, ...msg: Msg) => boolean;
 
@@ -191,6 +201,8 @@ export declare function fromAttributes<T extends object>(subject: Element): From
 
 export declare function fromAuth(target: HTMLElement, contextLabel?: string): FromService<Auth_2.Model>;
 
+export declare function fromHistory(target: HTMLElement, contextLabel?: string): FromService<History_3.Model>;
+
 declare class FromInputs<T extends object> implements Source<T> {
     subject: Node;
     constructor(subject: Node);
@@ -207,6 +219,62 @@ export declare class FromService<T extends object> implements Source<T> {
 }
 
 export declare function fromService<T extends object>(target: HTMLElement, contextLabel: string): FromService<T>;
+
+export declare namespace History_2 {
+    export {
+        HistoryProvider,
+        HISTORY_CONTEXT_DEFAULT as CONTEXT_DEFAULT,
+        HistoryProvider as Provider,
+        HistoryService as Service,
+        HistoryModel as Model,
+        HistoryMsg as Message,
+        dispatch_3 as dispatch
+    }
+}
+
+declare namespace History_3 {
+    export {
+        HistoryProvider,
+        HISTORY_CONTEXT_DEFAULT as CONTEXT_DEFAULT,
+        HistoryProvider as Provider,
+        HistoryService as Service,
+        HistoryModel as Model,
+        HistoryMsg as Message,
+        dispatch_3 as dispatch
+    }
+}
+
+declare const HISTORY_CONTEXT_DEFAULT = "context:history";
+
+declare interface HistoryModel {
+    location: Location;
+    state: object;
+}
+
+declare type HistoryMsg = [
+"history/navigate",
+    {
+    href: string;
+    state?: object;
+}
+] | [
+"history/redirect",
+    {
+    href: string;
+    state?: object;
+}
+];
+
+declare class HistoryProvider extends Provider<HistoryModel> {
+    constructor();
+    connectedCallback(): void;
+}
+
+declare class HistoryService extends Service<HistoryMsg, HistoryModel> {
+    static EVENT_TYPE: string;
+    constructor(context: Context<HistoryModel>);
+    update(message: HistoryMsg, apply: ApplyMap<HistoryModel>): void;
+}
 
 export declare function html(template: TemplateStringsArray, ...params: Array<TemplateParameter>): DynamicDocumentFragment_2;
 
@@ -227,6 +295,14 @@ declare function map<T extends object>(view: ViewTemplate<T>, list: Array<T>): D
 
 export declare type MapFn<M> = (model: M) => M;
 
+declare type Match = MatchPath & (ViewCase | RedirectCase);
+
+declare interface MatchPath {
+    path: string;
+    query?: URLSearchParams;
+    params?: RouteParams;
+}
+
 declare namespace Message {
     export {
         dispatcher,
@@ -244,8 +320,17 @@ export declare class Mutation {
 }
 
 export declare type NameMapping<T extends object, S extends object> = {
-    [K in keyof T]: keyof S;
+    [K in keyof Partial<T>]: keyof Partial<S>;
 };
+
+export declare class Observer<T extends object> {
+    private contextLabel;
+    private provider?;
+    private observed?;
+    constructor(contextLabel: string);
+    observe(from: Element, fn: Effector<Signal<T, keyof T>>): Promise<T>;
+    private attachObserver;
+}
 
 declare type Place<K extends KindOfPlace> = {
     kind: K;
@@ -256,10 +341,15 @@ export declare class Provider<T extends object> extends HTMLElement {
     readonly context: Context<T>;
     contextLabel: string;
     static DISCOVERY_EVENT: string;
+    static REGISTRY_EVENT: string;
     static CHANGE_EVENT: string;
     constructor(init: T, label: string);
     attach(observer: SignalReceiver<T>): T;
     detach(observer: SignalReceiver<T>): void;
+}
+
+declare interface RedirectCase {
+    redirect: RouteRedirect;
 }
 
 export declare type RenderFunction<T extends object> = (data: T, el: Element) => TemplateValue;
@@ -273,6 +363,19 @@ export declare interface Replacement {
 }
 
 declare type ReplacementPlace = ElementContentPlace | AttributeValuePlace | TagContentPlace;
+
+declare interface RouteData {
+    params: RouteParams;
+    query: URLSearchParams;
+}
+
+declare type RouteParams = {
+    [key: string]: string;
+};
+
+declare type RouteRedirect = string | ((arg: RouteParams) => string);
+
+declare type RouteView = ViewTemplate<RouteData>;
 
 export declare class Service<Msg extends Base, T extends object> {
     _context: Context<T>;
@@ -313,6 +416,38 @@ export declare interface Source<T extends object> {
 }
 
 export declare type SourceEffect<T> = (name: keyof T, value: any) => void;
+
+export declare namespace Switch {
+    export {
+        Switch_2 as Switch,
+        Switch_2 as Element,
+        RouteData as Args,
+        SwitchRoute as Route
+    }
+}
+
+declare class Switch_2 extends HTMLElement {
+    viewModel: ViewModel_2<SwitchData>;
+    _cases: Case[];
+    _routeView: ViewTemplate<RouteData>;
+    _routeViewModel: ViewModel_2<RouteData>;
+    constructor(routes: SwitchRoute[]);
+    routeToView(location: Location): ViewTemplate<RouteData>;
+    matchRoute(location: Location): Match | undefined;
+    redirect(href: string): void;
+}
+
+declare interface SwitchData {
+    authenticated: boolean;
+    username?: string;
+    location?: Location;
+}
+
+declare interface SwitchPath {
+    path: string;
+}
+
+declare type SwitchRoute = SwitchPath & (ViewCase | RedirectCase);
 
 export declare class TagContentMutation extends Mutation {
     fn: TagMutationFunction;
@@ -366,6 +501,11 @@ export declare const View: {
     html: typeof html_2;
     map: typeof map;
 };
+
+declare interface ViewCase {
+    view: RouteView;
+    auth?: "public" | "protected";
+}
 
 export declare class ViewModel<T extends object> extends Context<T> {
     constructor(init: Partial<T>, adoptedContext?: Context<T>);

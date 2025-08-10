@@ -11,9 +11,12 @@ import {
 import reset from "../styles/reset.css.js";
 import headings from "../styles/headings.css.js";
 import { Profile } from "server/models";
-import { InputArrayElement } from "./input-array.js";
+import { InputArrayElement } from "../components/input-array.js";
 
 type ProfileMode = "view" | "edit" | "new";
+
+type ProfileViewAttributes = { "user-id"?: string };
+
 interface ProfileViewData {
   mode: ProfileMode;
   userid?: string;
@@ -21,7 +24,7 @@ interface ProfileViewData {
   username?: string;
   token?: string;
   _avatar?: string;
-}
+};
 
 const html = View.html;
 
@@ -31,9 +34,10 @@ export class ProfileViewElement extends HTMLElement {
   });
 
   viewModel = createViewModel<ProfileViewData>({
-    mode: "view" as ProfileMode
+    mode: "view" satisfies ProfileMode
   })
-    .merge(fromAttributes(this), { userid: "user-id" })
+    .merge(fromAttributes<ProfileViewAttributes>(this),
+      { userid: "user-id" })
     .merge(fromAuth(this), ["token", "username"]);
 
   constructor() {
@@ -71,10 +75,10 @@ export class ProfileViewElement extends HTMLElement {
   view = createView<ProfileViewData>(html`
     <section>
       ${($) =>
-        View.apply<Profile>(
-          $.mode === "view" ? this.mainView : this.editView,
-          $.profile
-        )}
+      View.apply<Profile>(
+        $.mode === "view" ? this.mainView : this.editView,
+        $.profile
+      )}
     </section>
   `);
 

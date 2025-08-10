@@ -9,15 +9,18 @@ import {
 
 const html = View.html;
 
-interface InputArrayData {
-  name?: string;
+interface InputArrayAttributes {
+  name?: string
+}
+
+interface InputArrayData extends InputArrayAttributes {
   values: Array<string>;
 }
 
 export class InputArrayElement extends HTMLElement {
   viewModel = createViewModel<InputArrayData>({
     values: [] as Array<string>
-  }).merge(fromAttributes(this), ["name"]);
+  }).merge(fromAttributes<InputArrayAttributes>(this), ["name"]);
 
   static formAssociated = true;
 

@@ -4,7 +4,7 @@ import { ViewTemplate } from "./view.ts";
 import { DynamicDocumentFragment } from "../html/index.ts";
 
 export type NameMapping<T extends object, S extends object> = {
-  [K in keyof T]: keyof S;
+  [K in keyof Partial<T>]: keyof Partial<S>;
 };
 
 function mapEntries<T extends object, S extends object>(
@@ -36,24 +36,26 @@ export class ViewModel<T extends object> extends Context<T> {
     )
       ? mapEntries<T, S>(mapping)
       : mapping
-          .map((m) =>
-            typeof m === "string"
-              ? ([[m as keyof T, m as keyof S]] satisfies Array<
-                  [keyof T, keyof S]
-                >)
-              : mapEntries<T, S>(m as NameMapping<T, S>)
-          )
-          .flat();
+        .map((m) =>
+          typeof m === "string"
+            ? ([[m as keyof T, m as keyof S]] satisfies Array<
+              [keyof T, keyof S]
+            >)
+            : mapEntries<T, S>(m as NameMapping<T, S>)
+        )
+        .flat();
+
+    // console.log("Merge entries:", entries, mapping, source);
 
     if (source) {
       source
         .start((name: keyof S, value: any) => {
-          // console.log("Merging effect", name, value, inputNames);
-          const pair = entries.find(([t, s]) => s === name);
+          // console.log("Merging effect", name, value, entries, mapping);
+          const pair = entries.find(([_, s]) => s === name);
           if (pair) this.set(pair[0], value);
         })
         .then((firstObservation: Partial<S>) => {
-          // console.log("ViewModel source observed:", firstObservation);
+          // console.log("ViewModel source observed:", firstObservation, entries, mapping);
           entries.forEach(([t, s]) =>
             this.set(t, firstObservation[s])
           );

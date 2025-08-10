@@ -4,7 +4,6 @@ import {
   fromAuth,
   shadow,
   View,
-  ViewModel,
   createViewModel
 } from "@un-/bundled";
 import headings from "../styles/headings.css";

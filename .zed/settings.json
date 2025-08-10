@@ -8,6 +8,11 @@
   "diagnostics": {
     "include_warnings": false
   },
+    "languages": {
+      "TypeScript": {
+        "prettier": { "allowed": false }
+      }
+    },
   "lsp": {
     "eslint": {
       "settings": {

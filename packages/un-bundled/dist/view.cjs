@@ -202,7 +202,7 @@ class ViewModel extends context.Context {
     ).flat();
     if (source) {
       source.start((name, value) => {
-        const pair = entries.find(([t, s]) => s === name);
+        const pair = entries.find(([_, s]) => s === name);
         if (pair) this.set(pair[0], value);
       }).then((firstObservation) => {
         entries.forEach(
