@@ -1,5 +1,5 @@
 import { Context } from "../effects";
-import { dispatcher, ApplyMap, Provider, Service } from "../service";
+import { ApplyMap, Message, Provider, Service } from "../service";
 
 const HISTORY_CONTEXT_DEFAULT = "context:history";
 
@@ -150,7 +150,7 @@ function redirect(href: string, state: object = {}) {
   });
 }
 
-const dispatch = dispatcher<HistoryMsg>(HistoryService.EVENT_TYPE);
+const dispatch = Message.dispatcher<HistoryMsg>(HistoryService.EVENT_TYPE);
 
 
 export {

@@ -1,4 +1,4 @@
-export * from "./message.ts";
+export * as Message from "./message.ts";
 export * from "./observer.ts";
 export * from "./provider.ts";
 export * from "./service.ts";

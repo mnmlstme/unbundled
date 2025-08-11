@@ -3,7 +3,7 @@ import {
   ApplyMap,
   Provider,
   Service,
-  dispatcher,
+  Message,
   replace
 } from "../service";
 import { Context } from "../view";
@@ -144,7 +144,7 @@ class AuthProvider extends Provider<AuthModel> {
   }
 }
 
-const dispatch = dispatcher<AuthMsg>(AuthService.EVENT_TYPE);
+const dispatch = Message.dispatcher<AuthMsg>(AuthService.EVENT_TYPE);
 
 function redirection(
   redirect: string | undefined,
@@ -190,13 +190,12 @@ function signOut() {
   };
 }
 
-function authHeaders(user: APIUser | AuthenticatedUser): {
+function authHeaders(auth: AuthModel): {
   Authorization?: string;
 } {
-  if (user.authenticated) {
-    const authUser = user as AuthenticatedUser;
+  if (auth.authenticated) {
     return {
-      Authorization: `Bearer ${authUser.token || "NO_TOKEN"}`
+      Authorization: `Bearer ${auth.token || "NO_TOKEN"}`
     };
   } else {
     return {};

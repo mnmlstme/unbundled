@@ -1,3 +1,4 @@
+"use strict";
 class Mutation {
   constructor(place) {
     this.place = place;
@@ -13,7 +14,7 @@ class ElementContentMutation extends Mutation {
   }
   apply(site, fragment) {
     const parent = site.parentNode || fragment;
-    parent.replaceChild(site, this.content);
+    parent.replaceChild(this.content, site);
   }
 }
 class AttributeValueMutation extends Mutation {
@@ -155,8 +156,6 @@ function checkType(param, sub) {
   if (typeof sub.types === "function") return sub.types(param, sub);
   return sub.types.includes(typeof param);
 }
-export {
-  Mutation as M,
-  TagContentMutation as T,
-  TemplateParser as a
-};
+exports.Mutation = Mutation;
+exports.TagContentMutation = TagContentMutation;
+exports.TemplateParser = TemplateParser;

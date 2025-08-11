@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const template = require("./template-c79EwCZk.cjs");
+const template = require("./template-pmg-4rnk.cjs");
 function css(template2, ...params) {
   const cssString = template2.map((s, i) => i ? [params[i - 1], s] : [s]).flat().join("");
   let sheet = new CSSStyleSheet();

@@ -1,6 +1,6 @@
-export interface DynamicDocumentFragment extends DocumentFragment {}
+export interface DynamicDocumentFragment extends DocumentFragment { }
 
-export interface TemplatePlaceHolder {}
+export interface TemplatePlaceHolder { }
 
 export type TemplateValue = string | number | boolean | object | Node;
 export type TemplateParameter = TemplateValue | TemplatePlaceHolder;
@@ -12,7 +12,7 @@ type Place<K extends KindOfPlace> = {
   nodeLabel: string;
 };
 
-export interface ElementContentPlace extends Place<"element content"> {}
+export interface ElementContentPlace extends Place<"element content"> { }
 
 export interface AttributeValuePlace extends Place<"attr value"> {
   tagName: string;
@@ -48,7 +48,7 @@ class ElementContentMutation extends Mutation {
 
   override apply(site: Element, fragment: DocumentFragment): void {
     const parent: Node = site.parentNode || fragment;
-    parent.replaceChild(site, this.content);
+    parent.replaceChild(this.content, site);
   }
 }
 

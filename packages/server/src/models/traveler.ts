@@ -1,4 +1,4 @@
-export interface Profile {
+export interface Traveler {
   userid: string;
   name: string;
   nickname?: string;

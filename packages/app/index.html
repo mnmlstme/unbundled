@@ -21,8 +21,12 @@
   <body>
     <history-provider base="/app">
       <auth-provider redirect="/login.html">
-        <blazing-header></blazing-header>
-        <router-switch></router-switch>
+        <store-provider>
+                <article class="page">
+          <blazing-header></blazing-header>
+          <router-switch></router-switch>
+                </article>
+        </store-provider>
       </auth-provider>
     </history-provider>
   </body>

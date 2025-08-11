@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { authorizeUser } from "./auth";
-import { Profile } from "../models/profile";
+import { Traveler } from "../models/traveler";
 
 import profiles from "../services/profile-svc";
 
@@ -9,7 +9,7 @@ const router = express.Router();
 router.get("/", (_, res: Response) => {
   profiles
     .index()
-    .then((list: Profile[]) => res.json(list))
+    .then((list: Traveler[]) => res.json(list))
     .catch((err) => res.status(500).send(err));
 });
 
@@ -18,7 +18,7 @@ router.get("/:userid", (req: Request, res: Response) => {
 
   profiles
     .get(userid)
-    .then((profile: Profile) => res.json(profile))
+    .then((profile: Traveler) => res.json(profile))
     .catch((err) => res.status(404).send(err));
 });
 
@@ -33,7 +33,7 @@ router.put(
 
     profiles
       .update(userid, editedProfile)
-      .then((profile: Profile) => res.json(profile))
+      .then((profile: Traveler) => res.json(profile))
       .catch((err) => res.status(404).send(err));
   }
 );
@@ -51,7 +51,7 @@ router.post(
 
     profiles
       .create(newProfile)
-      .then((profile: Profile) => res.status(201).send(profile))
+      .then((profile: Traveler) => res.status(201).send(profile))
       .catch((err) => res.status(500).send(err));
   }
 );

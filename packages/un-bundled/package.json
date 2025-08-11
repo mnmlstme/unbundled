@@ -16,10 +16,22 @@
         "default": "./dist/html.js"
       }
     },
-    "./context": {
+    "./view": {
       "import": {
-        "types": "./dist/context.d.ts",
-        "default": "./dist/context.js"
+        "types": "./dist/view.d.ts",
+        "default": "./dist/view.js"
+      }
+    },
+    "./switch": {
+      "import": {
+        "types": "./dist/switch.d.ts",
+        "default": "./dist/switch.js"
+      }
+    },
+    "./store": {
+      "import": {
+        "types": "./dist/store.d.ts",
+        "default": "./dist/store.js"
       }
     }
   },

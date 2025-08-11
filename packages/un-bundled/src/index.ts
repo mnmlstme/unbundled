@@ -4,3 +4,4 @@ export * from "./view";
 export * from "./service";
 export * from "./auth";
 export * from "./switch";
+export * from "./store";

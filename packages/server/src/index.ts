@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import auth, { authenticateUser } from "./routes/auth";
-import profiles from "./routes/profiles";
+import travelers from "./routes/travelers";
 import { connect } from "./services/mongo";
 
 const app = express();
@@ -21,7 +21,7 @@ app.use(express.json({ limit: "500kb" }));
 app.use("/auth", auth);
 
 // API routes:
-app.use("/api/profiles", authenticateUser, profiles);
+app.use("/api/travelers", authenticateUser, travelers);
 
 // Page Routes:
 app.get("/ping", (_: Request, res: Response) => {

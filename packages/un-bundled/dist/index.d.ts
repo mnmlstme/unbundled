@@ -14,6 +14,11 @@ declare function apply<T extends object>(view: ViewTemplate<T>, $: T | undefined
 
 export declare type ApplyMap<M> = (fn: MapFn<M>) => void;
 
+declare type Async<M, Cmd extends Message.Base> = [
+now: M,
+...later: Array<Promise<Cmd>>
+];
+
 export declare interface AttributeValuePlace extends Place<"attr value"> {
     tagName: string;
     attrName: string;
@@ -72,6 +77,8 @@ declare interface AuthModel {
 
 declare type AuthMsg = ["auth/signin", AuthSuccessful] | ["auth/signout"] | ["auth/redirect"];
 
+declare type AuthorizedUpdateFn<M extends object, Msg extends Message.Base> = (model: M, message: Msg, auth: Auth.Model) => M | Async<M, Msg>;
+
 declare class AuthProvider extends Provider<AuthModel> {
     get redirect(): string | undefined;
     constructor();
@@ -90,7 +97,7 @@ declare interface AuthSuccessful {
     redirect?: string;
 }
 
-export declare type Base = Type<string, object | undefined>;
+declare type Base = Type<string, object | undefined>;
 
 declare type Case = CaseRoute & (ViewCase | RedirectCase);
 
@@ -135,17 +142,19 @@ export declare class DirectEffect<T extends object> implements Effect<T> {
 
 export declare function discover<T extends object>(observer: Element, contextLabel: string): Promise<Provider<T>>;
 
-export declare class Dispatch<Msg extends Base> extends CustomEvent<Msg> {
+declare class Dispatch<Msg extends Base> extends CustomEvent<Msg> {
     constructor(msg: Msg, eventType?: string);
 }
 
-export declare const dispatch: (target: HTMLElement, ...msg: Base) => boolean;
+declare const dispatch: (target: HTMLElement, ...msg: Base) => boolean;
 
 declare const dispatch_2: (target: HTMLElement, ...msg: AuthMsg) => boolean;
 
 declare const dispatch_3: (target: HTMLElement, ...msg: HistoryMsg) => boolean;
 
-export declare function dispatcher<Msg extends Base>(eventType?: string): (target: HTMLElement, ...msg: Msg) => boolean;
+declare function dispatch_4<Msg extends Message.Base>(target: HTMLElement, message: Msg): void;
+
+declare function dispatcher<Msg extends Base>(eventType?: string): (target: HTMLElement, ...msg: Msg) => boolean;
 
 export declare interface DynamicDocumentFragment extends DocumentFragment {
 }
@@ -219,6 +228,8 @@ export declare class FromService<T extends object> implements Source<T> {
 }
 
 export declare function fromService<T extends object>(target: HTMLElement, contextLabel: string): FromService<T>;
+
+export declare function fromStore<M extends object>(target: HTMLElement, contextLabel?: string): FromService<M>;
 
 export declare namespace History_2 {
     export {
@@ -305,7 +316,17 @@ declare interface MatchPath {
     params?: RouteParams;
 }
 
-declare namespace Message {
+export declare namespace Message {
+    export {
+        dispatcher,
+        Type,
+        Base,
+        Dispatch,
+        dispatch
+    }
+}
+
+declare namespace Message_2 {
     export {
         dispatcher,
         Type,
@@ -420,6 +441,32 @@ export declare interface Source<T extends object> {
 
 export declare type SourceEffect<T> = (name: keyof T, value: any) => void;
 
+export declare namespace Store {
+    export {
+        Async,
+        UpdateFn,
+        StoreService,
+        STORE_CONTEXT_DEFAULT as CONTEXT_DEFAULT,
+        StoreProvider as Provider,
+        StoreService as Service,
+        dispatch_4 as dispatch
+    }
+}
+
+declare const STORE_CONTEXT_DEFAULT = "context:store";
+
+declare class StoreProvider<M extends object, Msg extends Message.Base> extends Provider<M> {
+    viewModel: ViewModel_2<Auth.Model>;
+    _updateFn: AuthorizedUpdateFn<M, Msg>;
+    constructor(updateFn: AuthorizedUpdateFn<M, Msg>, init: M);
+    connectedCallback(): void;
+}
+
+declare class StoreService<M extends object, Msg extends Message.Base> extends Service<Msg, M> {
+    static EVENT_TYPE: string;
+    constructor(context: Context<M>, update: UpdateFn<M, Msg>);
+}
+
 export declare namespace Switch {
     export {
         Switch_2 as Switch,
@@ -493,11 +540,13 @@ export declare type TemplateValue = string | number | boolean | object | Node;
 
 declare function tokenPayload(user: APIUser | AuthenticatedUser): object;
 
-export declare type Type<msg extends string, T extends object | undefined> = [msg, T] | [msg];
+declare type Type<msg extends string, T extends object | undefined> = [msg, T] | [msg];
 
 declare type TypeCheckFunction = (param: TemplateParameter, sub: Replacement) => boolean;
 
-export declare type Update<Msg extends Message.Base, M extends object> = (message: Msg, apply: ApplyMap<M>) => Command<M> | void;
+export declare type Update<Msg extends Message_2.Base, M extends object> = (message: Msg, apply: ApplyMap<M>) => Command<M> | void;
+
+declare type UpdateFn<M extends object, Msg extends Message.Base> = (model: M, message: Msg) => M | Async<M, Msg>;
 
 export declare const View: {
     apply: typeof apply;

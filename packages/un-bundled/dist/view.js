@@ -1,6 +1,6 @@
 import { C as Context } from "./context-C8P65ok3.js";
 import { c } from "./context-C8P65ok3.js";
-import { a as TemplateParser, M as Mutation } from "./template-BtDRK3Hy.js";
+import { a as TemplateParser, M as Mutation } from "./template-DHwtuLxM.js";
 function createView(html2) {
   return html2;
 }

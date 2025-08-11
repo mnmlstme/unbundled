@@ -1,13 +1,13 @@
 import { shadow } from "./html.js";
 import { Events, css, define, html } from "./html.js";
-import { M, T, a } from "./template-BtDRK3Hy.js";
+import { M, T, a } from "./template-DHwtuLxM.js";
 import { C as Context } from "./context-C8P65ok3.js";
 import { E, S, c } from "./context-C8P65ok3.js";
 import { DirectEffect } from "./effects.js";
 import { createViewModel, View } from "./view.js";
 import { ViewModel, createView, fromAttributes, fromInputs } from "./view.js";
 class Dispatch extends CustomEvent {
-  constructor(msg, eventType = "mu:message") {
+  constructor(msg, eventType = "un:message") {
     super(eventType, {
       bubbles: true,
       composed: true,
@@ -15,10 +15,16 @@ class Dispatch extends CustomEvent {
     });
   }
 }
-function dispatcher(eventType = "mu:message") {
+function dispatcher(eventType = "un:message") {
   return (target, ...msg) => target.dispatchEvent(new Dispatch(msg, eventType));
 }
-const dispatch$2 = dispatcher();
+const dispatch$3 = dispatcher();
+const message = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  Dispatch,
+  dispatch: dispatch$3,
+  dispatcher
+}, Symbol.toStringTag, { value: "Module" }));
 const _Provider = class _Provider extends HTMLElement {
   constructor(init, label) {
     super();
@@ -127,8 +133,8 @@ class Service {
   attach(host) {
     host.addEventListener(this._eventType, (ev) => {
       ev.stopPropagation();
-      const message = ev.detail;
-      this.consume(message);
+      const message2 = ev.detail;
+      this.consume(message2);
     });
   }
   start() {
@@ -140,15 +146,15 @@ class Service {
   apply(fn) {
     this._context.apply(fn);
   }
-  consume(message) {
+  consume(message2) {
     if (this._running) {
-      this.process(message);
+      this.process(message2);
     } else {
-      this._pending.push(message);
+      this._pending.push(message2);
     }
   }
-  process(message) {
-    const command = this._update(message, this.apply.bind(this));
+  process(message2) {
+    const command = this._update(message2, this.apply.bind(this));
     if (command) command(this._context);
   }
 }
@@ -269,10 +275,10 @@ const _AuthService = class _AuthService extends Service {
     );
     this._redirectForLogin = redirectForLogin;
   }
-  update(message, apply) {
-    switch (message[0]) {
+  update(message2, apply) {
+    switch (message2[0]) {
       case "auth/signin":
-        const { token, redirect: redirect2 } = message[1];
+        const { token, redirect: redirect2 } = message2[1];
         apply(signIn(token));
         return redirection(redirect2);
       case "auth/signout":
@@ -283,7 +289,7 @@ const _AuthService = class _AuthService extends Service {
           next: window.location.href
         });
       default:
-        const unhandled = message[0];
+        const unhandled = message2[0];
         throw new Error(
           `Unhandled Auth message "${unhandled}"`
         );
@@ -316,7 +322,7 @@ class AuthProvider extends Provider {
     service.attach(this);
   }
 }
-const dispatch$1 = dispatcher(AuthService.EVENT_TYPE);
+const dispatch$2 = dispatcher(AuthService.EVENT_TYPE);
 function redirection(redirect2, query = {}) {
   if (!redirect2) return void 0;
   const base = window.location.href;
@@ -375,7 +381,7 @@ const auth = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty
   CONTEXT_DEFAULT: AUTH_CONTEXT_DEFAULT,
   Provider: AuthProvider,
   User: APIUser,
-  dispatch: dispatch$1,
+  dispatch: dispatch$2,
   headers: authHeaders,
   payload: tokenPayload
 }, Symbol.toStringTag, { value: "Module" }));
@@ -391,15 +397,15 @@ const _HistoryService = class _HistoryService extends Service {
       _HistoryService.EVENT_TYPE
     );
   }
-  update(message, apply) {
-    switch (message[0]) {
+  update(message2, apply) {
+    switch (message2[0]) {
       case "history/navigate": {
-        const { href, state } = message[1];
+        const { href, state } = message2[1];
         apply(navigate(href, state));
         break;
       }
       case "history/redirect": {
-        const { href, state } = message[1];
+        const { href, state } = message2[1];
         apply(redirect(href, state));
         break;
       }
@@ -430,7 +436,7 @@ class HistoryProvider extends Provider {
         if (location && url.origin === location.origin && url.pathname.startsWith(this.base || "/")) {
           console.log("Preventing Click Event on <A>", event);
           event.preventDefault();
-          dispatch(linkTarget, "history/navigate", {
+          dispatch$1(linkTarget, "history/navigate", {
             href: url.pathname + url.search
           });
         }
@@ -480,14 +486,14 @@ function redirect(href, state = {}) {
     state: history.state
   });
 }
-const dispatch = dispatcher(HistoryService.EVENT_TYPE);
+const dispatch$1 = dispatcher(HistoryService.EVENT_TYPE);
 const history$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   CONTEXT_DEFAULT: HISTORY_CONTEXT_DEFAULT,
   HistoryProvider,
   Provider: HistoryProvider,
   Service: HistoryService,
-  dispatch
+  dispatch: dispatch$1
 }, Symbol.toStringTag, { value: "Module" }));
 function getDefaultExportFromCjs(x) {
   return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, "default") ? x["default"] : x;
@@ -1221,7 +1227,7 @@ class Switch extends HTMLElement {
     if (m) {
       if ("view" in m) {
         if (m.auth && m.auth !== "public" && !authenticated) {
-          dispatch$1(this, "auth/redirect");
+          dispatch$2(this, "auth/redirect");
           return html2`
               <h1>Redirecting for Login</h1>
             `;
@@ -1271,7 +1277,7 @@ class Switch extends HTMLElement {
     return;
   }
   redirect(href) {
-    dispatch(this, "history/redirect", { href });
+    dispatch$1(this, "history/redirect", { href });
   }
 }
 const _switch = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
@@ -1279,20 +1285,79 @@ const _switch = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePrope
   Element: Switch,
   Switch
 }, Symbol.toStringTag, { value: "Module" }));
+const STORE_CONTEXT_DEFAULT = "context:store";
+const _StoreService = class _StoreService extends Service {
+  constructor(context, update) {
+    super(
+      (message2, apply) => {
+        apply((current) => {
+          const result = update(current, message2);
+          if (!Array.isArray(result)) return result;
+          const [next, ...commands] = result;
+          commands.forEach(
+            (promise) => promise.then((message22) => this.consume(message22))
+          );
+          return next;
+        });
+      },
+      context,
+      _StoreService.EVENT_TYPE
+    );
+  }
+};
+_StoreService.EVENT_TYPE = "store:message";
+let StoreService = _StoreService;
+class StoreProvider extends Provider {
+  constructor(updateFn, init) {
+    super(init, STORE_CONTEXT_DEFAULT);
+    this.viewModel = createViewModel({
+      authenticated: false
+    }).merge(fromAuth(this), ["authenticated", "username", "token"]);
+    this._updateFn = updateFn;
+  }
+  connectedCallback() {
+    const service = new StoreService(
+      this.context,
+      (model, message2) => this._updateFn(model, message2, this.viewModel.toObject())
+    );
+    service.attach(this);
+  }
+}
+function dispatch(target, message$1) {
+  console.log("📨 Dispatching message:", message$1, target);
+  target.dispatchEvent(
+    new Dispatch(
+      message$1,
+      StoreService.EVENT_TYPE
+    )
+  );
+}
+const store = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  CONTEXT_DEFAULT: STORE_CONTEXT_DEFAULT,
+  Provider: StoreProvider,
+  Service: StoreService,
+  StoreService,
+  dispatch
+}, Symbol.toStringTag, { value: "Module" }));
+function fromStore(target, contextLabel = STORE_CONTEXT_DEFAULT) {
+  return new FromService(target, contextLabel);
+}
 export {
   auth as Auth,
   Context,
   DirectEffect,
-  Dispatch,
   E as EffectsManager,
   Events,
   FromService,
   history$1 as History,
+  message as Message,
   M as Mutation,
   Observer,
   Provider,
   Service,
   S as SignalEvent,
+  store as Store,
   _switch as Switch,
   T as TagContentMutation,
   a as TemplateParser,
@@ -1304,13 +1369,12 @@ export {
   css,
   define,
   discover,
-  dispatch$2 as dispatch,
-  dispatcher,
   fromAttributes,
   fromAuth,
   fromHistory,
   fromInputs,
   fromService,
+  fromStore,
   html,
   identity,
   replace,

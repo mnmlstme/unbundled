@@ -2,15 +2,19 @@ import {
   css,
   define,
   View,
+  Store,
   createView,
   createViewModel,
   fromAttributes,
   fromAuth,
+  fromStore,
   shadow
 } from "@un-/bundled";
+import { Model } from "../model.ts";
+import { Message } from "../message.ts";
 import reset from "../styles/reset.css";
 import headings from "../styles/headings.css";
-import { Profile } from "server/models";
+import { Traveler } from "server/models";
 import { InputArrayElement } from "../components/input-array";
 
 type ProfileMode = "view" | "edit" | "new";
@@ -20,7 +24,7 @@ type ProfileViewAttributes = { "user-id"?: string };
 interface ProfileViewData {
   mode: ProfileMode;
   userid?: string;
-  profile?: Profile;
+  profile?: Traveler;
   username?: string;
   token?: string;
   _avatar?: string;
@@ -38,7 +42,12 @@ export class ProfileViewElement extends HTMLElement {
   })
     .merge(fromAttributes<ProfileViewAttributes>(this),
       { userid: "user-id" })
-    .merge(fromAuth(this), ["token", "username"]);
+    .merge(fromAuth(this), ["token", "username"])
+    .merge(fromStore<Model>(this), ["profile"]);
+
+  dispatch(msg: Message) {
+    Store.dispatch<Message>(this, msg);
+  }
 
   constructor() {
     super();
@@ -68,21 +77,23 @@ export class ProfileViewElement extends HTMLElement {
       });
 
     this.viewModel.createEffect(($) => {
-      if ($.userid && $.token) this.hydrate($.userid, $.token);
+      if ($.userid) this.dispatch(
+        ["profile/request", { userid: $.userid }]
+      );
     });
   }
 
   view = createView<ProfileViewData>(html`
     <section>
       ${($) =>
-      View.apply<Profile>(
+      View.apply<Traveler>(
         $.mode === "view" ? this.mainView : this.editView,
         $.profile
       )}
     </section>
   `);
 
-  mainView = createView<Profile>(html`
+  mainView = createView<Traveler>(html`
     ${($) =>
       $.userid === this.viewModel.get("username")
         ? html`
@@ -110,7 +121,7 @@ export class ProfileViewElement extends HTMLElement {
     </dl>
   `);
 
-  editView = createView<Profile>(html`
+  editView = createView<Traveler>(html`
     <form>
       <img src=${($) => $.avatar} alt=${($) => $.name} />
       <h1>
@@ -172,6 +183,7 @@ export class ProfileViewElement extends HTMLElement {
   static styles = css`
     :host {
       display: grid;
+      grid-column: 1 / -1;
       grid-template-columns: subgrid;
     }
     section {
@@ -221,55 +233,17 @@ export class ProfileViewElement extends HTMLElement {
     }
   `;
 
-  hydrate(userid: string, token: string) {
-    return fetch(`/api/profiles/${userid}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then((response: Response) => {
-        if (response.status !== 200)
-          throw `HTTP Status: ${response.status}`;
-        return response.json();
-      })
-      .then((json: object) => {
-        this.viewModel.set("profile", json as Profile);
-      })
-      .catch((error) => {
-        console.log("Could not fetch:", error);
-      });
-  }
-
   submitForm(ev: Event) {
     ev.preventDefault();
 
     const form = ev.target as HTMLFormElement;
     const json: unknown = this.formDataToJSON(form);
-    this.update(json as Profile);
-  }
-
-  update(json: Profile) {
     const userid = this.viewModel.get("userid");
-    const token = this.viewModel.get("token");
 
-    return fetch(`/api/profiles/${userid}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: json
-    })
-      .then((res: Response) => {
-        if (res.status !== 200)
-          throw `HTTP status ${res.status}`;
-        return res.json();
-      })
-      .then((json: unknown) => {
-        this.viewModel.set("profile", json as Profile);
-        this.viewModel.set("mode", "view");
-      })
-      .catch((err) =>
-        console.log("Failed to PUT form data", err)
-      );
+    this.dispatch([
+      "profile/save",
+      { userid, profile: json as Traveler }
+    ]);
   }
 
   formDataToJSON(form: HTMLFormElement): string {
@@ -288,7 +262,7 @@ export class ProfileViewElement extends HTMLElement {
     });
 
     // console.log("Entries:", entries);
-    return JSON.stringify(Object.fromEntries(entries));
+    return Object.fromEntries(entries);
   }
 
   readAvatarBase64(files: FileList) {

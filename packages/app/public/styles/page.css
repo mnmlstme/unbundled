@@ -3,6 +3,7 @@ body {
   color: var(--color-text);
   font: var(--size-font-body) var(--font-body);
 }
+
 header,
 h1,
 h2,
@@ -11,6 +12,7 @@ summary,
 dt {
   font-family: var(--font-display);
 }
+
 header {
   --color-text: var(--color-text-inverted);
   --color-text-heading: var(--color-text-inverted);
@@ -23,13 +25,16 @@ header {
   background: var(--color-background-header);
   color: var(--color-text);
 }
+
 h1 {
   font-size: var(--size-font-title);
   font-style: var(--style-font-title);
 }
+
 h2 {
   color: var(--color-text-heading);
 }
+
 a {
   color: var(--color-link);
 }
@@ -41,8 +46,7 @@ a {
 
   display: grid;
   grid-template-columns:
-    [start] repeat(var(--page-grid-columns), 1fr)
-    [end];
+    [start] repeat(var(--page-grid-columns), 1fr) [end];
   gap: var(--page-grid-gap);
   align-items: baseline;
   padding: 0 calc(0.5 * var(--page-grid-gap));
@@ -56,23 +60,28 @@ a {
   }
 }
 
-.page > section {
+.page>section {
   grid-template-columns: subgrid;
   display: grid;
   grid-column-end: span var(--page-section-columns);
 }
-.page > section > * {
+
+.page>section>* {
   grid-column-end: span var(--page-section-columns);
 }
-.page > main {
-  --page-main-columns: calc(
-    var(--page-grid-columns) - var(--page-section-columns)
-  );
+
+.page>main {
+  --page-main-columns: calc(var(--page-grid-columns) - var(--page-section-columns));
 
   display: grid;
   grid-template-columns: subgrid;
   grid-column: start / span var(--page-main-columns);
 }
-.page > main > * {
+
+.page>main>* {
   grid-column: start / span var(--page-main-columns);
+}
+
+.page>router-switch {
+  display: contents;
 }
