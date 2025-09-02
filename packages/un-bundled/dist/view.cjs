@@ -1,186 +1,24 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const context = require("./context-CnKIlkcw.cjs");
-const template = require("./template-pmg-4rnk.cjs");
-function createView(html2) {
-  return html2;
+const context = require("./context-Dr0y4sel.cjs");
+const scope = require("./scope-zXyY-M82.cjs");
+function createView(html) {
+  return html;
 }
-function map(view, list) {
-  return list.map(($) => {
-    const context$1 = new context.Context($);
-    return view.render(context$1);
-  });
+function zipArgs(...lists) {
+  const maxLength = lists.map((arr) => arr.length).reduce((a, b) => Math.max(a, b), 0);
+  const range = Array.from(Array(maxLength).keys());
+  return range.map((i) => lists.map((arr) => arr[i]));
 }
-function apply(view, $) {
-  if (!$) return "";
-  const context$1 = new context.Context($);
-  return view.render(context$1);
+function map(view, ...lists) {
+  if (!lists.length) return "";
+  return zipArgs(...lists).map((tuple) => apply(view, tuple)).flat();
 }
-class ElementContentEffect extends template.Mutation {
-  constructor(place, fn) {
-    super(place);
-    this.fn = fn;
-  }
-  apply(_, fragment) {
-    const key = this.place.nodeLabel;
-    registerEffect(
-      fragment,
-      key,
-      (site, fragment2, viewModel) => {
-        const start = new Comment(` <<< ${key} `);
-        const end = new Comment(` >>> ${key} `);
-        const placeholder = new DocumentFragment();
-        placeholder.replaceChildren(start, end);
-        const parent = site.parentNode || fragment2;
-        parent.replaceChild(placeholder, site);
-        viewModel.createEffect((vm) => {
-          const value = this.fn(vm, site);
-          let node = value instanceof Node ? value : null;
-          if (!node) {
-            switch (typeof value) {
-              case "string":
-                node = new Text(value);
-                break;
-              case "number":
-                node = new Text(value.toString());
-                break;
-              case "object":
-                if (Array.isArray(value)) {
-                  const frag = new DocumentFragment();
-                  frag.replaceChildren(...value);
-                  node = frag;
-                }
-            }
-          }
-          let p = start.nextSibling;
-          while (p && p !== end) {
-            parent.removeChild(p);
-            p = start.nextSibling;
-          }
-          if (node) parent.insertBefore(node, end);
-        });
-      }
-    );
-  }
+function apply(view, tuple) {
+  if (!tuple) return "";
+  const scope$1 = scope.createScope(tuple);
+  return view(...scope$1);
 }
-class AttributeEffect extends template.Mutation {
-  constructor(place, fn) {
-    super(place);
-    this.fn = fn;
-    this.name = place.attrName;
-  }
-  apply(_site, fragment) {
-    const key = this.place.nodeLabel;
-    registerEffect(
-      fragment,
-      key,
-      (site, _, viewModel) => {
-        viewModel.createEffect((vm) => {
-          const value = this.fn(vm, site);
-          const special = this.name.match(/^([.$])(.+)$/);
-          if (special) {
-            const [_2, pre, name] = special;
-            switch (pre) {
-              case ".":
-                site[name] = value;
-                break;
-              case "$":
-                if ("viewModel" in site && site.viewModel instanceof context.Context) {
-                  site.viewModel.set(name, value);
-                }
-                break;
-            }
-          } else {
-            switch (typeof value) {
-              case "string":
-                site.setAttribute(this.name, value);
-                break;
-              case "undefined":
-              case "boolean":
-                if (value) site.setAttribute(this.name, this.name);
-                else site.removeAttribute(this.name);
-                break;
-              default:
-                site.setAttribute(this.name, value.toString());
-            }
-          }
-        });
-      }
-    );
-  }
-}
-class TagEffect extends template.Mutation {
-  constructor(place, fn) {
-    super(place);
-    this.fn = fn;
-  }
-  apply(_site, fragment) {
-    const key = this.place.nodeLabel;
-    registerEffect(
-      fragment,
-      key,
-      (site, _, viewModel) => {
-        viewModel.createEffect((vm) => {
-          this.fn(vm, site);
-        });
-      }
-    );
-  }
-}
-const viewReplacements = [
-  {
-    place: "element content",
-    types: ["function"],
-    mutator: (place, param) => new ElementContentEffect(place, param)
-  },
-  {
-    place: "attr value",
-    types: ["function"],
-    mutator: (place, param) => new AttributeEffect(place, param)
-  },
-  {
-    place: "tag content",
-    types: ["function"],
-    mutator: (place, param) => new TagEffect(place, param)
-  }
-];
-const parser = initializeParser();
-function html(template2, ...params) {
-  const fragment = parser.parse(template2, params);
-  return Object.assign(fragment, {
-    render: (context2) => renderForEffects(fragment, context2)
-  });
-}
-function initializeParser() {
-  const parser2 = new template.TemplateParser();
-  const viewPlugin = {
-    replacements: viewReplacements
-  };
-  parser2.use(viewPlugin);
-  return parser2;
-}
-function registerEffect(template2, nodeLabel, fn) {
-  if (!template2.effectors) template2.effectors = /* @__PURE__ */ new Map();
-  let list = template2.effectors.get(nodeLabel);
-  if (list) list.push(fn);
-  else template2.effectors.set(nodeLabel, [fn]);
-}
-function renderForEffects(original, viewModel) {
-  var _a;
-  const fragment = original.cloneNode(true);
-  (_a = original.effectors) == null ? void 0 : _a.forEach((list, key) => {
-    const site = fragment.querySelector(`[data-${key}]`);
-    if (site) {
-      list.forEach((fn) => fn(site, fragment, viewModel));
-    }
-  });
-  return fragment;
-}
-const View = {
-  apply,
-  html,
-  map
-};
 function mapEntries(mapping) {
   return Object.entries(mapping).map(([k, v]) => [
     k,
@@ -212,8 +50,8 @@ class ViewModel extends context.Context {
     }
     return this;
   }
-  render(view) {
-    return view.render(this);
+  render(template) {
+    return template(this);
   }
 }
 function createViewModel(init) {
@@ -269,9 +107,10 @@ class FromInputs {
 }
 exports.Context = context.Context;
 exports.createContext = context.createContext;
-exports.View = View;
 exports.ViewModel = ViewModel;
+exports.apply = apply;
 exports.createView = createView;
 exports.createViewModel = createViewModel;
 exports.fromAttributes = fromAttributes;
 exports.fromInputs = fromInputs;
+exports.map = map;

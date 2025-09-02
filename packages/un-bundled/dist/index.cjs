@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const html$1 = require("./html.cjs");
-const template = require("./template-pmg-4rnk.cjs");
-const context = require("./context-CnKIlkcw.cjs");
+const html = require("./html.cjs");
+const context = require("./context-Dr0y4sel.cjs");
 const effects = require("./effects.cjs");
+const scope = require("./scope-zXyY-M82.cjs");
 const view = require("./view.cjs");
 class Dispatch extends CustomEvent {
   constructor(msg, eventType = "un:message") {
@@ -109,14 +109,19 @@ class Observer {
     });
   }
   attachObserver(fn) {
-    const effect = new effects.DirectEffect(fn);
-    const init = this.provider.attach((ev) => {
-      const { property, value } = ev.detail;
-      if (this.observed) {
-        this.observed[property] = value;
-        effect.execute({ property, value });
+    const init = this.provider.attach(
+      (ev) => {
+        const { property, value } = ev.detail;
+        const effect = new effects.DirectEffect(
+          fn,
+          { property, value }
+        );
+        if (this.observed) {
+          this.observed[property] = value;
+          effect.execute();
+        }
       }
-    });
+    );
     this.observed = init;
     return init;
   }
@@ -356,11 +361,10 @@ function signOut() {
     };
   };
 }
-function authHeaders(user) {
-  if (user.authenticated) {
-    const authUser = user;
+function authHeaders(auth2) {
+  if (auth2.authenticated) {
     return {
-      Authorization: `Bearer ${authUser.token || "NO_TOKEN"}`
+      Authorization: `Bearer ${auth2.token || "NO_TOKEN"}`
     };
   } else {
     return {};
@@ -1194,7 +1198,6 @@ const Route$1 = /* @__PURE__ */ getDefaultExportFromCjs(routeParser);
 function fromHistory(target, contextLabel = HISTORY_CONTEXT_DEFAULT) {
   return new FromService(target, contextLabel);
 }
-const html = view.View.html;
 class Switch extends HTMLElement {
   constructor(routes) {
     super();
@@ -1202,7 +1205,9 @@ class Switch extends HTMLElement {
       authenticated: false
     }).merge(fromAuth(this), ["authenticated", "username"]).merge(fromHistory(this), ["location"]);
     this._cases = [];
-    this._routeView = html`<h1>Routing...</h1>`;
+    this._routeView = html.html`
+    <h1>Routing...</h1>
+  `;
     this._routeViewModel = view.createViewModel({
       params: {},
       query: new URLSearchParams()
@@ -1213,10 +1218,16 @@ class Switch extends HTMLElement {
     }));
     this.viewModel.createEffect(($) => {
       if ($.location) {
-        const nextView = this.routeToView($.location, $.authenticated, $.username);
+        const nextView = this.routeToView(
+          $.location,
+          $.authenticated,
+          $.username
+        );
         if (nextView !== this._routeView) {
           this._routeView = nextView;
-          html$1.shadow(this).replace(this._routeViewModel.render(nextView));
+          html.shadow(this).replace(
+            this._routeViewModel.render(nextView)
+          );
         }
       }
     });
@@ -1227,9 +1238,9 @@ class Switch extends HTMLElement {
       if ("view" in m) {
         if (m.auth && m.auth !== "public" && !authenticated) {
           dispatch$2(this, "auth/redirect");
-          return html`
-              <h1>Redirecting for Login</h1>
-            `;
+          return html.html`
+            <h1>Redirecting for Login</h1>
+          `;
         } else {
           console.log("Loading view, ", m.params, m.query);
           this._routeViewModel.update({
@@ -1247,13 +1258,13 @@ class Switch extends HTMLElement {
         const redirect2 = m.redirect;
         if (typeof redirect2 === "string") {
           this.redirect(redirect2);
-          return html`
-              <h1>Redirecting to ${redirect2}…</h1>
-            `;
+          return html.html`
+            <h1>Redirecting to ${redirect2}…</h1>
+          `;
         }
       }
     }
-    return html`
+    return html.html`
       <h1>Not Found</h1>
     `;
   }
@@ -1342,25 +1353,27 @@ const store = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePropert
 function fromStore(target, contextLabel = STORE_CONTEXT_DEFAULT) {
   return new FromService(target, contextLabel);
 }
-exports.Events = html$1.Events;
-exports.css = html$1.css;
-exports.define = html$1.define;
-exports.html = html$1.html;
-exports.shadow = html$1.shadow;
-exports.Mutation = template.Mutation;
-exports.TagContentMutation = template.TagContentMutation;
-exports.TemplateParser = template.TemplateParser;
+exports.Events = html.Events;
+exports.css = html.css;
+exports.define = html.define;
+exports.html = html.html;
+exports.shadow = html.shadow;
 exports.Context = context.Context;
 exports.EffectsManager = context.EffectsManager;
+exports.Scheduler = context.Scheduler;
 exports.SignalEvent = context.SignalEvent;
 exports.createContext = context.createContext;
+exports.createEffect = context.createEffect;
 exports.DirectEffect = effects.DirectEffect;
-exports.View = view.View;
+exports.createScope = scope.createScope;
+exports.exposeTuple = scope.exposeTuple;
 exports.ViewModel = view.ViewModel;
+exports.apply = view.apply;
 exports.createView = view.createView;
 exports.createViewModel = view.createViewModel;
 exports.fromAttributes = view.fromAttributes;
 exports.fromInputs = view.fromInputs;
+exports.map = view.map;
 exports.Auth = auth;
 exports.FromService = FromService;
 exports.History = history$1;

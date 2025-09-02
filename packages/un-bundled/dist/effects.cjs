@@ -1,16 +1,21 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const context = require("./context-CnKIlkcw.cjs");
+const context = require("./context-Dr0y4sel.cjs");
+const scope = require("./scope-zXyY-M82.cjs");
 class DirectEffect {
-  constructor(fn) {
-    this.effectFn = fn;
+  constructor(fn, ...scope2) {
+    this.effectFn = () => fn(...scope2);
   }
-  execute(scope) {
-    this.effectFn(scope);
+  execute() {
+    this.effectFn();
   }
 }
 exports.Context = context.Context;
 exports.EffectsManager = context.EffectsManager;
+exports.Scheduler = context.Scheduler;
 exports.SignalEvent = context.SignalEvent;
 exports.createContext = context.createContext;
+exports.createEffect = context.createEffect;
+exports.createScope = scope.createScope;
+exports.exposeTuple = scope.exposeTuple;
 exports.DirectEffect = DirectEffect;

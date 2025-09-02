@@ -1,5 +1,4 @@
 import { default as default_2 } from 'route-parser';
-import { DynamicDocumentFragment as DynamicDocumentFragment_2 } from './template.ts';
 import { ViewModel as ViewModel_2 } from '..';
 
 declare class APIUser {
@@ -10,19 +9,18 @@ declare class APIUser {
     static deauthenticate(user: APIUser): APIUser;
 }
 
-declare function apply<T extends object>(view: ViewTemplate<T>, $: T | undefined): "" | DynamicDocumentFragment;
+export declare function apply<TT extends TemplateArgs>(view: Template<TT>, tuple: TT | undefined): TemplateValue;
 
 export declare type ApplyMap<M> = (fn: MapFn<M>) => void;
+
+declare type ArrayArgs<TT extends TemplateArgs> = {
+    [Index in keyof TT]: Array<TT[Index]>;
+};
 
 declare type Async<M, Cmd extends Message.Base> = [
 now: M,
 ...later: Array<Promise<Cmd>>
 ];
-
-export declare interface AttributeValuePlace extends Place<"attr value"> {
-    tagName: string;
-    attrName: string;
-}
 
 export declare namespace Auth {
     export {
@@ -65,7 +63,7 @@ declare class AuthenticatedUser extends APIUser {
     static authenticateFromLocalStorage(): APIUser;
 }
 
-declare function authHeaders(user: APIUser | AuthenticatedUser): {
+declare function authHeaders(auth: AuthModel): {
     Authorization?: string;
 };
 
@@ -99,6 +97,8 @@ declare interface AuthSuccessful {
 
 declare type Base = Type<string, object | undefined>;
 
+declare type BasicTemplateValue = string | number | boolean | Node | null;
+
 declare type Case = CaseRoute & (ViewCase | RedirectCase);
 
 declare interface CaseRoute {
@@ -115,16 +115,22 @@ export declare class Context<T extends object> {
     constructor(init: T, adoptedContext?: Context<T>);
     get(prop: keyof T): T[keyof T];
     set(prop: keyof T, value: any): void;
-    toObject(): T;
+    toObject(): Readonly<T>;
     update(next: Partial<T>): void;
     apply(mapFn: (t: T) => Partial<T>): void;
-    createEffect(fn: Effector<T>): void;
+    createEffect(fn: Effector<[T]>): void;
     setHost(host: EventTarget, eventType?: string): void;
+    open(effect: Effect): Readonly<T>;
+    close(): void;
 }
 
 export declare function createContext<T extends object>(root: T, manager: EffectsManager<T>): T;
 
-export declare function createView<T extends object>(html: ViewTemplate<T>): ViewTemplate<T>;
+export declare function createEffect<TT extends EffectArgs>(fn: Effector<TT>, ...scope: Scope<TT>): void;
+
+export declare function createScope<TT extends EffectArgs>(tuple: TT): Scope<TT>;
+
+export declare function createView<TT extends TemplateArgs>(html: Template<TT>): Template<TT>;
 
 export declare function createViewModel<T extends object>(init?: T): ViewModel<T>;
 
@@ -134,10 +140,10 @@ export declare function define(defns: ElementDefinitions): CustomElementRegistry
 
 declare function delegate(element: Element | DocumentFragment, selector: string, map: EventMap): void;
 
-export declare class DirectEffect<T extends object> implements Effect<T> {
+export declare class DirectEffect<TT extends EffectArgs> implements Effect {
     private effectFn;
-    constructor(fn: Effector<T>);
-    execute(scope: T): void;
+    constructor(fn: Effector<TT>, ...scope: TT);
+    execute(): void;
 }
 
 export declare function discover<T extends object>(observer: Element, contextLabel: string): Promise<Provider<T>>;
@@ -156,32 +162,25 @@ declare function dispatch_4<Msg extends Message.Base>(target: HTMLElement, messa
 
 declare function dispatcher<Msg extends Base>(eventType?: string): (target: HTMLElement, ...msg: Msg) => boolean;
 
-export declare interface DynamicDocumentFragment extends DocumentFragment {
+export declare interface Effect {
+    execute(): void;
 }
 
-export declare interface Effect<T extends object> {
-    execute(scope: T): void;
-}
+export declare type EffectArgs = Array<object>;
 
-export declare type Effector<T extends object> = (scope: T) => void;
-
-declare type Effector_2<T extends object> = (site: Element, fragment: DocumentFragment, viewModel: Context<T>) => void;
+export declare type Effector<TT extends EffectArgs> = (...scope: TT) => void;
 
 export declare class EffectsManager<T extends object> {
-    private signals;
     private running;
     private host?;
     private eventType;
     isRunning(): boolean;
-    start(effect: Effect<T>): void;
-    stop(): void;
-    current(): Effect<T> | undefined;
-    subscribe(key: keyof T): void;
+    push(effect: Effect): void;
+    pop(): void;
+    current(): Effect | undefined;
+    subscribe(key: keyof T, scope: T): void;
     runEffects(key: keyof T, scope: T): void;
     setHost(host: EventTarget, eventType?: string): void;
-}
-
-export declare interface ElementContentPlace extends Place<"element content"> {
 }
 
 declare type ElementDefinitions = {
@@ -199,6 +198,8 @@ export declare const Events: {
     listen: typeof listen;
     delegate: typeof delegate;
 };
+
+export declare function exposeTuple<TT extends EffectArgs>(scope: Scope<TT>): TT;
 
 declare class FromAttributes<T extends object> implements Source<T> {
     subject: Element;
@@ -289,13 +290,9 @@ declare class HistoryService extends Service<HistoryMsg, HistoryModel> {
     update(message: HistoryMsg, apply: ApplyMap<HistoryModel>): void;
 }
 
-export declare function html(template: TemplateStringsArray, ...params: Array<TemplateParameter>): DynamicDocumentFragment_2;
-
-declare function html_2<T extends object>(template: TemplateStringsArray, ...params: Array<TemplateParameter | RenderFunction<T>>): ViewTemplate<T>;
+export declare function html<TT extends TemplateArgs>(template: TemplateStringsArray, ...params: Array<TemplateParameter<TT>>): Template<TT>;
 
 export declare function identity<M>(model: M): M;
-
-declare type KindOfPlace = "element content" | "attr value" | "tag content";
 
 /**
  * Memory leak warning!
@@ -304,7 +301,7 @@ declare type KindOfPlace = "element content" | "attr value" | "tag content";
  */
 declare function listen(element: Element | DocumentFragment, map: EventMap): void;
 
-declare function map<T extends object>(view: ViewTemplate<T>, list: Array<T>): DynamicDocumentFragment[];
+export declare function map<TT extends TemplateArgs>(view: Template<TT>, ...lists: ArrayArgs<TT>): TemplateValue;
 
 export declare type MapFn<M> = (model: M) => M;
 
@@ -336,14 +333,8 @@ declare namespace Message_2 {
     }
 }
 
-export declare class Mutation {
-    place: ReplacementPlace;
-    constructor(place: ReplacementPlace);
-    apply(_site: Element, _fragment: DynamicDocumentFragment): void;
-}
-
 export declare type NameMapping<T extends object, S extends object> = {
-    [K in keyof Partial<T>]: keyof Partial<S>;
+    [K in keyof Partial<T>]: keyof Partial<S> | ((s: S) => any);
 };
 
 export declare class Observer<T extends object> {
@@ -351,14 +342,9 @@ export declare class Observer<T extends object> {
     private provider?;
     private observed?;
     constructor(contextLabel: string);
-    observe(from: Element, fn: Effector<Signal<T, keyof T>>): Promise<T>;
+    observe(from: Element, fn: Effector<[Signal<T, keyof T>]>): Promise<T>;
     private attachObserver;
 }
-
-declare type Place<K extends KindOfPlace> = {
-    kind: K;
-    nodeLabel: string;
-};
 
 export declare class Provider<T extends object> extends HTMLElement {
     readonly context: Context<T>;
@@ -375,17 +361,7 @@ declare interface RedirectCase {
     redirect: RouteRedirect;
 }
 
-export declare type RenderFunction<T extends object> = (data: T, el: Element) => TemplateValue;
-
 export declare function replace<M>(replacements: Partial<M>): MapFn<M>;
-
-export declare interface Replacement {
-    place: KindOfPlace;
-    types: Array<string> | TypeCheckFunction;
-    mutator(place: ReplacementPlace, value: TemplateParameter): Mutation;
-}
-
-declare type ReplacementPlace = ElementContentPlace | AttributeValuePlace | TagContentPlace;
 
 declare interface RouteData {
     params: RouteParams;
@@ -399,7 +375,19 @@ declare type RouteParams = {
 
 declare type RouteRedirect = string | ((arg: RouteParams) => string);
 
-declare type RouteView = ViewTemplate<RouteData>;
+declare type RouteView = Template<[RouteData]>;
+
+export declare class Scheduler {
+    private signals;
+    private scheduled;
+    static scheduler: Scheduler;
+    subscribe<T extends object>(scope: T, key: keyof T, effect: Effect): void;
+    scheduleEffects<T extends object>(scope: T, key: keyof T): void;
+}
+
+export declare type Scope<TT extends EffectArgs> = {
+    [Index in keyof TT]: Context<TT[Index]>;
+};
 
 export declare class Service<Msg extends Base, T extends object> {
     _context: Context<T>;
@@ -434,6 +422,8 @@ export declare class SignalEvent<T, K extends keyof T> extends CustomEvent<Signa
 }
 
 export declare type SignalReceiver<T> = (ev: SignalEvent<T, keyof T>) => void;
+
+export declare type Signals<T extends object> = Map<keyof T, Set<Effect>>;
 
 export declare interface Source<T extends object> {
     start(fn: SourceEffect<T>): Promise<Partial<T>>;
@@ -479,10 +469,10 @@ export declare namespace Switch {
 declare class Switch_2 extends HTMLElement {
     viewModel: ViewModel_2<SwitchData>;
     _cases: Case[];
-    _routeView: ViewTemplate<RouteData>;
+    _routeView: Template<[RouteData]>;
     _routeViewModel: ViewModel_2<RouteData>;
     constructor(routes: SwitchRoute[]);
-    routeToView(location: Location, authenticated?: boolean, username?: string): ViewTemplate<RouteData>;
+    routeToView(location: Location, authenticated?: boolean, username?: string): Template<[RouteData]>;
     matchRoute(location: Location): Match | undefined;
     redirect(href: string): void;
 }
@@ -499,60 +489,25 @@ declare interface SwitchPath {
 
 declare type SwitchRoute = SwitchPath & (ViewCase | RedirectCase);
 
-export declare class TagContentMutation extends Mutation {
-    fn: TagMutationFunction;
-    constructor(place: TagContentPlace, fn: TagMutationFunction);
-    apply(site: Element): void;
-}
+export declare type Template<TT extends TemplateArgs> = (...args: Scope<TT>) => DocumentFragment;
 
-export declare interface TagContentPlace extends Place<"tag content"> {
-    tagName: string;
-}
+export declare type TemplateArgs = Array<object>;
 
-export declare type TagMutationFunction = (site: Element) => void;
+export declare type TemplateEffect<TT extends TemplateArgs> = (...args: TT) => TemplateValue;
 
-export declare type TemplateParameter = TemplateValue | TemplatePlaceHolder;
+export declare type TemplateParameter<TT extends TemplateArgs> = TemplateValue | TemplateEffect<TT> | TemplateReferenceEffect<TT>;
 
-export declare class TemplateParser {
-    static parser: DOMParser;
-    docType: DOMParserSupportedType;
-    plugins: Array<TemplatePlugin>;
-    constructor(docType?: DOMParserSupportedType);
-    use(plugin: TemplatePlugin): void;
-    parse(template: TemplateStringsArray, params: Array<TemplateParameter>): DynamicDocumentFragment;
-    static OPEN_RE: RegExp;
-    static IN_TAG_RE: RegExp;
-    static ATTR_RE: RegExp;
-    static CLOSE_RE: RegExp;
-    classifyPlace(i: number, template: TemplateStringsArray): ReplacementPlace;
-    tryReplacements(place: ReplacementPlace, param: TemplateParameter): Mutation | undefined;
-    static basicReplacements: Array<Replacement>;
-}
+export declare type TemplateReferenceEffect<TT extends TemplateArgs> = (ref: Element, ...args: TT) => void;
 
-export declare interface TemplatePlaceHolder {
-}
-
-export declare interface TemplatePlugin {
-    replacements: Array<Replacement>;
-}
-
-export declare type TemplateValue = string | number | boolean | object | Node;
+export declare type TemplateValue = BasicTemplateValue | Array<BasicTemplateValue>;
 
 declare function tokenPayload(user: APIUser | AuthenticatedUser): object;
 
 declare type Type<msg extends string, T extends object | undefined> = [msg, T] | [msg];
 
-declare type TypeCheckFunction = (param: TemplateParameter, sub: Replacement) => boolean;
-
 export declare type Update<Msg extends Message_2.Base, M extends object> = (message: Msg, apply: ApplyMap<M>) => Command<M> | void;
 
 declare type UpdateFn<M extends object, Msg extends Message.Base> = (model: M, message: Msg) => M | Async<M, Msg>;
-
-export declare const View: {
-    apply: typeof apply;
-    html: typeof html_2;
-    map: typeof map;
-};
 
 declare interface ViewCase {
     view: RouteView;
@@ -561,14 +516,9 @@ declare interface ViewCase {
 
 export declare class ViewModel<T extends object> extends Context<T> {
     constructor(init: Partial<T>, adoptedContext?: Context<T>);
-    get $(): T;
+    get $(): Readonly<T>;
     merge<S extends object>(source: Source<S>, mapping: NameMapping<T, S> | Array<NameMapping<T, S> | (keyof T & keyof S)>): ViewModel<T>;
-    render(view: ViewTemplate<T>): DynamicDocumentFragment;
-}
-
-export declare interface ViewTemplate<T extends object> extends DynamicDocumentFragment {
-    render(context: Context<T>): DynamicDocumentFragment;
-    effectors?: Map<string, Array<Effector_2<T>>>;
+    render(template: Template<[T]>): DocumentFragment;
 }
 
 export { }

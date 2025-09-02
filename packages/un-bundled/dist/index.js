@@ -1,11 +1,11 @@
-import { shadow } from "./html.js";
-import { Events, css, define, html } from "./html.js";
-import { M, T, a } from "./template-DHwtuLxM.js";
-import { C as Context } from "./context-C8P65ok3.js";
-import { E, S, c } from "./context-C8P65ok3.js";
+import { html, shadow } from "./html.js";
+import { Events, css, define } from "./html.js";
+import { C as Context } from "./context-DxrrEInf.js";
+import { E, S, b, c, a } from "./context-DxrrEInf.js";
 import { DirectEffect } from "./effects.js";
-import { createViewModel, View } from "./view.js";
-import { ViewModel, createView, fromAttributes, fromInputs } from "./view.js";
+import { c as c2, e } from "./scope-DMTZ_lvu.js";
+import { createViewModel } from "./view.js";
+import { ViewModel, apply, createView, fromAttributes, fromInputs, map } from "./view.js";
 class Dispatch extends CustomEvent {
   constructor(msg, eventType = "un:message") {
     super(eventType, {
@@ -110,14 +110,19 @@ class Observer {
     });
   }
   attachObserver(fn) {
-    const effect = new DirectEffect(fn);
-    const init = this.provider.attach((ev) => {
-      const { property, value } = ev.detail;
-      if (this.observed) {
-        this.observed[property] = value;
-        effect.execute({ property, value });
+    const init = this.provider.attach(
+      (ev) => {
+        const { property, value } = ev.detail;
+        const effect = new DirectEffect(
+          fn,
+          { property, value }
+        );
+        if (this.observed) {
+          this.observed[property] = value;
+          effect.execute();
+        }
       }
-    });
+    );
     this.observed = init;
     return init;
   }
@@ -223,13 +228,13 @@ function jwtDecode(token, options) {
   let decoded;
   try {
     decoded = base64UrlDecode(part);
-  } catch (e) {
-    throw new InvalidTokenError(`Invalid token specified: invalid base64 for part #${pos + 1} (${e.message})`);
+  } catch (e2) {
+    throw new InvalidTokenError(`Invalid token specified: invalid base64 for part #${pos + 1} (${e2.message})`);
   }
   try {
     return JSON.parse(decoded);
-  } catch (e) {
-    throw new InvalidTokenError(`Invalid token specified: invalid json for part #${pos + 1} (${e.message})`);
+  } catch (e2) {
+    throw new InvalidTokenError(`Invalid token specified: invalid json for part #${pos + 1} (${e2.message})`);
   }
 }
 const AUTH_CONTEXT_DEFAULT = "context:auth";
@@ -269,20 +274,20 @@ class AuthenticatedUser extends APIUser {
 const _AuthService = class _AuthService extends Service {
   constructor(context, redirectForLogin) {
     super(
-      (msg, apply) => this.update(msg, apply),
+      (msg, apply2) => this.update(msg, apply2),
       context,
       _AuthService.EVENT_TYPE
     );
     this._redirectForLogin = redirectForLogin;
   }
-  update(message2, apply) {
+  update(message2, apply2) {
     switch (message2[0]) {
       case "auth/signin":
         const { token, redirect: redirect2 } = message2[1];
-        apply(signIn(token));
+        apply2(signIn(token));
         return redirection(redirect2);
       case "auth/signout":
-        apply(signOut());
+        apply2(signOut());
         return redirection(this._redirectForLogin);
       case "auth/redirect":
         return redirection(this._redirectForLogin, {
@@ -357,11 +362,10 @@ function signOut() {
     };
   };
 }
-function authHeaders(user) {
-  if (user.authenticated) {
-    const authUser = user;
+function authHeaders(auth2) {
+  if (auth2.authenticated) {
     return {
-      Authorization: `Bearer ${authUser.token || "NO_TOKEN"}`
+      Authorization: `Bearer ${auth2.token || "NO_TOKEN"}`
     };
   } else {
     return {};
@@ -392,21 +396,21 @@ const HISTORY_CONTEXT_DEFAULT = "context:history";
 const _HistoryService = class _HistoryService extends Service {
   constructor(context) {
     super(
-      (msg, apply) => this.update(msg, apply),
+      (msg, apply2) => this.update(msg, apply2),
       context,
       _HistoryService.EVENT_TYPE
     );
   }
-  update(message2, apply) {
+  update(message2, apply2) {
     switch (message2[0]) {
       case "history/navigate": {
         const { href, state } = message2[1];
-        apply(navigate(href, state));
+        apply2(navigate(href, state));
         break;
       }
       case "history/redirect": {
         const { href, state } = message2[1];
-        apply(redirect(href, state));
+        apply2(redirect(href, state));
         break;
       }
     }
@@ -805,8 +809,8 @@ var compiledGrammar = {};
         // displays the character position where the lexing error occurred, i.e. for error messages
         showPosition: function() {
           var pre = this.pastInput();
-          var c2 = new Array(pre.length + 1).join("-");
-          return pre + this.upcomingInput() + "\n" + c2 + "^";
+          var c3 = new Array(pre.length + 1).join("-");
+          return pre + this.upcomingInput() + "\n" + c3 + "^";
         },
         // test the lexed token: return FALSE when not a match, otherwise return token
         test_match: function(match, indexed_rule) {
@@ -1122,8 +1126,8 @@ var ReverseVisitor$1 = createVisitor({
     var childResults = node.children.map((function(child) {
       return this.visit(child, context);
     }).bind(this));
-    if (childResults.some(function(c2) {
-      return c2 === false;
+    if (childResults.some(function(c3) {
+      return c3 === false;
     })) {
       return false;
     } else {
@@ -1195,7 +1199,6 @@ const Route$1 = /* @__PURE__ */ getDefaultExportFromCjs(routeParser);
 function fromHistory(target, contextLabel = HISTORY_CONTEXT_DEFAULT) {
   return new FromService(target, contextLabel);
 }
-const html2 = View.html;
 class Switch extends HTMLElement {
   constructor(routes) {
     super();
@@ -1203,7 +1206,9 @@ class Switch extends HTMLElement {
       authenticated: false
     }).merge(fromAuth(this), ["authenticated", "username"]).merge(fromHistory(this), ["location"]);
     this._cases = [];
-    this._routeView = html2`<h1>Routing...</h1>`;
+    this._routeView = html`
+    <h1>Routing...</h1>
+  `;
     this._routeViewModel = createViewModel({
       params: {},
       query: new URLSearchParams()
@@ -1214,10 +1219,16 @@ class Switch extends HTMLElement {
     }));
     this.viewModel.createEffect(($) => {
       if ($.location) {
-        const nextView = this.routeToView($.location, $.authenticated, $.username);
+        const nextView = this.routeToView(
+          $.location,
+          $.authenticated,
+          $.username
+        );
         if (nextView !== this._routeView) {
           this._routeView = nextView;
-          shadow(this).replace(this._routeViewModel.render(nextView));
+          shadow(this).replace(
+            this._routeViewModel.render(nextView)
+          );
         }
       }
     });
@@ -1228,9 +1239,9 @@ class Switch extends HTMLElement {
       if ("view" in m) {
         if (m.auth && m.auth !== "public" && !authenticated) {
           dispatch$2(this, "auth/redirect");
-          return html2`
-              <h1>Redirecting for Login</h1>
-            `;
+          return html`
+            <h1>Redirecting for Login</h1>
+          `;
         } else {
           console.log("Loading view, ", m.params, m.query);
           this._routeViewModel.update({
@@ -1248,13 +1259,13 @@ class Switch extends HTMLElement {
         const redirect2 = m.redirect;
         if (typeof redirect2 === "string") {
           this.redirect(redirect2);
-          return html2`
-              <h1>Redirecting to ${redirect2}…</h1>
-            `;
+          return html`
+            <h1>Redirecting to ${redirect2}…</h1>
+          `;
         }
       }
     }
-    return html2`
+    return html`
       <h1>Not Found</h1>
     `;
   }
@@ -1289,8 +1300,8 @@ const STORE_CONTEXT_DEFAULT = "context:store";
 const _StoreService = class _StoreService extends Service {
   constructor(context, update) {
     super(
-      (message2, apply) => {
-        apply((current) => {
+      (message2, apply2) => {
+        apply2((current) => {
           const result = update(current, message2);
           if (!Array.isArray(result)) return result;
           const [next, ...commands] = result;
@@ -1352,23 +1363,24 @@ export {
   FromService,
   history$1 as History,
   message as Message,
-  M as Mutation,
   Observer,
   Provider,
+  S as Scheduler,
   Service,
-  S as SignalEvent,
+  b as SignalEvent,
   store as Store,
   _switch as Switch,
-  T as TagContentMutation,
-  a as TemplateParser,
-  View,
   ViewModel,
+  apply,
   c as createContext,
+  a as createEffect,
+  c2 as createScope,
   createView,
   createViewModel,
   css,
   define,
   discover,
+  e as exposeTuple,
   fromAttributes,
   fromAuth,
   fromHistory,
@@ -1377,6 +1389,7 @@ export {
   fromStore,
   html,
   identity,
+  map,
   replace,
   shadow
 };

@@ -1,6 +1,6 @@
 import Route from "route-parser";
-import { shadow } from "../html";
-import { View, ViewTemplate, createViewModel } from "../view";
+import { Template, html, shadow } from "../html";
+import { createViewModel } from "../view";
 import { Auth, fromAuth } from "../auth";
 import * as History from "./history";
 import { fromHistory } from "./fromHistory";
@@ -15,8 +15,7 @@ interface RouteData {
   user?: Auth.Model;
 }
 
-type RouteView = ViewTemplate<RouteData>;
-const html = View.html;
+type RouteView = Template<[RouteData]>;
 
 type RouteRedirect = string | ((arg: RouteParams) => string);
 
@@ -61,34 +60,43 @@ export class Switch extends HTMLElement {
     .merge(fromHistory(this), ["location"]);
 
   _cases: Case[] = [];
-  _routeView: ViewTemplate<RouteData> = html`<h1>Routing...</h1>`;
+  _routeView: Template<[RouteData]> = html`
+    <h1>Routing...</h1>
+  `;
   _routeViewModel = createViewModel<RouteData>({
     params: {},
-    query: new URLSearchParams(),
+    query: new URLSearchParams()
   });
 
-  constructor(
-    routes: SwitchRoute[],
-  ) {
+  constructor(routes: SwitchRoute[]) {
     super();
     this._cases = routes.map((r) => ({
       ...r,
       route: new Route(r.path)
     }));
 
-    this.viewModel.createEffect($ => {
+    this.viewModel.createEffect(($) => {
       if ($.location) {
-        const nextView = this.routeToView($.location, $.authenticated, $.username);
+        const nextView = this.routeToView(
+          $.location,
+          $.authenticated,
+          $.username
+        );
         if (nextView !== this._routeView) {
-          this._routeView = nextView
-          shadow(this)
-            .replace(this._routeViewModel.render(nextView));
+          this._routeView = nextView;
+          shadow(this).replace(
+            this._routeViewModel.render(nextView)
+          );
         }
       }
     });
   }
 
-  routeToView(location: Location, authenticated: boolean = false, username?: string): ViewTemplate<RouteData> {
+  routeToView(
+    location: Location,
+    authenticated: boolean = false,
+    username?: string
+  ): Template<[RouteData]> {
     const m = this.matchRoute(location);
 
     if (m) {
@@ -96,8 +104,8 @@ export class Switch extends HTMLElement {
         if (m.auth && m.auth !== "public" && !authenticated) {
           Auth.dispatch(this, "auth/redirect");
           return html`
-              <h1>Redirecting for Login</h1>
-            `;
+            <h1>Redirecting for Login</h1>
+          `;
         } else {
           console.log("Loading view, ", m.params, m.query);
           this._routeViewModel.update({
@@ -107,7 +115,7 @@ export class Switch extends HTMLElement {
               authenticated,
               username
             }
-          })
+          });
           return m.view;
         }
       }
@@ -116,8 +124,8 @@ export class Switch extends HTMLElement {
         if (typeof redirect === "string") {
           this.redirect(redirect);
           return html`
-              <h1>Redirecting to ${redirect}…</h1>
-            `;
+            <h1>Redirecting to ${redirect}…</h1>
+          `;
         }
       }
     }
@@ -125,7 +133,6 @@ export class Switch extends HTMLElement {
       <h1>Not Found</h1>
     `;
   }
-
 
   matchRoute(location: Location): Match | undefined {
     const { search, pathname } = location;

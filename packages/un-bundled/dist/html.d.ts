@@ -1,8 +1,20 @@
-import { DynamicDocumentFragment as DynamicDocumentFragment_2 } from './template.ts';
+declare type BasicTemplateValue = string | number | boolean | Node | null;
 
-export declare interface AttributeValuePlace extends Place<"attr value"> {
-    tagName: string;
-    attrName: string;
+declare class Context<T extends object> {
+    private manager;
+    private object;
+    private proxy;
+    static CHANGE_EVENT_TYPE: string;
+    constructor(init: T, adoptedContext?: Context<T>);
+    get(prop: keyof T): T[keyof T];
+    set(prop: keyof T, value: any): void;
+    toObject(): Readonly<T>;
+    update(next: Partial<T>): void;
+    apply(mapFn: (t: T) => Partial<T>): void;
+    createEffect(fn: Effector<[T]>): void;
+    setHost(host: EventTarget, eventType?: string): void;
+    open(effect: Effect): Readonly<T>;
+    close(): void;
 }
 
 export declare function css(template: TemplateStringsArray, ...params: string[]): CSSStyleSheet;
@@ -11,11 +23,13 @@ export declare function define(defns: ElementDefinitions): CustomElementRegistry
 
 declare function delegate(element: Element | DocumentFragment, selector: string, map: EventMap): void;
 
-export declare interface DynamicDocumentFragment extends DocumentFragment {
+declare interface Effect {
+    execute(): void;
 }
 
-export declare interface ElementContentPlace extends Place<"element content"> {
-}
+declare type EffectArgs = Array<object>;
+
+declare type Effector<TT extends EffectArgs> = (...scope: TT) => void;
 
 declare type ElementDefinitions = {
     [tag: string]: CustomElementConstructor;
@@ -33,9 +47,7 @@ export declare const Events: {
     delegate: typeof delegate;
 };
 
-export declare function html(template: TemplateStringsArray, ...params: Array<TemplateParameter>): DynamicDocumentFragment_2;
-
-declare type KindOfPlace = "element content" | "attr value" | "tag content";
+export declare function html<TT extends TemplateArgs>(template: TemplateStringsArray, ...params: Array<TemplateParameter<TT>>): Template<TT>;
 
 /**
  * Memory leak warning!
@@ -44,24 +56,9 @@ declare type KindOfPlace = "element content" | "attr value" | "tag content";
  */
 declare function listen(element: Element | DocumentFragment, map: EventMap): void;
 
-export declare class Mutation {
-    place: ReplacementPlace;
-    constructor(place: ReplacementPlace);
-    apply(_site: Element, _fragment: DynamicDocumentFragment): void;
-}
-
-declare type Place<K extends KindOfPlace> = {
-    kind: K;
-    nodeLabel: string;
+declare type Scope<TT extends EffectArgs> = {
+    [Index in keyof TT]: Context<TT[Index]>;
 };
-
-export declare interface Replacement {
-    place: KindOfPlace;
-    types: Array<string> | TypeCheckFunction;
-    mutator(place: ReplacementPlace, value: TemplateParameter): Mutation;
-}
-
-declare type ReplacementPlace = ElementContentPlace | AttributeValuePlace | TagContentPlace;
 
 export declare function shadow(el: HTMLElement, options?: ShadowRootInit): {
     template: (fragment: DocumentFragment) => /*elided*/ any;
@@ -72,45 +69,16 @@ export declare function shadow(el: HTMLElement, options?: ShadowRootInit): {
     listen: (map: EventMap) => /*elided*/ any;
 };
 
-export declare class TagContentMutation extends Mutation {
-    fn: TagMutationFunction;
-    constructor(place: TagContentPlace, fn: TagMutationFunction);
-    apply(site: Element): void;
-}
+export declare type Template<TT extends TemplateArgs> = (...args: Scope<TT>) => DocumentFragment;
 
-export declare interface TagContentPlace extends Place<"tag content"> {
-    tagName: string;
-}
+export declare type TemplateArgs = Array<object>;
 
-export declare type TagMutationFunction = (site: Element) => void;
+export declare type TemplateEffect<TT extends TemplateArgs> = (...args: TT) => TemplateValue;
 
-export declare type TemplateParameter = TemplateValue | TemplatePlaceHolder;
+export declare type TemplateParameter<TT extends TemplateArgs> = TemplateValue | TemplateEffect<TT> | TemplateReferenceEffect<TT>;
 
-export declare class TemplateParser {
-    static parser: DOMParser;
-    docType: DOMParserSupportedType;
-    plugins: Array<TemplatePlugin>;
-    constructor(docType?: DOMParserSupportedType);
-    use(plugin: TemplatePlugin): void;
-    parse(template: TemplateStringsArray, params: Array<TemplateParameter>): DynamicDocumentFragment;
-    static OPEN_RE: RegExp;
-    static IN_TAG_RE: RegExp;
-    static ATTR_RE: RegExp;
-    static CLOSE_RE: RegExp;
-    classifyPlace(i: number, template: TemplateStringsArray): ReplacementPlace;
-    tryReplacements(place: ReplacementPlace, param: TemplateParameter): Mutation | undefined;
-    static basicReplacements: Array<Replacement>;
-}
+export declare type TemplateReferenceEffect<TT extends TemplateArgs> = (ref: Element, ...args: TT) => void;
 
-export declare interface TemplatePlaceHolder {
-}
-
-export declare interface TemplatePlugin {
-    replacements: Array<Replacement>;
-}
-
-export declare type TemplateValue = string | number | boolean | object | Node;
-
-declare type TypeCheckFunction = (param: TemplateParameter, sub: Replacement) => boolean;
+export declare type TemplateValue = BasicTemplateValue | Array<BasicTemplateValue>;
 
 export { }

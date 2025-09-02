@@ -1,7 +1,7 @@
 {
-  "name": "@un-/bundled",
-  "version": "0.1.0",
-  "main": "src/index.ts",
+  "name": "@un-bundled/unbundled",
+  "version": "0.1.2",
+  "main": "./dist/index.js",
   "type": "module",
   "exports": {
     ".": {

@@ -1,9 +1,9 @@
-import { Effect } from "./effect.ts";
-import { SignalEvent } from "./signal.ts";
+import { Effect } from "./effect";
+import { SignalEvent } from "./signal";
+import { Scheduler } from "./scheduler";
 
 export class EffectsManager<T extends object> {
-  private signals: Map<keyof T, Set<Effect<T>>> = new Map();
-  private running: Effect<T>[] = [];
+  private running: Effect[] = [];
   private host?: EventTarget;
   private eventType = "un-effect:change";
 
@@ -11,39 +11,32 @@ export class EffectsManager<T extends object> {
     return this.running.length > 0;
   }
 
-  start(effect: Effect<T>): void {
+  push(effect: Effect): void {
     // console.log("Starting manager for effect", effect);
     this.running.push(effect);
   }
 
-  stop(): void {
+  pop(): void {
     // console.log("Stopping manager for effect");
     this.running.pop();
   }
 
-  current(): Effect<T> | undefined {
+  current(): Effect | undefined {
     const len = this.running.length;
     return len ? this.running[len - 1] : undefined;
   }
 
-  subscribe(key: keyof T): void {
+  subscribe(key: keyof T, scope: T): void {
     const current = this.current();
     if (current) {
       // console.log("Subscribing to signal", key);
-      let signal = this.signals.get(key);
-      if (!signal) this.signals.set(key, (signal = new Set()));
-      signal.add(current);
+      Scheduler.scheduler.subscribe(scope, key, current);
     }
   }
 
   runEffects(key: keyof T, scope: T): void {
-    const signal = this.signals.get(key);
     // console.log("Running effects for signal", key, signal);
-    if (signal) {
-      for (const effect of signal) {
-        setTimeout(() => effect.execute(scope));
-      }
-    }
+    Scheduler.scheduler.scheduleEffects(scope, key);
     if (this.host) {
       const evt = new SignalEvent(this.eventType, {
         property: key,

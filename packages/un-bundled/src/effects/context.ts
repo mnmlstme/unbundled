@@ -1,5 +1,6 @@
-import { Effector } from "./effect.ts";
-import { EffectsManager } from "./manager.ts";
+import { Effect, Effector } from "./effect";
+import { EffectsManager } from "./manager";
+import { createEffect } from "./scheduler";
 
 export class Context<T extends object> {
   private manager: EffectsManager<T>;
@@ -29,7 +30,7 @@ export class Context<T extends object> {
     this.proxy[prop] = value;
   }
 
-  toObject(): T {
+  toObject(): Readonly<T> {
     return this.object;
   }
 
@@ -41,21 +42,21 @@ export class Context<T extends object> {
     this.update(mapFn(this.toObject()));
   }
 
-  createEffect(fn: Effector<T>): void {
-    const manager = this.manager;
-    const effect = {
-      execute($: T) {
-        manager.start(effect);
-        fn($);
-        manager.stop();
-      }
-    };
-    // console.log("Executing created effect:", effect, fn);
-    effect.execute(this.proxy);
+  createEffect(fn: Effector<[T]>): void {
+    createEffect(fn, this);
   }
 
   setHost(host: EventTarget, eventType?: string) {
     this.manager.setHost(host, eventType);
+  }
+
+  open(effect: Effect): Readonly<T> {
+    this.manager.push(effect);
+    return this.toObject();
+  }
+
+  close() {
+    this.manager.pop();
   }
 }
 
@@ -68,12 +69,17 @@ export function createContext<T extends object>(
       const value = Reflect.get(subject, prop, receiver);
       // console.log("Got value of signal", prop, value);
       if (manager.isRunning() && isObservable(value)) {
-        manager.subscribe(prop as keyof T);
+        manager.subscribe(prop as keyof T, subject);
       }
       return value;
     },
     set: (subject: T, prop: string, newValue, receiver) => {
-      const didSet = Reflect.set(subject, prop, newValue, receiver);
+      const didSet = Reflect.set(
+        subject,
+        prop,
+        newValue,
+        receiver
+      );
       if (didSet && isObservable(newValue)) {
         manager.runEffects(prop as keyof T, subject);
       }

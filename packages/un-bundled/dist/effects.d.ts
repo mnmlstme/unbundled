@@ -6,40 +6,61 @@ export declare class Context<T extends object> {
     constructor(init: T, adoptedContext?: Context<T>);
     get(prop: keyof T): T[keyof T];
     set(prop: keyof T, value: any): void;
-    toObject(): T;
+    toObject(): Readonly<T>;
     update(next: Partial<T>): void;
     apply(mapFn: (t: T) => Partial<T>): void;
-    createEffect(fn: Effector<T>): void;
+    createEffect(fn: Effector<[T]>): void;
     setHost(host: EventTarget, eventType?: string): void;
+    open(effect: Effect): Readonly<T>;
+    close(): void;
 }
 
 export declare function createContext<T extends object>(root: T, manager: EffectsManager<T>): T;
 
-export declare class DirectEffect<T extends object> implements Effect<T> {
+export declare function createEffect<TT extends EffectArgs>(fn: Effector<TT>, ...scope: Scope<TT>): void;
+
+export declare function createScope<TT extends EffectArgs>(tuple: TT): Scope<TT>;
+
+export declare class DirectEffect<TT extends EffectArgs> implements Effect {
     private effectFn;
-    constructor(fn: Effector<T>);
-    execute(scope: T): void;
+    constructor(fn: Effector<TT>, ...scope: TT);
+    execute(): void;
 }
 
-export declare interface Effect<T extends object> {
-    execute(scope: T): void;
+export declare interface Effect {
+    execute(): void;
 }
 
-export declare type Effector<T extends object> = (scope: T) => void;
+export declare type EffectArgs = Array<object>;
+
+export declare type Effector<TT extends EffectArgs> = (...scope: TT) => void;
 
 export declare class EffectsManager<T extends object> {
-    private signals;
     private running;
     private host?;
     private eventType;
     isRunning(): boolean;
-    start(effect: Effect<T>): void;
-    stop(): void;
-    current(): Effect<T> | undefined;
-    subscribe(key: keyof T): void;
+    push(effect: Effect): void;
+    pop(): void;
+    current(): Effect | undefined;
+    subscribe(key: keyof T, scope: T): void;
     runEffects(key: keyof T, scope: T): void;
     setHost(host: EventTarget, eventType?: string): void;
 }
+
+export declare function exposeTuple<TT extends EffectArgs>(scope: Scope<TT>): TT;
+
+export declare class Scheduler {
+    private signals;
+    private scheduled;
+    static scheduler: Scheduler;
+    subscribe<T extends object>(scope: T, key: keyof T, effect: Effect): void;
+    scheduleEffects<T extends object>(scope: T, key: keyof T): void;
+}
+
+export declare type Scope<TT extends EffectArgs> = {
+    [Index in keyof TT]: Context<TT[Index]>;
+};
 
 export declare type Signal<T, K extends keyof T> = {
     property: K;
@@ -51,5 +72,7 @@ export declare class SignalEvent<T, K extends keyof T> extends CustomEvent<Signa
 }
 
 export declare type SignalReceiver<T> = (ev: SignalEvent<T, keyof T>) => void;
+
+export declare type Signals<T extends object> = Map<keyof T, Set<Effect>>;
 
 export { }

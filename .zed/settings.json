@@ -10,7 +10,7 @@
   },
     "languages": {
       "TypeScript": {
-        "prettier": { "allowed": false }
+        "prettier": { "allowed": true }
       }
     },
   "lsp": {

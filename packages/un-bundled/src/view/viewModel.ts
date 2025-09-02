@@ -1,10 +1,9 @@
 import { Context } from "../effects/index.ts";
 import { Source } from "./source.ts";
-import { ViewTemplate } from "./view.ts";
-import { DynamicDocumentFragment } from "../html/index.ts";
+import { Template } from "../html";
 
 export type NameMapping<T extends object, S extends object> = {
-  [K in keyof Partial<T>]: keyof Partial<S>;
+  [K in keyof Partial<T>]: keyof Partial<S> | ((s: S) => any);
 };
 
 function mapEntries<T extends object, S extends object>(
@@ -36,14 +35,14 @@ export class ViewModel<T extends object> extends Context<T> {
     )
       ? mapEntries<T, S>(mapping)
       : mapping
-        .map((m) =>
-          typeof m === "string"
-            ? ([[m as keyof T, m as keyof S]] satisfies Array<
-              [keyof T, keyof S]
-            >)
-            : mapEntries<T, S>(m as NameMapping<T, S>)
-        )
-        .flat();
+          .map((m) =>
+            typeof m === "string"
+              ? ([[m as keyof T, m as keyof S]] satisfies Array<
+                  [keyof T, keyof S]
+                >)
+              : mapEntries<T, S>(m as NameMapping<T, S>)
+          )
+          .flat();
 
     // console.log("Merge entries:", entries, mapping, source);
 
@@ -65,9 +64,9 @@ export class ViewModel<T extends object> extends Context<T> {
     return this;
   }
 
-  render(view: ViewTemplate<T>): DynamicDocumentFragment {
+  render(template: Template<[T]>): DocumentFragment {
     // console.log("Rendering view, scope=", this.toObject());
-    return view.render(this);
+    return template(this);
   }
 }
 

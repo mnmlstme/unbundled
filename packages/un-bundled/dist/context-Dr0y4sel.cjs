@@ -9,40 +9,79 @@ class SignalEvent extends CustomEvent {
     });
   }
 }
+function createEffect(fn, ...scope) {
+  const effect = {
+    execute() {
+      const args = scope.map((cx) => cx.open(effect));
+      fn(...args);
+      scope.forEach((cx) => cx.close());
+    }
+  };
+  effect.execute();
+}
+const _Scheduler = class _Scheduler {
+  constructor() {
+    this.signals = /* @__PURE__ */ new WeakMap();
+    this.scheduled = /* @__PURE__ */ new WeakSet();
+  }
+  subscribe(scope, key, effect) {
+    let signals = this.signals.get(scope);
+    if (!signals) {
+      signals = /* @__PURE__ */ new Map();
+      this.signals.set(scope, signals);
+    }
+    let signal = signals.get(key);
+    if (!signal) {
+      signal = /* @__PURE__ */ new Set();
+      signals.set(key, signal);
+    }
+    signal.add(effect);
+  }
+  scheduleEffects(scope, key) {
+    const signals = this.signals.get(scope);
+    if (!signals) return;
+    const signal = signals.get(key);
+    if (signal) {
+      for (const effect of signal) {
+        if (!this.scheduled.has(effect)) {
+          this.scheduled.add(effect);
+          setTimeout(() => {
+            this.scheduled.delete(effect);
+            effect.execute();
+          });
+        }
+      }
+    }
+  }
+};
+_Scheduler.scheduler = new _Scheduler();
+let Scheduler = _Scheduler;
 class EffectsManager {
   constructor() {
-    this.signals = /* @__PURE__ */ new Map();
     this.running = [];
     this.eventType = "un-effect:change";
   }
   isRunning() {
     return this.running.length > 0;
   }
-  start(effect) {
+  push(effect) {
     this.running.push(effect);
   }
-  stop() {
+  pop() {
     this.running.pop();
   }
   current() {
     const len = this.running.length;
     return len ? this.running[len - 1] : void 0;
   }
-  subscribe(key) {
+  subscribe(key, scope) {
     const current = this.current();
     if (current) {
-      let signal = this.signals.get(key);
-      if (!signal) this.signals.set(key, signal = /* @__PURE__ */ new Set());
-      signal.add(current);
+      Scheduler.scheduler.subscribe(scope, key, current);
     }
   }
   runEffects(key, scope) {
-    const signal = this.signals.get(key);
-    if (signal) {
-      for (const effect of signal) {
-        setTimeout(() => effect.execute(scope));
-      }
-    }
+    Scheduler.scheduler.scheduleEffects(scope, key);
     if (this.host) {
       const evt = new SignalEvent(this.eventType, {
         property: key,
@@ -85,18 +124,17 @@ const _Context = class _Context {
     this.update(mapFn(this.toObject()));
   }
   createEffect(fn) {
-    const manager = this.manager;
-    const effect = {
-      execute($) {
-        manager.start(effect);
-        fn($);
-        manager.stop();
-      }
-    };
-    effect.execute(this.proxy);
+    createEffect(fn, this);
   }
   setHost(host, eventType) {
     this.manager.setHost(host, eventType);
+  }
+  open(effect) {
+    this.manager.push(effect);
+    return this.toObject();
+  }
+  close() {
+    this.manager.pop();
   }
 };
 _Context.CHANGE_EVENT_TYPE = "un-context:change";
@@ -106,12 +144,17 @@ function createContext(root, manager) {
     get: (subject, prop, receiver) => {
       const value = Reflect.get(subject, prop, receiver);
       if (manager.isRunning() && isObservable(value)) {
-        manager.subscribe(prop);
+        manager.subscribe(prop, subject);
       }
       return value;
     },
     set: (subject, prop, newValue, receiver) => {
-      const didSet = Reflect.set(subject, prop, newValue, receiver);
+      const didSet = Reflect.set(
+        subject,
+        prop,
+        newValue,
+        receiver
+      );
       if (didSet && isObservable(newValue)) {
         manager.runEffects(prop, subject);
       }
@@ -135,5 +178,7 @@ function isObservable(value) {
 }
 exports.Context = Context;
 exports.EffectsManager = EffectsManager;
+exports.Scheduler = Scheduler;
 exports.SignalEvent = SignalEvent;
 exports.createContext = createContext;
+exports.createEffect = createEffect;
