@@ -1,4 +1,3 @@
-"use strict";
 class SignalEvent extends CustomEvent {
   constructor(eventType, signal) {
     super(eventType, {
@@ -12,9 +11,13 @@ class SignalEvent extends CustomEvent {
 function createEffect(fn, ...scope) {
   const effect = {
     execute() {
-      const args = scope.map((cx) => cx.open(effect));
+      const args = scope.map(
+        (cx) => cx instanceof Context ? cx.open(effect) : cx
+      );
       fn(...args);
-      scope.forEach((cx) => cx.close());
+      scope.forEach(
+        (cx) => cx instanceof Context && cx.close()
+      );
     }
   };
   effect.execute();
@@ -176,9 +179,11 @@ function isObservable(value) {
       return false;
   }
 }
-exports.Context = Context;
-exports.EffectsManager = EffectsManager;
-exports.Scheduler = Scheduler;
-exports.SignalEvent = SignalEvent;
-exports.createContext = createContext;
-exports.createEffect = createEffect;
+export {
+  Context as C,
+  EffectsManager as E,
+  Scheduler as S,
+  createEffect as a,
+  SignalEvent as b,
+  createContext as c
+};

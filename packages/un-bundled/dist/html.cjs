@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const context = require("./context-Dr0y4sel.cjs");
+const context = require("./context-Y-FCGfAL.cjs");
 function css(template, ...params) {
   const cssString = template.map((s, i) => i ? [params[i - 1], s] : [s]).flat().join("");
   let sheet = new CSSStyleSheet();
@@ -12,6 +12,10 @@ function define(defns) {
     if (!customElements.get(k)) customElements.define(k, v);
   });
   return customElements;
+}
+function createTemplate(doc, render) {
+  Object.assign(doc, { render });
+  return doc;
 }
 function renderForEffects(fragment, effectors, ...scope) {
   effectors.forEach((list) => {
@@ -76,7 +80,10 @@ const _TemplateParser = class _TemplateParser {
         });
       }
     }
-    return (...scope) => renderForEffects(fragment, effectors, ...scope);
+    return createTemplate(
+      fragment,
+      (...scope) => renderForEffects(fragment, effectors, ...scope)
+    );
   }
   classifyPlace(i, template) {
     let tagOpen = null;
@@ -176,7 +183,12 @@ class ElementContentEffect extends Mutation {
     return (...scope) => context.createEffect(
       (...args) => {
         const value = this.fn(...args);
-        replaceElementContent(value, parent, start, end);
+        replaceElementContent(
+          value,
+          parent,
+          start,
+          end
+        );
       },
       ...scope
     );
@@ -208,7 +220,11 @@ class AttributeValueEffect extends Mutation {
     return (...scope) => context.createEffect(
       (...args) => {
         const value = this.fn(...args);
-        replaceAttributeValue(value, site, this.name);
+        replaceAttributeValue(
+          value,
+          site,
+          this.name
+        );
       },
       ...scope
     );
@@ -252,7 +268,8 @@ class TagReferenceEffect extends Mutation {
   apply(site, _fragment) {
     return (...scope) => context.createEffect(
       (...args) => {
-        this.fn(site, ...args);
+        const value = this.fn(...args);
+        if (typeof value === "function") value(site);
       },
       ...scope
     );
@@ -294,7 +311,10 @@ htmlParser.use([
   {
     place: "tag content",
     types: ["function"],
-    mutator: (place, param) => new TagReferenceEffect(place, param)
+    mutator: (place, param) => new TagReferenceEffect(
+      place,
+      param
+    )
   }
 ]);
 function html(template, ...params) {
@@ -359,6 +379,7 @@ function shadow(el, options = { mode: "open" }) {
   }
 }
 exports.Events = Events;
+exports.createTemplate = createTemplate;
 exports.css = css;
 exports.define = define;
 exports.html = html;

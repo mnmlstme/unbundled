@@ -4,8 +4,8 @@ export declare class Context<T extends object> {
     private proxy;
     static CHANGE_EVENT_TYPE: string;
     constructor(init: T, adoptedContext?: Context<T>);
-    get(prop: keyof T): T[keyof T];
-    set(prop: keyof T, value: any): void;
+    get(prop: keyof T): T[typeof prop];
+    set(prop: keyof T, value: T[typeof prop]): void;
     toObject(): Readonly<T>;
     update(next: Partial<T>): void;
     apply(mapFn: (t: T) => Partial<T>): void;
@@ -31,7 +31,7 @@ export declare interface Effect {
     execute(): void;
 }
 
-export declare type EffectArgs = Array<object>;
+export declare type EffectArgs = Array<object | undefined>;
 
 export declare type Effector<TT extends EffectArgs> = (...scope: TT) => void;
 
@@ -59,7 +59,7 @@ export declare class Scheduler {
 }
 
 export declare type Scope<TT extends EffectArgs> = {
-    [Index in keyof TT]: Context<TT[Index]>;
+    [Index in keyof TT]: TT[Index] extends object ? Context<TT[Index]> : object;
 };
 
 export declare type Signal<T, K extends keyof T> = {

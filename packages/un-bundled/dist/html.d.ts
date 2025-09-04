@@ -6,8 +6,8 @@ declare class Context<T extends object> {
     private proxy;
     static CHANGE_EVENT_TYPE: string;
     constructor(init: T, adoptedContext?: Context<T>);
-    get(prop: keyof T): T[keyof T];
-    set(prop: keyof T, value: any): void;
+    get(prop: keyof T): T[typeof prop];
+    set(prop: keyof T, value: T[typeof prop]): void;
     toObject(): Readonly<T>;
     update(next: Partial<T>): void;
     apply(mapFn: (t: T) => Partial<T>): void;
@@ -16,6 +16,8 @@ declare class Context<T extends object> {
     open(effect: Effect): Readonly<T>;
     close(): void;
 }
+
+export declare function createTemplate<TT extends TemplateArgs>(doc: DocumentFragment, render: RenderFunction<TT>): Template<TT>;
 
 export declare function css(template: TemplateStringsArray, ...params: string[]): CSSStyleSheet;
 
@@ -27,7 +29,7 @@ declare interface Effect {
     execute(): void;
 }
 
-declare type EffectArgs = Array<object>;
+declare type EffectArgs = Array<object | undefined>;
 
 declare type Effector<TT extends EffectArgs> = (...scope: TT) => void;
 
@@ -56,8 +58,10 @@ export declare function html<TT extends TemplateArgs>(template: TemplateStringsA
  */
 declare function listen(element: Element | DocumentFragment, map: EventMap): void;
 
+export declare type RenderFunction<TT extends TemplateArgs> = (...args: Scope<TT>) => DocumentFragment;
+
 declare type Scope<TT extends EffectArgs> = {
-    [Index in keyof TT]: Context<TT[Index]>;
+    [Index in keyof TT]: TT[Index] extends object ? Context<TT[Index]> : object;
 };
 
 export declare function shadow(el: HTMLElement, options?: ShadowRootInit): {
@@ -69,16 +73,18 @@ export declare function shadow(el: HTMLElement, options?: ShadowRootInit): {
     listen: (map: EventMap) => /*elided*/ any;
 };
 
-export declare type Template<TT extends TemplateArgs> = (...args: Scope<TT>) => DocumentFragment;
+export declare interface Template<TT extends TemplateArgs> extends DocumentFragment {
+    render: RenderFunction<TT>;
+}
 
-export declare type TemplateArgs = Array<object>;
+export declare type TemplateArgs = Array<object | undefined>;
 
-export declare type TemplateEffect<TT extends TemplateArgs> = (...args: TT) => TemplateValue;
+export declare type TemplateEffect<TT extends TemplateArgs> = (...args: TT) => TemplateValue<TT> | ((ref: Element) => void);
 
-export declare type TemplateParameter<TT extends TemplateArgs> = TemplateValue | TemplateEffect<TT> | TemplateReferenceEffect<TT>;
+export declare type TemplateParameter<TT extends TemplateArgs> = TemplateValue<TT> | TemplateEffect<TT>;
 
-export declare type TemplateReferenceEffect<TT extends TemplateArgs> = (ref: Element, ...args: TT) => void;
+export declare type TemplateReferenceEffect<TT extends TemplateArgs> = (...args: TT) => (ref: Element) => void;
 
-export declare type TemplateValue = BasicTemplateValue | Array<BasicTemplateValue>;
+export declare type TemplateValue<TT extends TemplateArgs> = BasicTemplateValue | Template<TT> | Array<BasicTemplateValue | Template<TT>>;
 
 export { }

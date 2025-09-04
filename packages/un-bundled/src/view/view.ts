@@ -1,7 +1,20 @@
 import { Template, TemplateArgs, TemplateValue } from "../html";
 import { createScope } from "../effects";
 
-export function createView<TT extends TemplateArgs>(
+export function createView<T extends object>(
+  html: Template<[T]>
+) {
+  return html;
+}
+
+export function createView2<
+  U extends object | undefined,
+  V extends object | undefined
+>(html: Template<[U, V]>) {
+  return html;
+}
+
+export function createViewN<TT extends TemplateArgs>(
   html: Template<TT>
 ) {
   return html;
@@ -21,23 +34,70 @@ function zipArgs<TT extends TemplateArgs>(
   return range.map((i) => lists.map((arr) => arr[i]) as TT);
 }
 
-export function map<TT extends TemplateArgs>(
+function map<T extends object>(
+  view: Template<[T]>,
+  list: Array<T>
+): TemplateValue<[T]> {
+  return mapN(view, list);
+}
+
+function map2<
+  U extends object | undefined,
+  V extends object | undefined
+>(
+  view: Template<[U, V]>,
+  ulist: Array<U>,
+  vlist: Array<V>
+): TemplateValue<[U, V]> {
+  return map2(view, ulist, vlist);
+}
+
+function mapN<TT extends TemplateArgs>(
   view: Template<TT>,
   ...lists: ArrayArgs<TT>
-): TemplateValue {
+): TemplateValue<TT> {
   if (!lists.length) return "";
 
   return zipArgs<TT>(...lists)
-    .map((tuple: TT) => apply(view, tuple))
+    .map((tuple: TT) => applyN(view, ...tuple))
     .flat();
 }
 
-export function apply<TT extends TemplateArgs>(
+function apply<T extends object>(
+  view: Template<[T]>,
+  t: T | undefined
+): TemplateValue<[T]> {
+  return typeof t === "undefined" ? "" : applyN(view, t);
+}
+
+function apply2<
+  U extends object | undefined,
+  V extends object | undefined
+>(
+  view: Template<[U, V]>,
+  u: U | undefined,
+  v: V | undefined
+): TemplateValue<[U, V]> {
+  return typeof u === "undefined" || typeof v === "undefined"
+    ? ""
+    : applyN(view, u, v);
+}
+
+function applyN<TT extends TemplateArgs>(
   view: Template<TT>,
-  tuple: TT | undefined
-): TemplateValue {
+  ...tuple: TT
+): TemplateValue<TT> {
   // console.log("Applying viewmodel", $);
   if (!tuple) return "";
   const scope = createScope(tuple);
-  return view(...scope);
+  return view.render(...scope);
 }
+
+export const View = {
+  apply,
+  apply2,
+  applyN,
+  map,
+  map2,
+  mapN
+};

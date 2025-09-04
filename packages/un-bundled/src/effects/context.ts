@@ -22,11 +22,11 @@ export class Context<T extends object> {
     }
   }
 
-  get(prop: keyof T) {
-    return this.proxy[prop];
+  get(prop: keyof T): T[typeof prop] {
+    return this.proxy[prop] as T[typeof prop];
   }
 
-  set(prop: keyof T, value: any) {
+  set(prop: keyof T, value: T[typeof prop]) {
     this.proxy[prop] = value;
   }
 

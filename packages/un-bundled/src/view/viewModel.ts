@@ -3,7 +3,7 @@ import { Source } from "./source.ts";
 import { Template } from "../html";
 
 export type NameMapping<T extends object, S extends object> = {
-  [K in keyof Partial<T>]: keyof Partial<S> | ((s: S) => any);
+  [K in keyof Partial<T>]: keyof Partial<S> | ((s: S) => T[K]);
 };
 
 function mapEntries<T extends object, S extends object>(
@@ -20,7 +20,7 @@ export class ViewModel<T extends object> extends Context<T> {
     super(init as T, adoptedContext);
   }
 
-  get $() {
+  get $(): Readonly<T> {
     return this.toObject();
   }
 
@@ -56,7 +56,7 @@ export class ViewModel<T extends object> extends Context<T> {
         .then((firstObservation: Partial<S>) => {
           // console.log("ViewModel source observed:", firstObservation, entries, mapping);
           entries.forEach(([t, s]) =>
-            this.set(t, firstObservation[s])
+            this.set(t, firstObservation[s] as T[typeof t])
           );
         });
     }
@@ -66,7 +66,7 @@ export class ViewModel<T extends object> extends Context<T> {
 
   render(template: Template<[T]>): DocumentFragment {
     // console.log("Rendering view, scope=", this.toObject());
-    return template(this);
+    return template.render(this);
   }
 }
 

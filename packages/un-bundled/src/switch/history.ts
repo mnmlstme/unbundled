@@ -1,5 +1,10 @@
 import { Context } from "../effects";
-import { ApplyMap, Message, Provider, Service } from "../service";
+import {
+  ApplyMap,
+  Message,
+  Provider,
+  Service
+} from "../service";
 
 const HISTORY_CONTEXT_DEFAULT = "context:history";
 
@@ -10,19 +15,19 @@ interface HistoryModel {
 
 type HistoryMsg =
   | [
-    "history/navigate",
-    {
-      href: string;
-      state?: object;
-    }
-  ]
+      "history/navigate",
+      {
+        href: string;
+        state?: object;
+      }
+    ]
   | [
-    "history/redirect",
-    {
-      href: string;
-      state?: object;
-    }
-  ];
+      "history/redirect",
+      {
+        href: string;
+        state?: object;
+      }
+    ];
 
 class HistoryService extends Service<HistoryMsg, HistoryModel> {
   static EVENT_TYPE = "history:message";
@@ -51,7 +56,7 @@ class HistoryService extends Service<HistoryMsg, HistoryModel> {
   }
 }
 
-export class HistoryProvider extends Provider<HistoryModel> {
+class HistoryProvider extends Provider<HistoryModel> {
   get base() {
     return this.getAttribute("base") || undefined;
   }
@@ -74,8 +79,10 @@ export class HistoryProvider extends Provider<HistoryModel> {
         const location = this.context.get(
           "location"
         ) as Location;
-        if (location && url.origin === location.origin
-          && url.pathname.startsWith(this.base || "/")
+        if (
+          location &&
+          url.origin === location.origin &&
+          url.pathname.startsWith(this.base || "/")
         ) {
           console.log("Preventing Click Event on <A>", event);
           event.preventDefault();
@@ -100,9 +107,7 @@ export class HistoryProvider extends Provider<HistoryModel> {
     service.attach(this);
   }
 
-  attributeChangedCallback() {
-
-  }
+  attributeChangedCallback() {}
 }
 
 function originalLinkTarget(
@@ -150,8 +155,9 @@ function redirect(href: string, state: object = {}) {
   });
 }
 
-const dispatch = Message.dispatcher<HistoryMsg>(HistoryService.EVENT_TYPE);
-
+const dispatch = Message.dispatcher<HistoryMsg>(
+  HistoryService.EVENT_TYPE
+);
 
 export {
   HISTORY_CONTEXT_DEFAULT as CONTEXT_DEFAULT,

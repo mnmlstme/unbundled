@@ -9,15 +9,19 @@ declare class APIUser {
     static deauthenticate(user: APIUser): APIUser;
 }
 
-export declare function apply<TT extends TemplateArgs>(view: Template<TT>, tuple: TT | undefined): TemplateValue;
+declare function apply<T extends object>(view: Template<[T]>, t: T | undefined): TemplateValue<[T]>;
+
+declare function apply2<U extends object | undefined, V extends object | undefined>(view: Template<[U, V]>, u: U | undefined, v: V | undefined): TemplateValue<[U, V]>;
 
 export declare type ApplyMap<M> = (fn: MapFn<M>) => void;
+
+declare function applyN<TT extends TemplateArgs>(view: Template<TT>, ...tuple: TT): TemplateValue<TT>;
 
 declare type ArrayArgs<TT extends TemplateArgs> = {
     [Index in keyof TT]: Array<TT[Index]>;
 };
 
-declare type Async<M, Cmd extends Message.Base> = [
+declare type Async<M, Cmd extends Base> = [
 now: M,
 ...later: Array<Promise<Cmd>>
 ];
@@ -75,7 +79,7 @@ declare interface AuthModel {
 
 declare type AuthMsg = ["auth/signin", AuthSuccessful] | ["auth/signout"] | ["auth/redirect"];
 
-declare type AuthorizedUpdateFn<M extends object, Msg extends Message.Base> = (model: M, message: Msg, auth: Auth.Model) => M | Async<M, Msg>;
+declare type AuthorizedUpdateFn<M extends object, Msg extends Message.Base, Cmd extends Message.Base> = (model: M, message: Msg | Cmd, auth: Auth.Model) => M | Message.Async<M, Cmd>;
 
 declare class AuthProvider extends Provider<AuthModel> {
     get redirect(): string | undefined;
@@ -113,8 +117,8 @@ export declare class Context<T extends object> {
     private proxy;
     static CHANGE_EVENT_TYPE: string;
     constructor(init: T, adoptedContext?: Context<T>);
-    get(prop: keyof T): T[keyof T];
-    set(prop: keyof T, value: any): void;
+    get(prop: keyof T): T[typeof prop];
+    set(prop: keyof T, value: T[typeof prop]): void;
     toObject(): Readonly<T>;
     update(next: Partial<T>): void;
     apply(mapFn: (t: T) => Partial<T>): void;
@@ -130,9 +134,15 @@ export declare function createEffect<TT extends EffectArgs>(fn: Effector<TT>, ..
 
 export declare function createScope<TT extends EffectArgs>(tuple: TT): Scope<TT>;
 
-export declare function createView<TT extends TemplateArgs>(html: Template<TT>): Template<TT>;
+export declare function createTemplate<TT extends TemplateArgs>(doc: DocumentFragment, render: RenderFunction<TT>): Template<TT>;
+
+export declare function createView<T extends object>(html: Template<[T]>): Template<[T]>;
+
+export declare function createView2<U extends object | undefined, V extends object | undefined>(html: Template<[U, V]>): Template<[U, V]>;
 
 export declare function createViewModel<T extends object>(init?: T): ViewModel<T>;
+
+export declare function createViewN<TT extends TemplateArgs>(html: Template<TT>): Template<TT>;
 
 export declare function css(template: TemplateStringsArray, ...params: string[]): CSSStyleSheet;
 
@@ -166,7 +176,7 @@ export declare interface Effect {
     execute(): void;
 }
 
-export declare type EffectArgs = Array<object>;
+export declare type EffectArgs = Array<object | undefined>;
 
 export declare type Effector<TT extends EffectArgs> = (...scope: TT) => void;
 
@@ -234,7 +244,6 @@ export declare function fromStore<M extends object>(target: HTMLElement, context
 
 export declare namespace History_2 {
     export {
-        HistoryProvider,
         HISTORY_CONTEXT_DEFAULT as CONTEXT_DEFAULT,
         HistoryProvider as Provider,
         HistoryService as Service,
@@ -246,7 +255,6 @@ export declare namespace History_2 {
 
 declare namespace History_3 {
     export {
-        HistoryProvider,
         HISTORY_CONTEXT_DEFAULT as CONTEXT_DEFAULT,
         HistoryProvider as Provider,
         HistoryService as Service,
@@ -301,9 +309,13 @@ export declare function identity<M>(model: M): M;
  */
 declare function listen(element: Element | DocumentFragment, map: EventMap): void;
 
-export declare function map<TT extends TemplateArgs>(view: Template<TT>, ...lists: ArrayArgs<TT>): TemplateValue;
+declare function map<T extends object>(view: Template<[T]>, list: Array<T>): TemplateValue<[T]>;
+
+declare function map2<U extends object | undefined, V extends object | undefined>(view: Template<[U, V]>, ulist: Array<U>, vlist: Array<V>): TemplateValue<[U, V]>;
 
 export declare type MapFn<M> = (model: M) => M;
+
+declare function mapN<TT extends TemplateArgs>(view: Template<TT>, ...lists: ArrayArgs<TT>): TemplateValue<TT>;
 
 declare type Match = MatchPath & (ViewCase | RedirectCase);
 
@@ -318,6 +330,7 @@ export declare namespace Message {
         dispatcher,
         Type,
         Base,
+        Async,
         Dispatch,
         dispatch
     }
@@ -328,13 +341,14 @@ declare namespace Message_2 {
         dispatcher,
         Type,
         Base,
+        Async,
         Dispatch,
         dispatch
     }
 }
 
 export declare type NameMapping<T extends object, S extends object> = {
-    [K in keyof Partial<T>]: keyof Partial<S> | ((s: S) => any);
+    [K in keyof Partial<T>]: keyof Partial<S> | ((s: S) => T[K]);
 };
 
 export declare class Observer<T extends object> {
@@ -361,6 +375,8 @@ declare interface RedirectCase {
     redirect: RouteRedirect;
 }
 
+export declare type RenderFunction<TT extends TemplateArgs> = (...args: Scope<TT>) => DocumentFragment;
+
 export declare function replace<M>(replacements: Partial<M>): MapFn<M>;
 
 declare interface RouteData {
@@ -386,7 +402,7 @@ export declare class Scheduler {
 }
 
 export declare type Scope<TT extends EffectArgs> = {
-    [Index in keyof TT]: Context<TT[Index]>;
+    [Index in keyof TT]: TT[Index] extends object ? Context<TT[Index]> : object;
 };
 
 export declare class Service<Msg extends Base, T extends object> {
@@ -433,9 +449,6 @@ export declare type SourceEffect<T> = (name: keyof T, value: any) => void;
 
 export declare namespace Store {
     export {
-        Async,
-        UpdateFn,
-        StoreService,
         STORE_CONTEXT_DEFAULT as CONTEXT_DEFAULT,
         StoreProvider as Provider,
         StoreService as Service,
@@ -445,16 +458,16 @@ export declare namespace Store {
 
 declare const STORE_CONTEXT_DEFAULT = "context:store";
 
-declare class StoreProvider<M extends object, Msg extends Message.Base> extends Provider<M> {
+declare class StoreProvider<M extends object, Msg extends Message.Base, Cmd extends Message.Base> extends Provider<M> {
     viewModel: ViewModel_2<Auth.Model>;
-    _updateFn: AuthorizedUpdateFn<M, Msg>;
-    constructor(updateFn: AuthorizedUpdateFn<M, Msg>, init: M);
+    _updateFn: AuthorizedUpdateFn<M, Msg, Cmd>;
+    constructor(updateFn: AuthorizedUpdateFn<M, Msg, Cmd>, init: M);
     connectedCallback(): void;
 }
 
-declare class StoreService<M extends object, Msg extends Message.Base> extends Service<Msg, M> {
+declare class StoreService<M extends object, Msg extends Message.Base, Cmd extends Message.Base> extends Service<Msg | Cmd, M> {
     static EVENT_TYPE: string;
-    constructor(context: Context<M>, update: UpdateFn<M, Msg>);
+    constructor(context: Context<M>, update: UpdateFn<M, Msg, Cmd>);
 }
 
 export declare namespace Switch {
@@ -489,17 +502,19 @@ declare interface SwitchPath {
 
 declare type SwitchRoute = SwitchPath & (ViewCase | RedirectCase);
 
-export declare type Template<TT extends TemplateArgs> = (...args: Scope<TT>) => DocumentFragment;
+export declare interface Template<TT extends TemplateArgs> extends DocumentFragment {
+    render: RenderFunction<TT>;
+}
 
-export declare type TemplateArgs = Array<object>;
+export declare type TemplateArgs = Array<object | undefined>;
 
-export declare type TemplateEffect<TT extends TemplateArgs> = (...args: TT) => TemplateValue;
+export declare type TemplateEffect<TT extends TemplateArgs> = (...args: TT) => TemplateValue<TT> | ((ref: Element) => void);
 
-export declare type TemplateParameter<TT extends TemplateArgs> = TemplateValue | TemplateEffect<TT> | TemplateReferenceEffect<TT>;
+export declare type TemplateParameter<TT extends TemplateArgs> = TemplateValue<TT> | TemplateEffect<TT>;
 
-export declare type TemplateReferenceEffect<TT extends TemplateArgs> = (ref: Element, ...args: TT) => void;
+export declare type TemplateReferenceEffect<TT extends TemplateArgs> = (...args: TT) => (ref: Element) => void;
 
-export declare type TemplateValue = BasicTemplateValue | Array<BasicTemplateValue>;
+export declare type TemplateValue<TT extends TemplateArgs> = BasicTemplateValue | Template<TT> | Array<BasicTemplateValue | Template<TT>>;
 
 declare function tokenPayload(user: APIUser | AuthenticatedUser): object;
 
@@ -507,7 +522,16 @@ declare type Type<msg extends string, T extends object | undefined> = [msg, T] |
 
 export declare type Update<Msg extends Message_2.Base, M extends object> = (message: Msg, apply: ApplyMap<M>) => Command<M> | void;
 
-declare type UpdateFn<M extends object, Msg extends Message.Base> = (model: M, message: Msg) => M | Async<M, Msg>;
+declare type UpdateFn<M extends object, Msg extends Message.Base, Cmd extends Message.Base> = (model: M, message: Msg | Cmd) => M | Message.Async<M, Cmd>;
+
+export declare const View: {
+    apply: typeof apply;
+    apply2: typeof apply2;
+    applyN: typeof applyN;
+    map: typeof map;
+    map2: typeof map2;
+    mapN: typeof mapN;
+};
 
 declare interface ViewCase {
     view: RouteView;

@@ -1,7 +1,13 @@
-import { C as Context } from "./context-DxrrEInf.js";
-import { c } from "./context-DxrrEInf.js";
-import { c as createScope } from "./scope-DMTZ_lvu.js";
+import { C as Context } from "./context-HO6ROA-_.js";
+import { c } from "./context-HO6ROA-_.js";
+import { c as createScope } from "./scope-C-poeQcW.js";
 function createView(html) {
+  return html;
+}
+function createView2(html) {
+  return html;
+}
+function createViewN(html) {
   return html;
 }
 function zipArgs(...lists) {
@@ -9,15 +15,35 @@ function zipArgs(...lists) {
   const range = Array.from(Array(maxLength).keys());
   return range.map((i) => lists.map((arr) => arr[i]));
 }
-function map(view, ...lists) {
-  if (!lists.length) return "";
-  return zipArgs(...lists).map((tuple) => apply(view, tuple)).flat();
+function map(view, list) {
+  return mapN(view, list);
 }
-function apply(view, tuple) {
+function map2(view, ulist, vlist) {
+  return map2();
+}
+function mapN(view, ...lists) {
+  if (!lists.length) return "";
+  return zipArgs(...lists).map((tuple) => applyN(view, ...tuple)).flat();
+}
+function apply(view, t) {
+  return typeof t === "undefined" ? "" : applyN(view, t);
+}
+function apply2(view, u, v) {
+  return typeof u === "undefined" || typeof v === "undefined" ? "" : applyN(view, u, v);
+}
+function applyN(view, ...tuple) {
   if (!tuple) return "";
   const scope = createScope(tuple);
-  return view(...scope);
+  return view.render(...scope);
 }
+const View = {
+  apply,
+  apply2,
+  applyN,
+  map,
+  map2,
+  mapN
+};
 function mapEntries(mapping) {
   return Object.entries(mapping).map(([k, v]) => [
     k,
@@ -50,7 +76,7 @@ class ViewModel extends Context {
     return this;
   }
   render(template) {
-    return template(this);
+    return template.render(this);
   }
 }
 function createViewModel(init) {
@@ -106,12 +132,13 @@ class FromInputs {
 }
 export {
   Context,
+  View,
   ViewModel,
-  apply,
   c as createContext,
   createView,
+  createView2,
   createViewModel,
+  createViewN,
   fromAttributes,
-  fromInputs,
-  map
+  fromInputs
 };

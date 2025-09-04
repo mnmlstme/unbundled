@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const html = require("./html.cjs");
-const context = require("./context-Dr0y4sel.cjs");
+const context = require("./context-Y-FCGfAL.cjs");
 const effects = require("./effects.cjs");
-const scope = require("./scope-zXyY-M82.cjs");
+const scope = require("./scope-DJo8ZA7T.cjs");
 const view = require("./view.cjs");
 class Dispatch extends CustomEvent {
   constructor(msg, eventType = "un:message") {
@@ -489,11 +489,12 @@ function redirect(href, state = {}) {
     state: history.state
   });
 }
-const dispatch$1 = dispatcher(HistoryService.EVENT_TYPE);
+const dispatch$1 = dispatcher(
+  HistoryService.EVENT_TYPE
+);
 const history$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   CONTEXT_DEFAULT: HISTORY_CONTEXT_DEFAULT,
-  HistoryProvider,
   Provider: HistoryProvider,
   Service: HistoryService,
   dispatch: dispatch$1
@@ -1301,11 +1302,16 @@ const _StoreService = class _StoreService extends Service {
     super(
       (message2, apply) => {
         apply((current) => {
-          const result = update(current, message2);
+          const result = update(
+            current,
+            message2
+          );
           if (!Array.isArray(result)) return result;
           const [next, ...commands] = result;
           commands.forEach(
-            (promise) => promise.then((message22) => this.consume(message22))
+            (promise) => promise.then(
+              (message22) => this.consume(message22)
+            )
           );
           return next;
         });
@@ -1322,13 +1328,21 @@ class StoreProvider extends Provider {
     super(init, STORE_CONTEXT_DEFAULT);
     this.viewModel = view.createViewModel({
       authenticated: false
-    }).merge(fromAuth(this), ["authenticated", "username", "token"]);
+    }).merge(fromAuth(this), [
+      "authenticated",
+      "username",
+      "token"
+    ]);
     this._updateFn = updateFn;
   }
   connectedCallback() {
     const service = new StoreService(
       this.context,
-      (model, message2) => this._updateFn(model, message2, this.viewModel.toObject())
+      (model, message2) => this._updateFn(
+        model,
+        message2,
+        this.viewModel.toObject()
+      )
     );
     service.attach(this);
   }
@@ -1336,10 +1350,7 @@ class StoreProvider extends Provider {
 function dispatch(target, message$1) {
   console.log("📨 Dispatching message:", message$1, target);
   target.dispatchEvent(
-    new Dispatch(
-      message$1,
-      StoreService.EVENT_TYPE
-    )
+    new Dispatch(message$1, StoreService.EVENT_TYPE)
   );
 }
 const store = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
@@ -1347,13 +1358,13 @@ const store = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePropert
   CONTEXT_DEFAULT: STORE_CONTEXT_DEFAULT,
   Provider: StoreProvider,
   Service: StoreService,
-  StoreService,
   dispatch
 }, Symbol.toStringTag, { value: "Module" }));
 function fromStore(target, contextLabel = STORE_CONTEXT_DEFAULT) {
   return new FromService(target, contextLabel);
 }
 exports.Events = html.Events;
+exports.createTemplate = html.createTemplate;
 exports.css = html.css;
 exports.define = html.define;
 exports.html = html.html;
@@ -1367,13 +1378,14 @@ exports.createEffect = context.createEffect;
 exports.DirectEffect = effects.DirectEffect;
 exports.createScope = scope.createScope;
 exports.exposeTuple = scope.exposeTuple;
+exports.View = view.View;
 exports.ViewModel = view.ViewModel;
-exports.apply = view.apply;
 exports.createView = view.createView;
+exports.createView2 = view.createView2;
 exports.createViewModel = view.createViewModel;
+exports.createViewN = view.createViewN;
 exports.fromAttributes = view.fromAttributes;
 exports.fromInputs = view.fromInputs;
-exports.map = view.map;
 exports.Auth = auth;
 exports.FromService = FromService;
 exports.History = history$1;

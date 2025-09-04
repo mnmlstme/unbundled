@@ -2,7 +2,8 @@ import {
   Template,
   TemplateArgs,
   TemplateParameter,
-  TemplateEffect
+  TemplateEffect,
+  TemplateReferenceEffect
 } from "./template";
 import { TemplateParser } from "./parser";
 import {
@@ -74,7 +75,11 @@ htmlParser.use([
     mutator: (
       place: TagContentPlace,
       param: TemplateEffect<TemplateArgs>
-    ) => new TagReferenceEffect(place, param)
+    ) =>
+      new TagReferenceEffect(
+        place,
+        param as TemplateReferenceEffect<TemplateArgs>
+      )
   }
 ]);
 

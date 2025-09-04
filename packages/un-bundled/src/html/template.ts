@@ -1,8 +1,21 @@
 import { Scope } from "../effects";
 
-export type TemplateArgs = Array<object>;
+export type TemplateArgs = Array<object | undefined>;
 
-export type Template<TT extends TemplateArgs> = (
+export interface Template<TT extends TemplateArgs>
+  extends DocumentFragment {
+  render: RenderFunction<TT>;
+}
+
+export function createTemplate<TT extends TemplateArgs>(
+  doc: DocumentFragment,
+  render: RenderFunction<TT>
+): Template<TT> {
+  Object.assign(doc, { render });
+  return doc as Template<TT>;
+}
+
+export type RenderFunction<TT extends TemplateArgs> = (
   ...args: Scope<TT>
 ) => DocumentFragment;
 
@@ -13,20 +26,19 @@ type BasicTemplateValue =
   | Node
   | null;
 
-export type TemplateValue =
+export type TemplateValue<TT extends TemplateArgs> =
   | BasicTemplateValue
-  | Array<BasicTemplateValue>;
+  | Template<TT>
+  | Array<BasicTemplateValue | Template<TT>>;
 
 export type TemplateEffect<TT extends TemplateArgs> = (
   ...args: TT
-) => TemplateValue;
+) => TemplateValue<TT> | ((ref: Element) => void);
 
 export type TemplateReferenceEffect<TT extends TemplateArgs> = (
-  ref: Element,
   ...args: TT
-) => void;
+) => (ref: Element) => void;
 
 export type TemplateParameter<TT extends TemplateArgs> =
-  | TemplateValue
-  | TemplateEffect<TT>
-  | TemplateReferenceEffect<TT>;
+  | TemplateValue<TT>
+  | TemplateEffect<TT>;

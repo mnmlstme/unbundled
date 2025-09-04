@@ -1,11 +1,11 @@
 import { html, shadow } from "./html.js";
-import { Events, css, define } from "./html.js";
-import { C as Context } from "./context-DxrrEInf.js";
-import { E, S, b, c, a } from "./context-DxrrEInf.js";
+import { Events, createTemplate, css, define } from "./html.js";
+import { C as Context } from "./context-HO6ROA-_.js";
+import { E, S, b, c, a } from "./context-HO6ROA-_.js";
 import { DirectEffect } from "./effects.js";
-import { c as c2, e } from "./scope-DMTZ_lvu.js";
+import { c as c2, e } from "./scope-C-poeQcW.js";
 import { createViewModel } from "./view.js";
-import { ViewModel, apply, createView, fromAttributes, fromInputs, map } from "./view.js";
+import { View, ViewModel, createView, createView2, createViewN, fromAttributes, fromInputs } from "./view.js";
 class Dispatch extends CustomEvent {
   constructor(msg, eventType = "un:message") {
     super(eventType, {
@@ -274,20 +274,20 @@ class AuthenticatedUser extends APIUser {
 const _AuthService = class _AuthService extends Service {
   constructor(context, redirectForLogin) {
     super(
-      (msg, apply2) => this.update(msg, apply2),
+      (msg, apply) => this.update(msg, apply),
       context,
       _AuthService.EVENT_TYPE
     );
     this._redirectForLogin = redirectForLogin;
   }
-  update(message2, apply2) {
+  update(message2, apply) {
     switch (message2[0]) {
       case "auth/signin":
         const { token, redirect: redirect2 } = message2[1];
-        apply2(signIn(token));
+        apply(signIn(token));
         return redirection(redirect2);
       case "auth/signout":
-        apply2(signOut());
+        apply(signOut());
         return redirection(this._redirectForLogin);
       case "auth/redirect":
         return redirection(this._redirectForLogin, {
@@ -396,21 +396,21 @@ const HISTORY_CONTEXT_DEFAULT = "context:history";
 const _HistoryService = class _HistoryService extends Service {
   constructor(context) {
     super(
-      (msg, apply2) => this.update(msg, apply2),
+      (msg, apply) => this.update(msg, apply),
       context,
       _HistoryService.EVENT_TYPE
     );
   }
-  update(message2, apply2) {
+  update(message2, apply) {
     switch (message2[0]) {
       case "history/navigate": {
         const { href, state } = message2[1];
-        apply2(navigate(href, state));
+        apply(navigate(href, state));
         break;
       }
       case "history/redirect": {
         const { href, state } = message2[1];
-        apply2(redirect(href, state));
+        apply(redirect(href, state));
         break;
       }
     }
@@ -490,11 +490,12 @@ function redirect(href, state = {}) {
     state: history.state
   });
 }
-const dispatch$1 = dispatcher(HistoryService.EVENT_TYPE);
+const dispatch$1 = dispatcher(
+  HistoryService.EVENT_TYPE
+);
 const history$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   CONTEXT_DEFAULT: HISTORY_CONTEXT_DEFAULT,
-  HistoryProvider,
   Provider: HistoryProvider,
   Service: HistoryService,
   dispatch: dispatch$1
@@ -1300,13 +1301,18 @@ const STORE_CONTEXT_DEFAULT = "context:store";
 const _StoreService = class _StoreService extends Service {
   constructor(context, update) {
     super(
-      (message2, apply2) => {
-        apply2((current) => {
-          const result = update(current, message2);
+      (message2, apply) => {
+        apply((current) => {
+          const result = update(
+            current,
+            message2
+          );
           if (!Array.isArray(result)) return result;
           const [next, ...commands] = result;
           commands.forEach(
-            (promise) => promise.then((message22) => this.consume(message22))
+            (promise) => promise.then(
+              (message22) => this.consume(message22)
+            )
           );
           return next;
         });
@@ -1323,13 +1329,21 @@ class StoreProvider extends Provider {
     super(init, STORE_CONTEXT_DEFAULT);
     this.viewModel = createViewModel({
       authenticated: false
-    }).merge(fromAuth(this), ["authenticated", "username", "token"]);
+    }).merge(fromAuth(this), [
+      "authenticated",
+      "username",
+      "token"
+    ]);
     this._updateFn = updateFn;
   }
   connectedCallback() {
     const service = new StoreService(
       this.context,
-      (model, message2) => this._updateFn(model, message2, this.viewModel.toObject())
+      (model, message2) => this._updateFn(
+        model,
+        message2,
+        this.viewModel.toObject()
+      )
     );
     service.attach(this);
   }
@@ -1337,10 +1351,7 @@ class StoreProvider extends Provider {
 function dispatch(target, message$1) {
   console.log("📨 Dispatching message:", message$1, target);
   target.dispatchEvent(
-    new Dispatch(
-      message$1,
-      StoreService.EVENT_TYPE
-    )
+    new Dispatch(message$1, StoreService.EVENT_TYPE)
   );
 }
 const store = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
@@ -1348,7 +1359,6 @@ const store = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePropert
   CONTEXT_DEFAULT: STORE_CONTEXT_DEFAULT,
   Provider: StoreProvider,
   Service: StoreService,
-  StoreService,
   dispatch
 }, Symbol.toStringTag, { value: "Module" }));
 function fromStore(target, contextLabel = STORE_CONTEXT_DEFAULT) {
@@ -1370,13 +1380,16 @@ export {
   b as SignalEvent,
   store as Store,
   _switch as Switch,
+  View,
   ViewModel,
-  apply,
   c as createContext,
   a as createEffect,
   c2 as createScope,
+  createTemplate,
   createView,
+  createView2,
   createViewModel,
+  createViewN,
   css,
   define,
   discover,
@@ -1389,7 +1402,6 @@ export {
   fromStore,
   html,
   identity,
-  map,
   replace,
   shadow
 };

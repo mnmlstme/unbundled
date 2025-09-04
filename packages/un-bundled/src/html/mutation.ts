@@ -133,21 +133,26 @@ export class ElementContentEffect<
       createEffect<TT>(
         (...args: TT) => {
           const value = this.fn(...args);
-          replaceElementContent(value, parent, start, end);
+          replaceElementContent(
+            value as TemplateValue<TT>,
+            parent,
+            start,
+            end
+          );
         },
         ...scope
       );
   }
 }
 
-function replaceElementContent(
-  value: TemplateValue,
+function replaceElementContent<TT extends TemplateArgs>(
+  value: TemplateValue<TT>,
   parent: Node,
   start: Node,
   end: Node
 ) {
   let node = value instanceof Node ? value : null;
-  const valueToNode = (v: TemplateValue) =>
+  const valueToNode = (v: TemplateValue<TT>) =>
     (node = new Text(v?.toString() || ""));
 
   if (!node && Array.isArray(value)) {
@@ -190,15 +195,19 @@ export class AttributeValueEffect<
       createEffect<TT>(
         (...args: TT) => {
           const value = this.fn(...args);
-          replaceAttributeValue(value, site, this.name);
+          replaceAttributeValue(
+            value as TemplateValue<TT>,
+            site,
+            this.name
+          );
         },
         ...scope
       );
   }
 }
 
-function replaceAttributeValue(
-  value: TemplateValue,
+function replaceAttributeValue<TT extends TemplateArgs>(
+  value: TemplateValue<TT>,
   site: Element,
   attrName: string
 ) {
@@ -261,7 +270,8 @@ export class TagReferenceEffect<
     return (...scope: Scope<TT>) =>
       createEffect<TT>(
         (...args: TT) => {
-          this.fn(site, ...args);
+          const value = this.fn(...args);
+          if (typeof value === "function") value(site);
         },
         ...scope
       );

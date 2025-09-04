@@ -1,28 +1,41 @@
-import { define, Auth, History, Store, Switch, View } from "@un-/bundled";
+import {
+  define,
+  html,
+  Auth,
+  History_2,
+  Store,
+  Switch
+} from "@un-bundled/unbundled";
 import { Model, init } from "./model.ts";
-import { Message } from "./message.ts";
-import { update } from "./update.ts";
+import { Msg } from "./message.ts";
+import { Cmd, update } from "./update.ts";
 import { HeaderElement } from "./components/header-element";
-import { ProfileViewElement } from "./pages/profile-view";
-
-const html = View.html<Switch.Args>;
+import { ProfileViewElement } from "./views/profile-view.ts";
 
 const routes: Switch.Route[] = [
   {
     auth: "protected",
     path: "/app/profile/:userid",
-    view: html`<profile-view
-        user-id=${$ => $.params.userid}>
-      </profile-view>`
+    view: html`
+      <profile-view
+        user-id=${($) => $.params.userid}></profile-view>
+    `
+  },
+  {
+    auth: "protected",
+    path: "/app/tour/:id",
+    view: html`
+      <tour-view tour-id=${($) => $.params.id}></tour-view>
+    `
   },
   {
     path: "/app",
-    view: html`<home-view
-      user-id=${$ => $.user?.authenticated ?
-        $.user?.username :
-        "anonymous"}
-      >
-      </home-view>`
+    view: html`
+      <home-view
+        user-id=${($) =>
+          ($.user?.authenticated && $.user?.username) ||
+          "anonymous"}></home-view>
+    `
   },
   {
     path: "/",
@@ -32,14 +45,18 @@ const routes: Switch.Route[] = [
 
 define({
   "auth-provider": Auth.Provider,
-  "history-provider": History.Provider,
+  "history-provider": History_2.Provider,
   "blazing-header": HeaderElement,
   "router-switch": class AppSwitch extends Switch.Element {
     constructor() {
       super(routes);
     }
   },
-  "store-provider": class AppStore extends Store.Provider<Model, Message> {
+  "store-provider": class AppStore extends Store.Provider<
+    Model,
+    Msg,
+    Cmd
+  > {
     constructor() {
       super(update, init);
     }

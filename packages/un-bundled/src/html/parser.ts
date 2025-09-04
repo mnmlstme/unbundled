@@ -1,7 +1,8 @@
 import {
   Template,
   TemplateArgs,
-  TemplateParameter
+  TemplateParameter,
+  createTemplate
 } from "./template";
 import { Scope } from "../effects";
 import {
@@ -90,8 +91,9 @@ export class TemplateParser<TT extends TemplateArgs> {
       }
     }
 
-    return (...scope: Scope<TT>) =>
-      renderForEffects<TT>(fragment, effectors, ...scope);
+    return createTemplate(fragment, (...scope: Scope<TT>) =>
+      renderForEffects<TT>(fragment, effectors, ...scope)
+    );
   }
 
   static OPEN_RE = /<([a-zA-z][$a-zA-Z0-9.-]*)\s+[^>]*$/;

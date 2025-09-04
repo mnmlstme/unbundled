@@ -1,3 +1,4 @@
+import { Context } from "./context";
 import { Scope } from "./scope";
 import { Effect, Effector, EffectArgs } from "./effect";
 
@@ -7,9 +8,13 @@ export function createEffect<TT extends EffectArgs>(
 ): void {
   const effect = {
     execute() {
-      const args = scope.map((cx) => cx.open(effect)) as TT;
+      const args = scope.map((cx) =>
+        cx instanceof Context ? cx.open(effect) : cx
+      ) as TT;
       fn(...args);
-      scope.forEach((cx) => cx.close());
+      scope.forEach(
+        (cx) => cx instanceof Context && cx.close()
+      );
     }
   };
   // console.log("Executing created effect:", effect, fn);
