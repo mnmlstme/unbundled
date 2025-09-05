@@ -19,6 +19,6 @@ export function createScope<TT extends EffectArgs>(
   tuple: TT
 ): Scope<TT> {
   return tuple.map((a) =>
-    typeof a === "undefined" ? {} : new Context(a)
+    typeof a === "undefined" ? null : new Context(a)
   ) as Scope<TT>;
 }

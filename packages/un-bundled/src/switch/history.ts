@@ -70,6 +70,11 @@ class HistoryProvider extends Provider<HistoryModel> {
       HISTORY_CONTEXT_DEFAULT
     );
 
+    // console.log(
+    //   "📍 History location:",
+    //   this.context.get("location")
+    // );
+
     this.addEventListener("click", (event: MouseEvent) => {
       const linkTarget = originalLinkTarget(event);
       if (linkTarget) {
@@ -84,7 +89,7 @@ class HistoryProvider extends Provider<HistoryModel> {
           url.origin === location.origin &&
           url.pathname.startsWith(this.base || "/")
         ) {
-          console.log("Preventing Click Event on <A>", event);
+          // console.log("Preventing Click Event on <A>", event);
           event.preventDefault();
           dispatch(linkTarget, "history/navigate", {
             href: url.pathname + url.search
@@ -94,7 +99,7 @@ class HistoryProvider extends Provider<HistoryModel> {
     });
 
     window.addEventListener("popstate", (event) => {
-      console.log("Popstate", event.state);
+      // console.log("Popstate", event.state);
       this.context.update({
         location: document.location,
         state: event.state

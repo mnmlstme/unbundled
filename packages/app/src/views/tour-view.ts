@@ -5,6 +5,7 @@ import {
   createView2,
   createViewModel,
   css,
+  define,
   fromAttributes,
   fromStore,
   html,
@@ -18,6 +19,7 @@ import {
   Traveler,
   Transportation
 } from "server/models";
+import { CalendarWidget } from "../components/calendar-widget";
 
 interface TourViewModel {
   tourId: string;
@@ -30,9 +32,13 @@ interface TourViewAttributes {
 }
 
 export class TourViewElement extends HTMLElement {
+  uses = define({
+    "calendar-widget": CalendarWidget
+  });
+
   viewModel = createViewModel<TourViewModel>()
     .merge(fromAttributes<TourViewAttributes>(this), {
-      tour: "tour-id"
+      tourId: "tour-id"
     })
     .merge(fromStore<Model>(this), ["tour"]);
 
@@ -66,23 +72,39 @@ export class TourViewElement extends HTMLElement {
 
   pairView = createView2<Transportation, Destination>(html`
     ${($t, _) => View.apply(this.transportationView, $t)}
-    ${(_, $d) => View.apply(this.destinationView, $d)}
+    ${(_, $d) =>
+      $d ? View.apply(this.destinationView, $d) : ""}
   `);
+
+  static dateRange(
+    startDate: Date,
+    endDate: Date | undefined
+  ): string {
+    return `${startDate?.toString()}${endDate ? `to ${endDate.toString()}` : ""}`;
+  }
 
   destinationView = createView<Destination>(html`
-    <div>
-      <dt>${($) => `${$.startDate} to ${$.endDate}`}</dt>
-      <dd>
-        <blz-destination
-          start-date=${($) => $.startDate.toString()}
-          end-date=${($) => $.endDate.toString()}>
-          ${($) => $.name}
-        </blz-destination>
-      </dd>
-    </div>
+    <dt>
+      ${($) =>
+        TourViewElement.dateRange($.startDate, $.endDate)}
+    </dt>
+    <dd>
+      <blz-destination
+        start-date=${($) => $.startDate?.toString()}
+        end-date=${($) => $.endDate?.toString()}>
+        ${($) => $.name}
+      </blz-destination>
+    </dd>
   `);
 
-  transportationView = createView<Transportation>(html``);
+  transportationView = createView<Transportation>(html`
+    <dt></dt>
+    <dt>
+      ${($) =>
+        TourViewElement.dateRange($.startDate, $.endDate)}
+    </dt>
+    <dd>[Transportation Details]</dd>
+  `);
 
   entourageView = createView<{ travelers: Array<Traveler> }>(
     html`
@@ -115,14 +137,16 @@ export class TourViewElement extends HTMLElement {
     shadow(this)
       .styles(TourViewElement.styles)
       .replace(this.viewModel.render(this.view))
-      .listen("calendar-widget/change", (ev: CustomEvent) => {
-        const { dateString } = ev.detail as {
-          dateString: string;
-        };
-        this.viewModel.set(
-          "selectedDate",
-          new Date(dateString)
-        );
+      .listen({
+        "calendar-widget/change": (ev: CustomEvent) => {
+          const { dateString } = ev.detail as {
+            dateString: string;
+          };
+          this.viewModel.set(
+            "selectedDate",
+            new Date(dateString)
+          );
+        }
       });
 
     this.viewModel.createEffect(($) => {

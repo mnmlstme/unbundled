@@ -1,4 +1,3 @@
-"use strict";
 class SignalEvent extends CustomEvent {
   constructor(eventType, signal) {
     super(eventType, {
@@ -125,7 +124,7 @@ const _Context = class _Context {
     Object.assign(this.proxy, next);
   }
   apply(mapFn) {
-    this.update(mapFn(this.toObject()));
+    this.update(mapFn(this.proxy));
   }
   createEffect(fn) {
     createEffect(fn, this);
@@ -135,7 +134,7 @@ const _Context = class _Context {
   }
   open(effect) {
     this.manager.push(effect);
-    return this.toObject();
+    return this.proxy;
   }
   close() {
     this.manager.pop();
@@ -180,9 +179,11 @@ function isObservable(value) {
       return false;
   }
 }
-exports.Context = Context;
-exports.EffectsManager = EffectsManager;
-exports.Scheduler = Scheduler;
-exports.SignalEvent = SignalEvent;
-exports.createContext = createContext;
-exports.createEffect = createEffect;
+export {
+  Context as C,
+  EffectsManager as E,
+  Scheduler as S,
+  createEffect as a,
+  SignalEvent as b,
+  createContext as c
+};

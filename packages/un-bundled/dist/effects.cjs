@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const context = require("./context-Y-FCGfAL.cjs");
-const scope = require("./scope-DJo8ZA7T.cjs");
+const context = require("./context-sArnt9mX.cjs");
+const scope = require("./scope-C2S-Cy77.cjs");
 class DirectEffect {
   constructor(fn, ...scope2) {
     this.effectFn = () => fn(...scope2);

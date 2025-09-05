@@ -17,7 +17,7 @@ declare class Context<T extends object> {
     close(): void;
 }
 
-export declare function createTemplate<TT extends TemplateArgs>(doc: DocumentFragment, render: RenderFunction<TT>): Template<TT>;
+export declare function createTemplate<TT extends TemplateArgs>(fragment: DocumentFragment, render: RenderFunction<TT>): Template<TT>;
 
 export declare function css(template: TemplateStringsArray, ...params: string[]): CSSStyleSheet;
 

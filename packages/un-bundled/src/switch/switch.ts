@@ -76,6 +76,7 @@ export class Switch extends HTMLElement {
     }));
 
     this.viewModel.createEffect(($) => {
+      // console.log("📍 Router got location:", $.location);
       if ($.location) {
         const nextView = this.routeToView(
           $.location,
@@ -107,7 +108,7 @@ export class Switch extends HTMLElement {
             <h1>Redirecting for Login</h1>
           `;
         } else {
-          console.log("Loading view, ", m.params, m.query);
+          // console.log("Loading view, ", m.params, m.query);
           this._routeViewModel.update({
             params: m.params,
             query: m.query,

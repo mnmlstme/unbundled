@@ -134,7 +134,7 @@ export declare function createEffect<TT extends EffectArgs>(fn: Effector<TT>, ..
 
 export declare function createScope<TT extends EffectArgs>(tuple: TT): Scope<TT>;
 
-export declare function createTemplate<TT extends TemplateArgs>(doc: DocumentFragment, render: RenderFunction<TT>): Template<TT>;
+export declare function createTemplate<TT extends TemplateArgs>(fragment: DocumentFragment, render: RenderFunction<TT>): Template<TT>;
 
 export declare function createView<T extends object>(html: Template<[T]>): Template<[T]>;
 

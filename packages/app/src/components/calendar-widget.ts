@@ -1,11 +1,17 @@
-import { css, shadow, View, createView, createViewModel, fromAttributes } from "@un-bundled/unbundled";
-
-const html = View.html;
+import {
+  css,
+  html,
+  shadow,
+  View,
+  createView,
+  createViewModel,
+  fromAttributes
+} from "@un-bundled/unbundled";
 
 type CalendarWidgetAttributes = {
   "start-date": string;
   "end-date"?: string;
-}
+};
 
 interface CalendarWidgetModel {
   startDate: Date;
@@ -21,48 +27,46 @@ interface DateYMD {
 }
 
 export class CalendarWidget extends HTMLElement {
-  viewModel = createViewModel<CalendarWidgetModel>()
-    .merge(fromAttributes<CalendarWidgetAttributes>(this),
-      {
-        startDate: $ => new Date($["start-date"]),
-        endDate: $ => new Date($["end-date"])
-      }
-    );
-
-  view = createView<CalendarWidgetModel>(
-    html`
-      <section>
-        <fieldset>
-          <h6>Su</h6>
-          <h6>Mo</h6>
-          <h6>Tu</h6>
-          <h6>We</h6>
-          <h6>Th</h6>
-          <h6>Fr</h6>
-          <h6>Sa</h6>
-          ${$ => View.map(
-            this.dateView,
-            datesInRange($.startDate, $.endDate).map(toYMD)
-          }
-        </fieldset>
-        <button id="clear">
-          Clear Selection
-        </button>
-      </section>
-      `
+  viewModel = createViewModel<CalendarWidgetModel>().merge(
+    fromAttributes<CalendarWidgetAttributes>(this),
+    {
+      startDate: ($) => new Date($["start-date"]),
+      endDate: ($) =>
+        $["end-date"] ? new Date($["end-date"]) : undefined
+    }
   );
 
-  dateView = createView<DateYMD>(
-    html`
-        <label style="grid-column: ${$ => $.day + 1}">
-          <span>${$ => $.d}</span>
-          <input
-            type="radio"
-            name="cal"
-            value="${$ => formatYMD($)}" />
-        </label>
-      `
-  );
+  view = createView<CalendarWidgetModel>(html`
+    <section>
+      <fieldset>
+        <h6>Su</h6>
+        <h6>Mo</h6>
+        <h6>Tu</h6>
+        <h6>We</h6>
+        <h6>Th</h6>
+        <h6>Fr</h6>
+        <h6>Sa</h6>
+        ${($) =>
+          $.startDate
+            ? View.map(
+                this.dateView,
+                datesInRange($.startDate, $.endDate).map(toYMD)
+              )
+            : ""}
+      </fieldset>
+      <button id="clear">Clear Selection</button>
+    </section>
+  `);
+
+  dateView = createView<DateYMD>(html`
+    <label style="grid-column: ${($) => $.day + 1}">
+      <span>${($) => $.d}</span>
+      <input
+        type="radio"
+        name="cal"
+        value="${($) => formatYMD($)}" />
+    </label>
+  `);
 
   constructor() {
     super();
@@ -86,24 +90,26 @@ export class CalendarWidget extends HTMLElement {
 
   changeEventType = `${this.tagName}/change`;
 
-  static styles = css` /* CSS here */ `;
+  static styles = css`
+    /* CSS here */
+  `;
 }
 
-function toYMD(d:Date ) : DateYMD {
+function toYMD(d: Date): DateYMD {
   return {
-  d: d.getUTCDate(),
-  m: d.getUTCMonth() + 1,
-  y: d.getUTCFullYear(),
-  day: d.getUTCDay()
-};
+    d: d.getUTCDate(),
+    m: d.getUTCMonth() + 1,
+    y: d.getUTCFullYear(),
+    day: d.getUTCDay()
+  };
 }
 
-function formatYMD(ymd: DateYMD) : string {
+function formatYMD(ymd: DateYMD): string {
   const { y, m, d } = ymd;
   return [y, m, d].join("-");
 }
 
-function datesInRange(start: Date, end?: Date) : Array<Date> {
+function datesInRange(start: Date, end?: Date): Array<Date> {
   const endTime = end ? end.getTime() : start.getTime();
   let result = [];
   let i = new Date(start);

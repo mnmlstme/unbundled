@@ -53,6 +53,11 @@ export class TemplateParser<TT extends TemplateArgs> {
               return [s, `<ins data-${place.nodeLabel}></ins>`];
           }
         } else {
+          console.error(
+            "No match for template parameter",
+            place,
+            param
+          );
           throw `Failed to render template parameter ${i} around ${s}`;
         }
         return [s];

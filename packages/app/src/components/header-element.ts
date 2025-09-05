@@ -2,8 +2,9 @@ import {
   Auth,
   css,
   fromAuth,
+  html,
   shadow,
-  View,
+  createView,
   createViewModel
 } from "@un-/bundled";
 import headings from "../styles/headings.css";
@@ -20,22 +21,24 @@ export class HeaderElement extends HTMLElement {
     ["authenticated", "username"]
   );
 
-  view = View.html<HeaderData>`<header>
-    <h1>Blazing Travels</h1>
-    <nav class=${($) => ($.authenticated ? "logged-in" : "logged-out")}>
-      <p>Hello, ${($) => $.username || "traveler"}</p>
-    <menu>
-        <li class="when-signed-in">
-          <a>
-            Sign Out
-          </a>
-        </li>
-        <li class="when-signed-out">
-          <a href="/login.html">Sign In</a>
-        </li>
-      </menu>
-    </nav>
-  </header>`;
+  view = createView<HeaderData>(html`
+    <header>
+      <h1>Blazing Travels</h1>
+      <nav
+        class=${($) =>
+          $.authenticated ? "logged-in" : "logged-out"}>
+        <p>Hello, ${($) => $.username || "traveler"}</p>
+        <menu>
+          <li class="when-signed-in">
+            <a>Sign Out</a>
+          </li>
+          <li class="when-signed-out">
+            <a href="/login.html">Sign In</a>
+          </li>
+        </menu>
+      </nav>
+    </header>
+  `);
 
   static styles = css`
     :host {

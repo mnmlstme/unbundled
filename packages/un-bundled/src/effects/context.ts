@@ -39,7 +39,7 @@ export class Context<T extends object> {
   }
 
   apply(mapFn: (t: T) => Partial<T>) {
-    this.update(mapFn(this.toObject()));
+    this.update(mapFn(this.proxy));
   }
 
   createEffect(fn: Effector<[T]>): void {
@@ -52,7 +52,7 @@ export class Context<T extends object> {
 
   open(effect: Effect): Readonly<T> {
     this.manager.push(effect);
-    return this.toObject();
+    return this.proxy;
   }
 
   close() {

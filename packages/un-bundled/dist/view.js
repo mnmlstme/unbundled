@@ -1,6 +1,6 @@
-import { C as Context } from "./context-HO6ROA-_.js";
-import { c } from "./context-HO6ROA-_.js";
-import { c as createScope } from "./scope-C-poeQcW.js";
+import { C as Context } from "./context-6cDFDAR5.js";
+import { c } from "./context-6cDFDAR5.js";
+import { c as createScope } from "./scope-BIswoNHD.js";
 function createView(html) {
   return html;
 }
@@ -19,7 +19,7 @@ function map(view, list) {
   return mapN(view, list);
 }
 function map2(view, ulist, vlist) {
-  return map2();
+  return mapN(view, ulist, vlist);
 }
 function mapN(view, ...lists) {
   if (!lists.length) return "";

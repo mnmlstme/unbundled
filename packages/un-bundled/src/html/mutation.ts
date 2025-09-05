@@ -35,6 +35,8 @@ export type ReplacementPlace =
   | TagContentPlace;
 
 export type MutationEffect<TT extends TemplateArgs> = (
+  site: Element,
+  fragment: DocumentFragment,
   ...scope: Scope<TT>
 ) => void;
 
@@ -117,57 +119,83 @@ export class ElementContentEffect<
   }
 
   override apply(
-    site: Element,
-    fragment: DocumentFragment
+    _site: Element,
+    _fragment: DocumentFragment
   ): MutationEffect<TT> {
     const key = this.place.nodeLabel;
     // console.log("Applying Element content effect", this);
-    const start = new Comment(` <<< ${key} `);
-    const end = new Comment(` >>> ${key} `);
-    const placeholder = new DocumentFragment();
-    placeholder.replaceChildren(start, end);
-    const parent = site.parentNode || fragment;
-    parent.replaceChild(placeholder, site);
-    // console.log("Placeholder inserted:", parent);
-    return (...scope: Scope<TT>) =>
+
+    return (
+      site: Element,
+      fragment: DocumentFragment,
+      ...scope: Scope<TT>
+    ) => {
+      const start = new Comment(` <<< ${key} `);
+      const end = new Comment(` >>> ${key} `);
+      const placeholder = new DocumentFragment();
+      placeholder.replaceChildren(start, end);
+      const parent = site.parentNode || fragment;
+      parent.replaceChild(placeholder, site);
+      // console.log(
+      //   "🅿️ Placeholder inserted:",
+      //   start,
+      //   end,
+      //   parent
+      // );
       createEffect<TT>(
         (...args: TT) => {
           const value = this.fn(...args);
+          // console.log(
+          //   "Replacing element content",
+          //   value,
+          //   start,
+          //   end
+          // );
           replaceElementContent(
             value as TemplateValue<TT>,
-            parent,
             start,
             end
           );
         },
         ...scope
       );
+    };
   }
 }
 
 function replaceElementContent<TT extends TemplateArgs>(
   value: TemplateValue<TT>,
-  parent: Node,
   start: Node,
   end: Node
 ) {
-  let node = value instanceof Node ? value : null;
-  const valueToNode = (v: TemplateValue<TT>) =>
-    (node = new Text(v?.toString() || ""));
+  const parent = start.parentNode;
 
-  if (!node && Array.isArray(value)) {
-    const frag = new DocumentFragment();
-    const nodes = value.map(valueToNode);
-    frag.replaceChildren(...nodes);
-    node = frag;
-  }
+  if (!parent) throw new Error("No parent for placeholder");
 
-  // console.log("Rendered for view:", value, node);
+  const valueToNode = (v: TemplateValue<TT>) => {
+    if (Array.isArray(v)) {
+      const frag = new DocumentFragment();
+      const nodes = v.map(valueToNode);
+      frag.replaceChildren(...nodes);
+      return frag;
+    } else if (v instanceof Node) {
+      return v;
+    } else {
+      return new Text(v?.toString() || "");
+    }
+  };
+
+  const node = valueToNode(value);
+
+  console.log("📸 Rendered for view:", value, node);
+
   let p = start.nextSibling;
   while (p && p !== end) {
-    parent.removeChild(p);
-    p = start.nextSibling;
+    const old = p;
+    p = p.nextSibling;
+    parent.removeChild(old);
   }
+
   if (node) parent.insertBefore(node, end);
 }
 
@@ -188,10 +216,10 @@ export class AttributeValueEffect<
   }
 
   override apply(
-    site: Element,
+    _site: Element,
     _fragment: DocumentFragment
   ): MutationEffect<TT> {
-    return (...scope: Scope<TT>) =>
+    return (site: Element, _, ...scope: Scope<TT>) =>
       createEffect<TT>(
         (...args: TT) => {
           const value = this.fn(...args);
@@ -264,10 +292,10 @@ export class TagReferenceEffect<
   }
 
   override apply(
-    site: Element,
+    _site: Element,
     _fragment: DocumentFragment
   ): MutationEffect<TT> {
-    return (...scope: Scope<TT>) =>
+    return (site: Element, _, ...scope: Scope<TT>) =>
       createEffect<TT>(
         (...args: TT) => {
           const value = this.fn(...args);

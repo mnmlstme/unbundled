@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const context = require("./context-Y-FCGfAL.cjs");
-const scope = require("./scope-DJo8ZA7T.cjs");
+const context = require("./context-sArnt9mX.cjs");
+const scope = require("./scope-C2S-Cy77.cjs");
 function createView(html) {
   return html;
 }
@@ -20,7 +20,7 @@ function map(view, list) {
   return mapN(view, list);
 }
 function map2(view, ulist, vlist) {
-  return map2();
+  return mapN(view, ulist, vlist);
 }
 function mapN(view, ...lists) {
   if (!lists.length) return "";

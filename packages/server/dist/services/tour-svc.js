@@ -37,11 +37,13 @@ const tourSchema = new import_mongoose.Schema(
       type: Date,
       required: true
     },
-    entourage: [{
-      type: import_mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: "Traveler"
-    }],
+    entourage: [
+      {
+        type: import_mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: "Profile"
+      }
+    ],
     destinations: [
       {
         name: String,
@@ -101,11 +103,15 @@ function index(userid) {
         select: "userid"
       })
     )
-  ).then((tours) => tours.map(trimIndex));
+  ).then((tours) => tours.map(trimIndex)).catch((err) => {
+    console.log("Error in tours#index", err);
+    throw err;
+  });
 }
 function trimIndex(t) {
   const { name, startDate, endDate, entourage } = t;
   const { _id } = t;
+  console.log("Trimming tour:", JSON.stringify(t));
   return {
     id: _id,
     name,

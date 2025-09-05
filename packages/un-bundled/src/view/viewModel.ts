@@ -49,12 +49,23 @@ export class ViewModel<T extends object> extends Context<T> {
     if (source) {
       source
         .start((name: keyof S, value: any) => {
-          // console.log("Merging effect", name, value, entries, mapping);
+          // console.log(
+          //   "🪄 Merging effect",
+          //   name,
+          //   value,
+          //   entries,
+          //   mapping
+          // );
           const pair = entries.find(([_, s]) => s === name);
           if (pair) this.set(pair[0], value);
         })
         .then((firstObservation: Partial<S>) => {
-          // console.log("ViewModel source observed:", firstObservation, entries, mapping);
+          // console.log(
+          //   "👀 ViewModel source observed:",
+          //   firstObservation,
+          //   entries,
+          //   mapping
+          // );
           entries.forEach(([t, s]) =>
             this.set(t, firstObservation[s] as T[typeof t])
           );
@@ -65,7 +76,7 @@ export class ViewModel<T extends object> extends Context<T> {
   }
 
   render(template: Template<[T]>): DocumentFragment {
-    // console.log("Rendering view, scope=", this.toObject());
+    // console.log("📷 Rendering view, scope=", this.toObject());
     return template.render(this);
   }
 }

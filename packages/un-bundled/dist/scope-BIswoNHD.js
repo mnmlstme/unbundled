@@ -1,4 +1,4 @@
-import { C as Context } from "./context-HO6ROA-_.js";
+import { C as Context } from "./context-6cDFDAR5.js";
 function exposeTuple(scope) {
   return scope.map(
     (cx) => cx instanceof Context ? cx.toObject() : cx
@@ -6,7 +6,7 @@ function exposeTuple(scope) {
 }
 function createScope(tuple) {
   return tuple.map(
-    (a) => typeof a === "undefined" ? {} : new Context(a)
+    (a) => typeof a === "undefined" ? null : new Context(a)
   );
 }
 export {

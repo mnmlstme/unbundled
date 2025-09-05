@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const context = require("./context-Y-FCGfAL.cjs");
+const context = require("./context-sArnt9mX.cjs");
 function css(template, ...params) {
   const cssString = template.map((s, i) => i ? [params[i - 1], s] : [s]).flat().join("");
   let sheet = new CSSStyleSheet();
@@ -13,14 +13,21 @@ function define(defns) {
   });
   return customElements;
 }
-function createTemplate(doc, render) {
-  Object.assign(doc, { render });
-  return doc;
+function createTemplate(fragment, render) {
+  Object.assign(fragment, { render });
+  return fragment;
 }
-function renderForEffects(fragment, effectors, ...scope) {
-  effectors.forEach((list) => {
-    list.forEach((fn) => fn(...scope));
-  });
+function renderForEffects(original, effectors, ...scope) {
+  const fragment = original.cloneNode(true);
+  Array.from(effectors.entries()).forEach(
+    ([label, mutations]) => {
+      const site = fragment.querySelector(
+        `[data-${label}]`
+      );
+      if (site)
+        mutations.forEach((fn) => fn(site, fragment, ...scope));
+    }
+  );
   return fragment;
 }
 const _TemplateParser = class _TemplateParser {
@@ -52,6 +59,11 @@ const _TemplateParser = class _TemplateParser {
             return [s, `<ins data-${place.nodeLabel}></ins>`];
         }
       } else {
+        console.error(
+          "No match for template parameter",
+          place,
+          param
+        );
         throw `Failed to render template parameter ${i} around ${s}`;
       }
       return [s];
@@ -172,41 +184,51 @@ class ElementContentEffect extends Mutation {
     super(place);
     this.fn = fn;
   }
-  apply(site, fragment) {
+  apply(_site, _fragment) {
     const key = this.place.nodeLabel;
-    const start = new Comment(` <<< ${key} `);
-    const end = new Comment(` >>> ${key} `);
-    const placeholder = new DocumentFragment();
-    placeholder.replaceChildren(start, end);
-    const parent = site.parentNode || fragment;
-    parent.replaceChild(placeholder, site);
-    return (...scope) => context.createEffect(
-      (...args) => {
-        const value = this.fn(...args);
-        replaceElementContent(
-          value,
-          parent,
-          start,
-          end
-        );
-      },
-      ...scope
-    );
+    return (site, fragment, ...scope) => {
+      const start = new Comment(` <<< ${key} `);
+      const end = new Comment(` >>> ${key} `);
+      const placeholder = new DocumentFragment();
+      placeholder.replaceChildren(start, end);
+      const parent = site.parentNode || fragment;
+      parent.replaceChild(placeholder, site);
+      context.createEffect(
+        (...args) => {
+          const value = this.fn(...args);
+          replaceElementContent(
+            value,
+            start,
+            end
+          );
+        },
+        ...scope
+      );
+    };
   }
 }
-function replaceElementContent(value, parent, start, end) {
-  let node = value instanceof Node ? value : null;
-  const valueToNode = (v) => node = new Text((v == null ? void 0 : v.toString()) || "");
-  if (!node && Array.isArray(value)) {
-    const frag = new DocumentFragment();
-    const nodes = value.map(valueToNode);
-    frag.replaceChildren(...nodes);
-    node = frag;
-  }
+function replaceElementContent(value, start, end) {
+  const parent = start.parentNode;
+  if (!parent) throw new Error("No parent for placeholder");
+  const valueToNode = (v) => {
+    if (Array.isArray(v)) {
+      const frag = new DocumentFragment();
+      const nodes = v.map(valueToNode);
+      frag.replaceChildren(...nodes);
+      return frag;
+    } else if (v instanceof Node) {
+      return v;
+    } else {
+      return new Text((v == null ? void 0 : v.toString()) || "");
+    }
+  };
+  const node = valueToNode(value);
+  console.log("📸 Rendered for view:", value, node);
   let p = start.nextSibling;
   while (p && p !== end) {
-    parent.removeChild(p);
-    p = start.nextSibling;
+    const old = p;
+    p = p.nextSibling;
+    parent.removeChild(old);
   }
   if (node) parent.insertBefore(node, end);
 }
@@ -216,8 +238,8 @@ class AttributeValueEffect extends Mutation {
     this.fn = fn;
     this.name = place.attrName;
   }
-  apply(site, _fragment) {
-    return (...scope) => context.createEffect(
+  apply(_site, _fragment) {
+    return (site, _, ...scope) => context.createEffect(
       (...args) => {
         const value = this.fn(...args);
         replaceAttributeValue(
@@ -265,8 +287,8 @@ class TagReferenceEffect extends Mutation {
     super(place);
     this.fn = fn;
   }
-  apply(site, _fragment) {
-    return (...scope) => context.createEffect(
+  apply(_site, _fragment) {
+    return (site, _, ...scope) => context.createEffect(
       (...args) => {
         const value = this.fn(...args);
         if (typeof value === "function") value(site);

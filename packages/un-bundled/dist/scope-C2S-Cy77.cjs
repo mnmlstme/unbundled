@@ -1,5 +1,5 @@
 "use strict";
-const context = require("./context-Y-FCGfAL.cjs");
+const context = require("./context-sArnt9mX.cjs");
 function exposeTuple(scope) {
   return scope.map(
     (cx) => cx instanceof context.Context ? cx.toObject() : cx
@@ -7,7 +7,7 @@ function exposeTuple(scope) {
 }
 function createScope(tuple) {
   return tuple.map(
-    (a) => typeof a === "undefined" ? {} : new context.Context(a)
+    (a) => typeof a === "undefined" ? null : new context.Context(a)
   );
 }
 exports.createScope = createScope;

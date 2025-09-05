@@ -46,14 +46,23 @@ export class Service<Msg extends Base, T extends object> {
     if (this._running) {
       this.process(message);
     } else {
-      // console.log(`Queueing ${this._eventType} message`, message);
+      // console.log(
+      //   `📥 Queueing ${this._eventType} message`,
+      //   message
+      // );
       this._pending.push(message);
     }
   }
 
   process(message: Msg) {
-    // console.log(`Processing ${this._eventType} message`, message);
-    const command = this._update(message, this.apply.bind(this));
+    // console.log(
+    //   `📤 Processing ${this._eventType} message`,
+    //   message
+    // );
+    const command = this._update(
+      message,
+      this.apply.bind(this)
+    );
     if (command) command(this._context);
   }
 }

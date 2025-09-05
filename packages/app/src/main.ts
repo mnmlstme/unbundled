@@ -2,7 +2,7 @@ import {
   define,
   html,
   Auth,
-  History_2,
+  History,
   Store,
   Switch
 } from "@un-bundled/unbundled";
@@ -10,6 +10,8 @@ import { Model, init } from "./model.ts";
 import { Msg } from "./message.ts";
 import { Cmd, update } from "./update.ts";
 import { HeaderElement } from "./components/header-element";
+import { HomeViewElement } from "./views/home-view.ts";
+import { TourViewElement } from "./views/tour-view.ts";
 import { ProfileViewElement } from "./views/profile-view.ts";
 
 const routes: Switch.Route[] = [
@@ -45,7 +47,7 @@ const routes: Switch.Route[] = [
 
 define({
   "auth-provider": Auth.Provider,
-  "history-provider": History_2.Provider,
+  "history-provider": History.Provider,
   "blazing-header": HeaderElement,
   "router-switch": class AppSwitch extends Switch.Element {
     constructor() {
@@ -62,5 +64,7 @@ define({
     }
   },
   // pages:
-  "profile-view": ProfileViewElement
+  "home-view": HomeViewElement,
+  "profile-view": ProfileViewElement,
+  "tour-view": TourViewElement
 });

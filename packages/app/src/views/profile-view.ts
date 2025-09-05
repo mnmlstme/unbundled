@@ -98,6 +98,7 @@ export class ProfileViewElement extends HTMLElement {
   `);
 
   mainView = createView<Traveler>(html`
+    <h1>mainView</h1>
     ${($) =>
       $.userid === this.viewModel.get("username")
         ? html`
@@ -127,8 +128,7 @@ export class ProfileViewElement extends HTMLElement {
             ? html`
                 <span
                   class="swatch"
-                  style="background: ${$.color}"
-                  }></span>
+                  style=${`background: ${$.color}`}></span>
                 <span>${$.color}</span>
               `
             : ""}
@@ -184,7 +184,7 @@ export class ProfileViewElement extends HTMLElement {
             ? html`
                 <span
                   class="swatch"
-                  style="background: ${$.color}"></span>
+                  style=${`background: ${$.color}`}></span>
                 <span>
                   <input
                     type="color"

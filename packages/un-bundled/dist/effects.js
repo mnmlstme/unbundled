@@ -1,5 +1,5 @@
-import { C, E, S, b, c, a } from "./context-HO6ROA-_.js";
-import { c as c2, e } from "./scope-C-poeQcW.js";
+import { C, E, S, b, c, a } from "./context-6cDFDAR5.js";
+import { c as c2, e } from "./scope-BIswoNHD.js";
 class DirectEffect {
   constructor(fn, ...scope) {
     this.effectFn = () => fn(...scope);

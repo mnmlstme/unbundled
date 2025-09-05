@@ -8,11 +8,11 @@ export interface Template<TT extends TemplateArgs>
 }
 
 export function createTemplate<TT extends TemplateArgs>(
-  doc: DocumentFragment,
+  fragment: DocumentFragment,
   render: RenderFunction<TT>
 ): Template<TT> {
-  Object.assign(doc, { render });
-  return doc as Template<TT>;
+  Object.assign(fragment, { render });
+  return fragment as Template<TT>;
 }
 
 export type RenderFunction<TT extends TemplateArgs> = (

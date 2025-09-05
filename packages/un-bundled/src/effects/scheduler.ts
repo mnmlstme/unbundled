@@ -17,8 +17,8 @@ export function createEffect<TT extends EffectArgs>(
       );
     }
   };
-  // console.log("Executing created effect:", effect, fn);
 
+  // console.log("▶️ Executing created effect:", scope, fn);
   effect.execute();
 }
 
@@ -39,6 +39,11 @@ export class Scheduler {
     key: keyof T,
     effect: Effect
   ) {
+    // console.log(
+    //   `🙋🏼 Subscribe to signal '${String(key)}'`,
+    //   scope,
+    //   effect
+    // );
     let signals: Signals<T> | undefined =
       this.signals.get(scope);
     if (!signals) {
@@ -56,8 +61,13 @@ export class Scheduler {
   scheduleEffects<T extends object>(scope: T, key: keyof T) {
     const signals: Signals<T> | undefined =
       this.signals.get(scope);
+
     if (!signals) return;
     const signal = signals.get(key);
+    // console.log(
+    //   `Scheduling effects of signal '${String(key)}'`,
+    //   signal
+    // );
     if (signal) {
       for (const effect of signal) {
         if (!this.scheduled.has(effect)) {

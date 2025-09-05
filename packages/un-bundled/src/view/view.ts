@@ -49,7 +49,7 @@ function map2<
   ulist: Array<U>,
   vlist: Array<V>
 ): TemplateValue<[U, V]> {
-  return map2(view, ulist, vlist);
+  return mapN(view, ulist, vlist);
 }
 
 function mapN<TT extends TemplateArgs>(

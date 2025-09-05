@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const html = require("./html.cjs");
-const context = require("./context-Y-FCGfAL.cjs");
+const context = require("./context-sArnt9mX.cjs");
 const effects = require("./effects.cjs");
-const scope = require("./scope-DJo8ZA7T.cjs");
+const scope = require("./scope-C2S-Cy77.cjs");
 const view = require("./view.cjs");
 class Dispatch extends CustomEvent {
   constructor(msg, eventType = "un:message") {
@@ -30,56 +30,76 @@ const _Provider = class _Provider extends HTMLElement {
     this.contextLabel = label;
     this.context = new context.Context(init);
     this.context.setHost(this, _Provider.CHANGE_EVENT);
-    this.addEventListener(_Provider.DISCOVERY_EVENT, (event) => {
-      const [contextLabel, respondFn] = event.detail;
-      if (contextLabel === this.contextLabel) {
-        event.stopPropagation();
-        respondFn(this);
+    this.addEventListener(
+      _Provider.DISCOVERY_EVENT,
+      (event) => {
+        const [contextLabel, respondFn] = event.detail;
+        if (contextLabel === this.contextLabel) {
+          event.stopPropagation();
+          respondFn(this);
+        }
       }
-    });
-    const registryEvent = new CustomEvent(_Provider.REGISTRY_EVENT, {
-      bubbles: true,
-      composed: true,
-      detail: [this.contextLabel, this]
-    });
+    );
+    const registryEvent = new CustomEvent(
+      _Provider.REGISTRY_EVENT,
+      {
+        bubbles: true,
+        composed: true,
+        detail: [this.contextLabel, this]
+      }
+    );
     this.dispatchEvent(registryEvent);
   }
   attach(observer) {
-    this.addEventListener(_Provider.CHANGE_EVENT, observer);
+    this.addEventListener(
+      _Provider.CHANGE_EVENT,
+      observer
+    );
     return this.context.toObject();
   }
   detach(observer) {
-    this.removeEventListener(_Provider.CHANGE_EVENT, observer);
+    this.removeEventListener(
+      _Provider.CHANGE_EVENT,
+      observer
+    );
   }
 };
 _Provider.DISCOVERY_EVENT = "un-provider:discover";
 _Provider.REGISTRY_EVENT = "un-provider:register";
 _Provider.CHANGE_EVENT = "un-provider:change";
-document.addEventListener(_Provider.DISCOVERY_EVENT, (event) => {
-  const [contextLabel, respondFn] = event.detail;
-  const provider = registeredProvider(contextLabel);
-  if (provider) {
-    respondFn(provider);
-  } else {
-    console.log("No response from provider:", contextLabel);
+document.addEventListener(
+  _Provider.DISCOVERY_EVENT,
+  (event) => {
+    const [contextLabel, respondFn] = event.detail;
+    const provider = registeredProvider(contextLabel);
+    if (provider) {
+      respondFn(provider);
+    }
   }
-});
-document.addEventListener(_Provider.REGISTRY_EVENT, (event) => {
-  const [contextLabel, provider] = event.detail;
-  registerProvider(contextLabel, provider);
-});
+);
+document.addEventListener(
+  _Provider.REGISTRY_EVENT,
+  (event) => {
+    const [contextLabel, provider] = event.detail;
+    registerProvider(contextLabel, provider);
+  }
+);
 let Provider = _Provider;
 function discover(observer, contextLabel) {
   return new Promise((resolve, reject) => {
-    const discoveryEvent = new CustomEvent(Provider.DISCOVERY_EVENT, {
-      bubbles: true,
-      composed: true,
-      detail: [
-        contextLabel,
-        (provider) => provider ? resolve(provider) : reject()
-      ]
-    });
-    if (observer.isConnected) observer.dispatchEvent(discoveryEvent);
+    const discoveryEvent = new CustomEvent(
+      Provider.DISCOVERY_EVENT,
+      {
+        bubbles: true,
+        composed: true,
+        detail: [
+          contextLabel,
+          (provider) => provider ? resolve(provider) : reject()
+        ]
+      }
+    );
+    if (observer.isConnected)
+      observer.dispatchEvent(discoveryEvent);
     else {
       document.dispatchEvent(discoveryEvent);
     }
@@ -158,7 +178,10 @@ class Service {
     }
   }
   process(message2) {
-    const command = this._update(message2, this.apply.bind(this));
+    const command = this._update(
+      message2,
+      this.apply.bind(this)
+    );
     if (command) command(this._context);
   }
 }
@@ -177,9 +200,12 @@ class FromService {
     this.observer = new Observer(contextLabel);
   }
   start(fn) {
-    return this.observer.observe(this.client, (s) => {
-      fn(s.property, s.value);
-    });
+    return this.observer.observe(
+      this.client,
+      (s) => {
+        fn(s.property, s.value);
+      }
+    );
   }
 }
 class InvalidTokenError extends Error {
@@ -437,7 +463,6 @@ class HistoryProvider extends Provider {
           "location"
         );
         if (location && url.origin === location.origin && url.pathname.startsWith(this.base || "/")) {
-          console.log("Preventing Click Event on <A>", event);
           event.preventDefault();
           dispatch$1(linkTarget, "history/navigate", {
             href: url.pathname + url.search
@@ -446,7 +471,6 @@ class HistoryProvider extends Provider {
       }
     });
     window.addEventListener("popstate", (event) => {
-      console.log("Popstate", event.state);
       this.context.update({
         location: document.location,
         state: event.state
@@ -1243,7 +1267,6 @@ class Switch extends HTMLElement {
             <h1>Redirecting for Login</h1>
           `;
         } else {
-          console.log("Loading view, ", m.params, m.query);
           this._routeViewModel.update({
             params: m.params,
             query: m.query,

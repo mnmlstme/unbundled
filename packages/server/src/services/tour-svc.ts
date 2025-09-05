@@ -16,11 +16,13 @@ const tourSchema = new Schema<Tour>(
       type: Date,
       required: true
     },
-    entourage: [{
-      type: Schema.Types.ObjectId,
-      required: true,
-      ref: "Traveler"
-    }],
+    entourage: [
+      {
+        type: Schema.Types.ObjectId,
+        required: true,
+        ref: "Profile"
+      }
+    ],
     destinations: [
       {
         name: String,
@@ -29,16 +31,16 @@ const tourSchema = new Schema<Tour>(
         location: { lat: Number, lon: Number },
         featuredImage: String,
         accommodation: {
-            name: String,
-            checkIn: Date,
-            checkOut: Date,
-            roomType: String,
-            persons: Number,
-            rate: {
-              amount: Number,
-              currency: String
-            }
-          },
+          name: String,
+          checkIn: Date,
+          checkOut: Date,
+          roomType: String,
+          persons: Number,
+          rate: {
+            amount: Number,
+            currency: String
+          }
+        },
         excursions: [{ name: String, type: { type: String } }]
       }
     ],
@@ -83,12 +85,18 @@ function index(userid?: string): Promise<Tour[]> {
         select: "userid"
       })
     )
-    .then((tours) => tours.map(trimIndex));
+    .then((tours) => tours.map(trimIndex))
+    .catch((err) => {
+      console.log("Error in tours#index", err);
+      throw err;
+    });
 }
 
-function trimIndex(t: Tour): Tour  {
+function trimIndex(t: Tour): Tour {
   const { name, startDate, endDate, entourage } = t;
   const { _id } = t as unknown as { _id: string };
+
+  console.log("Trimming tour:", JSON.stringify(t));
 
   return {
     id: _id,
@@ -145,18 +153,16 @@ function getDestination(
   id: String,
   n: number
 ): Promise<Destination> {
-  return (
-    tourModel
-      .findById(id)
-      .then((doc: unknown) => {
-        const tour =  doc as Tour;
-        return tour.destinations[n];
-      })
-      .catch((err) => {
-        console.log("Not found!", err);
-        throw `${id} Not Found`;
-      })
-  );
+  return tourModel
+    .findById(id)
+    .then((doc: unknown) => {
+      const tour = doc as Tour;
+      return tour.destinations[n];
+    })
+    .catch((err) => {
+      console.log("Not found!", err);
+      throw `${id} Not Found`;
+    });
 }
 
 function updateDestination(

@@ -29,13 +29,13 @@ export class EffectsManager<T extends object> {
   subscribe(key: keyof T, scope: T): void {
     const current = this.current();
     if (current) {
-      // console.log("Subscribing to signal", key);
+      // console.log("Subscribing to signal", key, scope);
       Scheduler.scheduler.subscribe(scope, key, current);
     }
   }
 
   runEffects(key: keyof T, scope: T): void {
-    // console.log("Running effects for signal", key, signal);
+    // console.log("Running effects for signal", key, scope);
     Scheduler.scheduler.scheduleEffects(scope, key);
     if (this.host) {
       const evt = new SignalEvent(this.eventType, {

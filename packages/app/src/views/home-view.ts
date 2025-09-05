@@ -1,4 +1,5 @@
 import {
+  Store,
   View,
   createView,
   createViewModel,
@@ -8,6 +9,7 @@ import {
   shadow
 } from "@un-bundled/unbundled";
 import { TourIndex, Model } from "../model";
+import { Msg } from "../message";
 import { TourBrief } from "server/models";
 
 type HomeViewAttributes = { "user-id"?: string };
@@ -38,8 +40,20 @@ export class HomeViewElement extends HTMLElement {
     </li>`
   );
 
+  dispatch(msg: Msg) {
+    Store.dispatch<Msg>(this, msg);
+  }
+
   constructor() {
     super();
     shadow(this).replace(this.viewModel.render(this.view));
+
+    this.viewModel.createEffect(($) => {
+      if ($.userid)
+        this.dispatch([
+          "tourIndex/request",
+          { userid: $.userid }
+        ]);
+    });
   }
 }
