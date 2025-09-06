@@ -67,7 +67,9 @@ router.get(
   "/:id/destinations/:n",
   (req, res) => {
     const { id, n } = req.params;
-    import_tour_svc.default.getDestination(id, parseInt(n)).then((destination) => res.status(200).json(destination)).catch(() => res.status(404).end());
+    import_tour_svc.default.getDestination(id, parseInt(n)).then(
+      (destination) => res.status(200).json(destination)
+    ).catch(() => res.status(404).end());
   }
 );
 router.put(

@@ -33,14 +33,14 @@ __export(travelers_exports, {
 module.exports = __toCommonJS(travelers_exports);
 var import_express = __toESM(require("express"));
 var import_auth = require("./auth");
-var import_profile_svc = __toESM(require("../services/profile-svc"));
+var import_traveler_svc = __toESM(require("../services/traveler-svc"));
 const router = import_express.default.Router();
 router.get("/", (_, res) => {
-  import_profile_svc.default.index().then((list) => res.json(list)).catch((err) => res.status(500).send(err));
+  import_traveler_svc.default.index().then((list) => res.json(list)).catch((err) => res.status(500).send(err));
 });
 router.get("/:userid", (req, res) => {
   const { userid } = req.params;
-  import_profile_svc.default.get(userid).then((profile) => res.json(profile)).catch((err) => res.status(404).send(err));
+  import_traveler_svc.default.get(userid).then((traveler) => res.json(traveler)).catch((err) => res.status(404).send(err));
 });
 router.put(
   "/:userid",
@@ -49,8 +49,8 @@ router.put(
   ),
   (req, res) => {
     const { userid } = req.params;
-    const editedProfile = req.body;
-    import_profile_svc.default.update(userid, editedProfile).then((profile) => res.json(profile)).catch((err) => res.status(404).send(err));
+    const editedtraveler = req.body;
+    import_traveler_svc.default.update(userid, editedtraveler).then((traveler) => res.json(traveler)).catch((err) => res.status(404).send(err));
   }
 );
 router.post(
@@ -62,12 +62,14 @@ router.post(
     return true;
   }),
   (req, res) => {
-    const newProfile = req.body;
-    import_profile_svc.default.create(newProfile).then((profile) => res.status(201).send(profile)).catch((err) => res.status(500).send(err));
+    const newtraveler = req.body;
+    import_traveler_svc.default.create(newtraveler).then(
+      (traveler) => res.status(201).send(traveler)
+    ).catch((err) => res.status(500).send(err));
   }
 );
 router.delete("/:userid", (req, res) => {
   const { userid } = req.params;
-  import_profile_svc.default.remove(userid).then(() => res.status(204).end()).catch((err) => res.status(404).send(err));
+  import_traveler_svc.default.remove(userid).then(() => res.status(204).end()).catch((err) => res.status(404).send(err));
 });
 var travelers_default = router;

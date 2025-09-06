@@ -12,6 +12,7 @@ export interface Tour {
   entourage: Array<Traveler>;
 }
 
-export type TourBrief =
-  Pick<Tour, "id" | "name" | "startDate" | "endDate"> &
-  { entourage: Array<string> }
+export type TourBrief = Pick<
+  Tour,
+  "id" | "name" | "startDate" | "endDate"
+> & { entourage: Array<{ userid: string }> };

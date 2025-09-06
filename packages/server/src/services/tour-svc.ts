@@ -19,8 +19,7 @@ const tourSchema = new Schema<Tour>(
     entourage: [
       {
         type: Schema.Types.ObjectId,
-        required: true,
-        ref: "Profile"
+        ref: "Traveler"
       }
     ],
     destinations: [
@@ -81,7 +80,7 @@ function index(userid?: string): Promise<Tour[]> {
     .then((tours) =>
       // populate the entourage travelers' usernames
       tourModel.populate(tours, {
-        path: "entourage.*",
+        path: "entourage",
         select: "userid"
       })
     )
@@ -95,8 +94,6 @@ function index(userid?: string): Promise<Tour[]> {
 function trimIndex(t: Tour): Tour {
   const { name, startDate, endDate, entourage } = t;
   const { _id } = t as unknown as { _id: string };
-
-  console.log("Trimming tour:", JSON.stringify(t));
 
   return {
     id: _id,
@@ -122,6 +119,7 @@ function get(id: string): Promise<Tour> {
         }
       })
       .then((doc: unknown) => {
+        console.log("Tour: ", JSON.stringify(doc, null, "  "));
         return doc as Tour;
       })
       .catch((err) => {

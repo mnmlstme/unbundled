@@ -5,7 +5,7 @@ import tours from "../services/tour-svc";
 const router = express.Router();
 
 router.get("/", (req: Request, res: Response) => {
-  const { userid } = req.query;
+  const { userid } = req.query as { userid: string };
   if (!userid) {
     res.status(400).send("requires ?userid=");
     return;
@@ -60,9 +60,11 @@ router.get(
     tours
       .getDestination(id, parseInt(n))
       .then((destination: Destination) =>
-        res.status(200).json(destination))
+        res.status(200).json(destination)
+      )
       .catch(() => res.status(404).end());
-  });
+  }
+);
 
 router.put(
   "/:id/destinations/:n",

@@ -64,9 +64,7 @@ export class TourViewElement extends HTMLElement {
     <section class="entourage">
       <h3>Entourage</h3>
       ${($) =>
-        View.apply(this.entourageView, {
-          travelers: $.tour?.entourage || []
-        })}
+        View.map(this.travelerView, $.tour?.entourage || [])}
     </section>
   `);
 
@@ -106,29 +104,19 @@ export class TourViewElement extends HTMLElement {
     <dd>[Transportation Details]</dd>
   `);
 
-  entourageView = createView<{ travelers: Array<Traveler> }>(
-    html`
-      <ul>
+  travelerView = createView<Traveler>(html`
+    <li>
+      <a href=${($) => `/app/profile/${$.userid}`}>
         ${($) =>
-          View.map<Traveler>(
-            html`
-              <li>
-                <a href=${($) => `/app/profile/${$.userid}`}>
-                  ${($) =>
-                    $.avatar
-                      ? html`
-                          <img src=${$.avatar} />
-                        `
-                      : ""}
-                  <h4>${($) => $.name}</h4>
-                </a>
-              </li>
-            `,
-            $.travelers
-          )}
-      </ul>
-    `
-  );
+          $.avatar
+            ? html`
+                <img src=${$.avatar} />
+              `
+            : ""}
+        <h4>${($) => $.name}</h4>
+      </a>
+    </li>
+  `);
 
   static styles = css``;
 

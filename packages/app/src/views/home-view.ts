@@ -34,11 +34,30 @@ export class HomeViewElement extends HTMLElement {
   `);
 
   viewTour = createView<TourBrief>(
-    html`<dt>${($) => $.name}</dt>
+    html`
+      <dt>
+        <a href=${($) => `/app/tour/${$.id}`}>${($) => $.name}</a>
+      </dt>
       <dd>${($) => $.startDate.toString()} to ${($) => $.endDate.toString()}</dd>
-      <dd>${($) => $.entourage.join(", ")}</dd>
+      <dd>
+        <ul>
+          ${($) =>
+            View.map<{ userid: string }>(
+              this.travelerView,
+              $.entourage
+            )}
+        </ul>
+      </dd>
     </li>`
   );
+
+  travelerView = createView<{ userid: string }>(html`
+    <li>
+      <a href=${($) => `/app/profile/${$.userid}`}>
+        ${($) => $.userid}
+      </a>
+    </li>
+  `);
 
   dispatch(msg: Msg) {
     Store.dispatch<Msg>(this, msg);

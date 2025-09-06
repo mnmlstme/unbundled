@@ -40,8 +40,7 @@ const tourSchema = new import_mongoose.Schema(
     entourage: [
       {
         type: import_mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: "Profile"
+        ref: "Traveler"
       }
     ],
     destinations: [
@@ -99,7 +98,7 @@ function index(userid) {
     (tours) => (
       // populate the entourage travelers' usernames
       tourModel.populate(tours, {
-        path: "entourage.*",
+        path: "entourage",
         select: "userid"
       })
     )
@@ -111,7 +110,6 @@ function index(userid) {
 function trimIndex(t) {
   const { name, startDate, endDate, entourage } = t;
   const { _id } = t;
-  console.log("Trimming tour:", JSON.stringify(t));
   return {
     id: _id,
     name,
@@ -129,6 +127,7 @@ function get(id) {
       path: "people"
     }
   }).then((doc) => {
+    console.log("Tour: ", JSON.stringify(doc, null, "  "));
     return doc;
   }).catch((err) => {
     console.log("Not found!", err);

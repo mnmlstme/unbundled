@@ -2,12 +2,12 @@ import express, { Request, Response } from "express";
 import { authorizeUser } from "./auth";
 import { Traveler } from "../models/traveler";
 
-import profiles from "../services/profile-svc";
+import travelers from "../services/traveler-svc";
 
 const router = express.Router();
 
 router.get("/", (_, res: Response) => {
-  profiles
+  travelers
     .index()
     .then((list: Traveler[]) => res.json(list))
     .catch((err) => res.status(500).send(err));
@@ -16,24 +16,25 @@ router.get("/", (_, res: Response) => {
 router.get("/:userid", (req: Request, res: Response) => {
   const { userid } = req.params;
 
-  profiles
+  travelers
     .get(userid)
-    .then((profile: Traveler) => res.json(profile))
+    .then((traveler: Traveler) => res.json(traveler))
     .catch((err) => res.status(404).send(err));
 });
 
 router.put(
   "/:userid",
   authorizeUser(
-    (req: Request, username: string) => username === req.params.userid
+    (req: Request, username: string) =>
+      username === req.params.userid
   ),
   (req: Request, res: Response) => {
     const { userid } = req.params;
-    const editedProfile = req.body;
+    const editedtraveler = req.body;
 
-    profiles
-      .update(userid, editedProfile)
-      .then((profile: Traveler) => res.json(profile))
+    travelers
+      .update(userid, editedtraveler)
+      .then((traveler: Traveler) => res.json(traveler))
       .catch((err) => res.status(404).send(err));
   }
 );
@@ -47,11 +48,13 @@ router.post(
     return true;
   }),
   (req: Request, res: Response) => {
-    const newProfile = req.body;
+    const newtraveler = req.body;
 
-    profiles
-      .create(newProfile)
-      .then((profile: Traveler) => res.status(201).send(profile))
+    travelers
+      .create(newtraveler)
+      .then((traveler: Traveler) =>
+        res.status(201).send(traveler)
+      )
       .catch((err) => res.status(500).send(err));
   }
 );
@@ -59,7 +62,7 @@ router.post(
 router.delete("/:userid", (req: Request, res: Response) => {
   const { userid } = req.params;
 
-  profiles
+  travelers
     .remove(userid)
     .then(() => res.status(204).end())
     .catch((err) => res.status(404).send(err));
