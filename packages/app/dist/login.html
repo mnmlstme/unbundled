@@ -11,15 +11,7 @@
     <link rel="stylesheet" href="/styles/reset.css" />
     <link rel="stylesheet" href="/styles/tokens.css" />
     <link rel="stylesheet" href="/styles/page.css" />
-    <script type="module">
-      import { define, Auth } from "@un-bundled/core";
-      import { LoginFormElement } from "/src/auth/login-form";
-
-      define({
-        "un-auth": Auth.Provider,
-        "login-form": LoginFormElement
-      });
-    </script>
+    
     <style>
       .page {
         height: 100vh;
@@ -41,6 +33,8 @@
         text-align: center;
       }
     </style>
+    <script type="module" crossorigin src="/assets/login-7653fa49.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/headings.css-ba42a53d.js">
   </head>
   <body class="page">
     <un-auth>

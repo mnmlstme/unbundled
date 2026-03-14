@@ -10,5 +10,7 @@
   },
   "author": "kubiak@calpoly.edu",
   "license": "BSD-3-Clause",
-  "dependencies": {}
+  "dependencies": {
+    "@un-bundled/core": "^0.2.0"
+  }
 }

@@ -1,6 +1,8 @@
 import { Source, SourceEffect } from "./source.ts";
 
-export function fromAttributes<T extends object>(subject: Element) {
+export function fromAttributes<T extends object>(
+  subject: Element
+) {
   return new FromAttributes<T>(subject);
 }
 

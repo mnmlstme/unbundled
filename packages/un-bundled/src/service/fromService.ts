@@ -5,7 +5,7 @@ import { Observer } from "./observer.ts";
 export function fromService<T extends object>(
   target: HTMLElement,
   contextLabel: string
-) {
+): Source<T> {
   return new FromService<T>(target, contextLabel);
 }
 
@@ -15,7 +15,10 @@ export class FromService<T extends object>
   private client: HTMLElement;
   private observer: Observer<T>;
 
-  constructor(client: HTMLElement, contextLabel: string) {
+  constructor(
+    client: HTMLElement,
+    contextLabel: string
+  ) {
     this.client = client;
     this.observer = new Observer<T>(contextLabel);
   }

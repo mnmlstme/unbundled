@@ -1,4 +1,4 @@
-import { Message, Auth } from "@un-bundled/unbundled";
+import { Message, Auth } from "@un-bundled/core";
 import { Model, TourIndex } from "./model";
 import { Msg } from "./message";
 import { Tour, TourBrief, Traveler } from "server/models";

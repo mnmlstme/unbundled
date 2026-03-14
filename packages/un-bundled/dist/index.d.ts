@@ -100,6 +100,28 @@ declare type Base = Type<string, object | undefined>;
 
 declare type BasicTemplateValue = string | number | boolean | Node | null;
 
+export declare namespace BrowserHistory {
+    export {
+        HISTORY_CONTEXT_DEFAULT as CONTEXT_DEFAULT,
+        HistoryProvider as Provider,
+        HistoryService as Service,
+        HistoryModel as Model,
+        HistoryMsg as Message,
+        dispatch_3 as dispatch
+    }
+}
+
+declare namespace BrowserHistory_2 {
+    export {
+        HISTORY_CONTEXT_DEFAULT as CONTEXT_DEFAULT,
+        HistoryProvider as Provider,
+        HistoryService as Service,
+        HistoryModel as Model,
+        HistoryMsg as Message,
+        dispatch_3 as dispatch
+    }
+}
+
 declare type Case = CaseRoute & (ViewCase | RedirectCase);
 
 declare interface CaseRoute {
@@ -135,7 +157,7 @@ export declare function createView<T extends object>(html: Template<[T]>): Templ
 
 export declare function createView2<U extends object | undefined, V extends object | undefined>(html: Template<[U, V]>): Template<[U, V]>;
 
-export declare function createViewModel<T extends object>(init?: T): ViewModel<T>;
+export declare function createViewModel<T extends object>(init?: Partial<T>): ViewModel<T>;
 
 export declare function createViewN<TT extends TemplateArgs>(html: Template<TT>): Template<TT>;
 
@@ -214,9 +236,9 @@ declare class FromAttributes<T extends object> implements Source<T> {
 
 export declare function fromAttributes<T extends object>(subject: Element): FromAttributes<T>;
 
-export declare function fromAuth(target: HTMLElement, contextLabel?: string): FromService<Auth_2.Model>;
+export declare function fromAuth(target: HTMLElement, contextLabel?: string): Source<Auth_2.Model>;
 
-export declare function fromHistory(target: HTMLElement, contextLabel?: string): FromService<History_3.Model>;
+export declare function fromHistory(target: HTMLElement, contextLabel?: string): FromService<BrowserHistory_2.Model>;
 
 declare class FromInputs<T extends object> implements Source<T> {
     subject: Node;
@@ -233,31 +255,9 @@ export declare class FromService<T extends object> implements Source<T> {
     start(fn: SourceEffect<T>): Promise<Partial<T>>;
 }
 
-export declare function fromService<T extends object>(target: HTMLElement, contextLabel: string): FromService<T>;
+export declare function fromService<T extends object>(target: HTMLElement, contextLabel: string): Source<T>;
 
 export declare function fromStore<M extends object>(target: HTMLElement, contextLabel?: string): FromService<M>;
-
-export declare namespace History_2 {
-    export {
-        HISTORY_CONTEXT_DEFAULT as CONTEXT_DEFAULT,
-        HistoryProvider as Provider,
-        HistoryService as Service,
-        HistoryModel as Model,
-        HistoryMsg as Message,
-        dispatch_3 as dispatch
-    }
-}
-
-declare namespace History_3 {
-    export {
-        HISTORY_CONTEXT_DEFAULT as CONTEXT_DEFAULT,
-        HistoryProvider as Provider,
-        HistoryService as Service,
-        HistoryModel as Model,
-        HistoryMsg as Message,
-        dispatch_3 as dispatch
-    }
-}
 
 declare const HISTORY_CONTEXT_DEFAULT = "context:history";
 
@@ -308,6 +308,14 @@ declare function map2<U extends object | undefined, V extends object | undefined
 
 declare function mapN<TT extends TemplateArgs>(view: Template<TT>, ...lists: ArrayArgs<TT>): TemplateValue<TT>;
 
+export declare class MappedSource<S extends ViewState, T extends ViewState> implements Source<T> {
+    private origin;
+    private inverse;
+    constructor(source: Source<S>, mapping: NameMapping<T, S>);
+    mapObservation(source: Partial<S>): Partial<T>;
+    start(fn: SourceEffect<T>): Promise<Partial<T>>;
+}
+
 declare type Match = MatchPath & (ViewCase | RedirectCase);
 
 declare interface MatchPath {
@@ -341,7 +349,7 @@ declare namespace Message_2 {
 }
 
 export declare type NameMapping<T extends object, S extends object> = {
-    [K in keyof Partial<T>]: keyof Partial<S> | ((s: S) => T[K]);
+    [K in keyof Partial<T>]: keyof S | ((s: S) => Required<T>[K]);
 };
 
 declare type None = [];
@@ -437,11 +445,11 @@ export declare type SignalReceiver<T> = (ev: SignalEvent<T, keyof T>) => void;
 
 export declare type Signals<T extends object> = Map<keyof T, Set<Effect>>;
 
-export declare interface Source<T extends object> {
-    start(fn: SourceEffect<T>): Promise<Partial<T>>;
+export declare interface Source<S extends ViewState> {
+    start(fn: SourceEffect<S>): Promise<Partial<S>>;
 }
 
-export declare type SourceEffect<T> = (name: keyof T, value: any) => void;
+export declare type SourceEffect<S extends ViewState> = (name: keyof S, value: any) => void;
 
 export declare namespace Store {
     export {
@@ -534,11 +542,20 @@ declare interface ViewCase {
     auth?: "public" | "protected";
 }
 
-export declare class ViewModel<T extends object> extends Context<T> {
+export declare class ViewModel<T extends ViewState<T>> extends Context<T> {
     constructor(init: Partial<T>, adoptedContext?: Context<T>);
     get $(): Readonly<T>;
-    merge<S extends object>(source: Source<S>, mapping: NameMapping<T, S> | Array<NameMapping<T, S> | (keyof T & keyof S)>): ViewModel<T>;
+    using<S extends ViewState<T> = T>(source: Source<S>, ...keys: Array<keyof S & keyof T>): ViewModel<T>;
+    calculating<S extends ViewState>(source: Source<S>, mapping: NameMapping<T, S>): ViewModel<T>;
+    renaming<S extends ViewState>(source: Source<S>, renaming: {
+        [K in keyof Partial<T>]: keyof S;
+    }): ViewModel<T>;
+    merge<S extends ViewState<T>>(source: Source<S>): ViewModel<T>;
     render(template: Template<[T]>): DocumentFragment;
 }
+
+export declare type ViewState<T = object> = {
+    [K in keyof Partial<T>]: any;
+};
 
 export { }

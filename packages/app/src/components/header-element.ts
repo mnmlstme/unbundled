@@ -6,7 +6,7 @@ import {
   shadow,
   createView,
   createViewModel
-} from "@un-/bundled";
+} from "@un-bundled/core";
 import headings from "../styles/headings.css";
 import reset from "../styles/reset.css";
 
@@ -16,10 +16,10 @@ interface HeaderData {
 }
 
 export class HeaderElement extends HTMLElement {
-  viewModel = createViewModel<HeaderData>().merge(
-    fromAuth(this),
-    ["authenticated", "username"]
-  );
+  viewModel = createViewModel<HeaderData>()
+    .using(fromAuth(this),
+      "authenticated", "username"
+    );
 
   view = createView<HeaderData>(html`
     <header>

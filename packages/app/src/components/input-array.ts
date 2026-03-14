@@ -1,13 +1,13 @@
 import {
   css,
+  html,
   shadow,
   fromAttributes,
   View,
   createView,
   createViewModel
-} from "@un-/bundled";
+} from "@un-bundled/core";
 
-const html = View.html;
 
 interface InputArrayAttributes {
   name?: string
@@ -20,7 +20,9 @@ interface InputArrayData extends InputArrayAttributes {
 export class InputArrayElement extends HTMLElement {
   viewModel = createViewModel<InputArrayData>({
     values: [] as Array<string>
-  }).merge(fromAttributes<InputArrayAttributes>(this), ["name"]);
+  }).using<InputArrayAttributes>(
+    fromAttributes(this), "name"
+  );
 
   static formAssociated = true;
 
@@ -63,7 +65,7 @@ export class InputArrayElement extends HTMLElement {
   }
 
   view = createView<InputArrayData>(html`
-    <fieldset name=${($) => $.name}>
+    <fieldset name=${($) => $.name || "undefined"}>
       <ul>
         ${($) =>
           View.map(

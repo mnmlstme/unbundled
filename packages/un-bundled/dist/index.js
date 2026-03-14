@@ -5,7 +5,7 @@ import { E, S, a, c, b } from "./context-Xq2PPHJ1.js";
 import { DirectEffect } from "./effects.js";
 import { c as c2, e } from "./scope-Ch2w8axL.js";
 import { createViewModel } from "./view.js";
-import { View, ViewModel, createView, createView2, createViewN, fromAttributes, fromInputs } from "./view.js";
+import { MappedSource, View, ViewModel, createView, createView2, createViewN, fromAttributes, fromInputs } from "./view.js";
 const None = [];
 class Dispatch extends CustomEvent {
   constructor(msg, eventType = "un:message") {
@@ -427,7 +427,7 @@ const auth = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty
   payload: tokenPayload
 }, Symbol.toStringTag, { value: "Module" }));
 function fromAuth(target, contextLabel = AUTH_CONTEXT_DEFAULT) {
-  return new FromService(target, contextLabel);
+  return fromService(target, contextLabel);
 }
 const HISTORY_CONTEXT_DEFAULT = "context:history";
 const _HistoryService = class _HistoryService extends Service {
@@ -1234,7 +1234,7 @@ class Switch extends HTMLElement {
     super();
     this.viewModel = createViewModel({
       authenticated: false
-    }).merge(fromAuth(this), ["authenticated", "username"]).merge(fromHistory(this), ["location"]);
+    }).using(fromAuth(this), "authenticated", "username").using(fromHistory(this), "location");
     this._cases = [];
     this._routeView = html`
     <h1>Routing...</h1>
@@ -1342,11 +1342,12 @@ class StoreProvider extends Provider {
     super(init, STORE_CONTEXT_DEFAULT);
     this.viewModel = createViewModel({
       authenticated: false
-    }).merge(fromAuth(this), [
+    }).using(
+      fromAuth(this),
       "authenticated",
       "username",
       "token"
-    ]);
+    );
     this._updateFn = updateFn;
   }
   connectedCallback() {
@@ -1379,12 +1380,13 @@ function fromStore(target, contextLabel = STORE_CONTEXT_DEFAULT) {
 }
 export {
   auth as Auth,
+  history$1 as BrowserHistory,
   Context,
   DirectEffect,
   E as EffectsManager,
   Events,
   FromService,
-  history$1 as History,
+  MappedSource,
   message as Message,
   Observer,
   Provider,

@@ -6,7 +6,7 @@ import {
   createView,
   createViewModel,
   fromAttributes
-} from "@un-bundled/unbundled";
+} from "@un-bundled/core";
 
 type CalendarWidgetAttributes = {
   "start-date": string;
@@ -15,7 +15,7 @@ type CalendarWidgetAttributes = {
 
 interface CalendarWidgetModel {
   startDate: Date;
-  endDate?: Date;
+  endDate: Date | undefined;
   selectedDate?: Date;
 }
 
@@ -27,15 +27,29 @@ interface DateYMD {
 }
 
 export class CalendarWidget extends HTMLElement {
-  viewModel = createViewModel<CalendarWidgetModel>().merge(
-    fromAttributes<CalendarWidgetAttributes>(this),
-    {
-      startDate: ($) => new Date($["start-date"]),
-      endDate: ($) =>
-        $["end-date"] ? new Date($["end-date"]) : undefined
-    }
-  );
+  static styles = css`
+    /* CSS here */
+  `;
 
+  viewModel = createViewModel<CalendarWidgetModel>()
+    .calculating<CalendarWidgetAttributes>(
+      fromAttributes(this),
+      {
+        startDate: ($) => new Date($["start-date"]),
+        endDate: ($) =>
+         $["end-date"] ? new Date($["end-date"]) : undefined
+      }
+    );
+
+  dateView = createView<DateYMD>(html`
+    <label style="grid-column: ${($) => $.day + 1}">
+      <span>${($) => $.d}</span>
+      <input
+        type="radio"
+        name="cal"
+        value="${($) => formatYMD($)}" />
+    </label>
+  `);
   view = createView<CalendarWidgetModel>(html`
     <section>
       <fieldset>
@@ -49,31 +63,22 @@ export class CalendarWidget extends HTMLElement {
         ${($) =>
           $.startDate
             ? View.map(
-                this.dateView,
-                datesInRange($.startDate, $.endDate).map(toYMD)
-              )
+              this.dateView,
+              datesInRange($.startDate, $.endDate).map(toYMD)
+            )
             : ""}
       </fieldset>
       <button id="clear">Clear Selection</button>
     </section>
   `);
-
-  dateView = createView<DateYMD>(html`
-    <label style="grid-column: ${($) => $.day + 1}">
-      <span>${($) => $.d}</span>
-      <input
-        type="radio"
-        name="cal"
-        value="${($) => formatYMD($)}" />
-    </label>
-  `);
+  changeEventType = `${this.tagName}/change`;
 
   constructor() {
     super();
     shadow(this)
       .styles(CalendarWidget.styles)
       .replace(this.viewModel.render(this.view))
-      .delegate('input[name="cal"]', {
+      .delegate("input[name=\"cal\"]", {
         change: (ev: InputEvent) => {
           const input = ev.target as HTMLInputElement;
           const custom = new CustomEvent(this.changeEventType, {
@@ -87,12 +92,6 @@ export class CalendarWidget extends HTMLElement {
         }
       });
   }
-
-  changeEventType = `${this.tagName}/change`;
-
-  static styles = css`
-    /* CSS here */
-  `;
 }
 
 function toYMD(d: Date): DateYMD {

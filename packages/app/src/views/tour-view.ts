@@ -10,7 +10,7 @@ import {
   fromStore,
   html,
   shadow
-} from "@un-bundled/unbundled";
+} from "@un-bundled/core";
 import { Model } from "../model";
 import { Msg } from "../message";
 import {
@@ -37,10 +37,10 @@ export class TourViewElement extends HTMLElement {
   });
 
   viewModel = createViewModel<TourViewModel>()
-    .merge(fromAttributes<TourViewAttributes>(this), {
+    .renaming(fromAttributes<TourViewAttributes>(this), {
       tourId: "tour-id"
     })
-    .merge(fromStore<Model>(this), ["tour"]);
+    .using(fromStore<Model>(this), "tour");
 
   view = createView<TourViewModel>(html`
     <section class="calendar">

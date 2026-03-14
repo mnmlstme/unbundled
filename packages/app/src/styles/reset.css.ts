@@ -1,4 +1,4 @@
-import { css } from "@un-/bundled";
+import { css } from "@un-bundled/core";
 
 const styles = css`
   * {

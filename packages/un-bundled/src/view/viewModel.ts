@@ -1,21 +1,10 @@
-import { Context } from "../effects/index.ts";
-import { Source } from "./source.ts";
+import { Context } from "../effects";
+import { MappedSource, NameMapping, Source } from "./source.ts";
 import { Template } from "../html";
 
-export type NameMapping<T extends object, S extends object> = {
-  [K in keyof Partial<T>]: keyof Partial<S> | ((s: S) => T[K]);
-};
+export type ViewState<T = object> = { [K in keyof Partial<T>]: any }
 
-function mapEntries<T extends object, S extends object>(
-  mapping: NameMapping<T, S>
-): Array<[keyof T, keyof S]> {
-  return Object.entries(mapping).map(([k, v]) => [
-    k as keyof T,
-    v as keyof S
-  ]);
-}
-
-export class ViewModel<T extends object> extends Context<T> {
+export class ViewModel<T extends ViewState<T>> extends Context<T> {
   constructor(init: Partial<T>, adoptedContext?: Context<T>) {
     super(init as T, adoptedContext);
   }
@@ -24,56 +13,61 @@ export class ViewModel<T extends object> extends Context<T> {
     return this.toObject();
   }
 
-  merge<S extends object>(
+  using<S extends ViewState<T> = T>(
     source: Source<S>,
-    mapping:
-      | NameMapping<T, S>
-      | Array<NameMapping<T, S> | (keyof T & keyof S)>
+    ...keys: Array<keyof S & keyof T>
   ): ViewModel<T> {
-    const entries: Array<[keyof T, keyof S]> = !Array.isArray(
-      mapping
+    const mapping: NameMapping<S, S> = Object.fromEntries(
+      keys.map((k : keyof S) => [k, k]) as Array<Array<keyof S>>
     )
-      ? mapEntries<T, S>(mapping)
-      : mapping
-          .map((m) =>
-            typeof m === "string"
-              ? ([[m as keyof T, m as keyof S]] satisfies Array<
-                  [keyof T, keyof S]
-                >)
-              : mapEntries<T, S>(m as NameMapping<T, S>)
-          )
-          .flat();
+    return this.merge(new MappedSource<S, T>(source, mapping))
+  }
 
-    // console.log("Merge entries:", entries, mapping, source);
+  calculating<S extends ViewState>(
+    source: Source<S>,
+    mapping: NameMapping<T, S>
+  ): ViewModel<T> {
+    return this.merge(new MappedSource<S, T>(source, mapping))
+  }
 
+  renaming<S extends ViewState>(
+    source: Source<S>,
+    renaming: {[K in keyof Partial<T>]: keyof S}
+  ): ViewModel<T> {
+    return this.merge(new MappedSource<S, T>(source, renaming))
+  }
+
+  merge<S extends ViewState<T>>(
+    source: Source<S>
+  ): ViewModel<T> {
     if (source) {
+      const entries =
       source
         .start((name: keyof S, value: any) => {
-          // console.log(
-          //   "🪄 Merging effect",
-          //   name,
-          //   value,
-          //   entries,
-          //   mapping
-          // );
-          const pair = entries.find(([_, s]) => s === name);
-          if (pair) this.set(pair[0], value);
+          console.log(
+            "🪄 Merging effect",
+            name,
+            value,
+            entries,
+          );
+          this.set(name, value);
         })
         .then((firstObservation: Partial<S>) => {
-          // console.log(
-          //   "👀 ViewModel source observed:",
-          //   firstObservation,
-          //   entries,
-          //   mapping
-          // );
-          entries.forEach(([t, s]) =>
-            this.set(t, firstObservation[s] as T[typeof t])
+          console.log(
+            "👀 ViewModel source observed:",
+            firstObservation,
+            entries,
+          );
+          const keys = Object.keys(firstObservation) as Array<keyof S>;
+          keys.forEach((k: keyof S)=>
+              this.set(k, firstObservation[k] as S[typeof k])
           );
         });
     }
 
     return this;
   }
+
 
   render(template: Template<[T]>): DocumentFragment {
     // console.log("📷 Rendering view, scope=", this.toObject());
@@ -82,7 +76,7 @@ export class ViewModel<T extends object> extends Context<T> {
 }
 
 export function createViewModel<T extends object>(
-  init?: T
+  init: Partial<T> = {}
 ): ViewModel<T> {
-  return new ViewModel<T>(init || {});
+  return new ViewModel<T>(init);
 }

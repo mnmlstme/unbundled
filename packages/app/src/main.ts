@@ -2,10 +2,10 @@ import {
   define,
   html,
   Auth,
-  History,
+  BrowserHistory,
   Store,
   Switch
-} from "@un-bundled/unbundled";
+} from "@un-bundled/core";
 import { Model, init } from "./model.ts";
 import { Msg } from "./message.ts";
 import { Cmd, update } from "./update.ts";
@@ -47,7 +47,7 @@ const routes: Switch.Route[] = [
 
 define({
   "auth-provider": Auth.Provider,
-  "history-provider": History.Provider,
+  "history-provider": BrowserHistory.Provider,
   "blazing-header": HeaderElement,
   "router-switch": class AppSwitch extends Switch.Element {
     constructor() {
