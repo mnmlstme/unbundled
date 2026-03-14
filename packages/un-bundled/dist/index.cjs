@@ -5,6 +5,7 @@ const context = require("./context-sArnt9mX.cjs");
 const effects = require("./effects.cjs");
 const scope = require("./scope-C2S-Cy77.cjs");
 const view = require("./view.cjs");
+const None = [];
 class Dispatch extends CustomEvent {
   constructor(msg, eventType = "un:message") {
     super(eventType, {
@@ -21,6 +22,7 @@ const dispatch$3 = dispatcher();
 const message = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   Dispatch,
+  None,
   dispatch: dispatch$3,
   dispatcher
 }, Symbol.toStringTag, { value: "Module" }));
@@ -167,29 +169,30 @@ class Service {
       this._pending.forEach((msg) => this.process(msg));
     }
   }
-  apply(fn) {
-    this._context.apply(fn);
-  }
   consume(message2) {
-    if (this._running) {
-      this.process(message2);
-    } else {
-      this._pending.push(message2);
+    if (message2.length === 0) {
+      const trueMsg = message2;
+      if (this._running) {
+        this.process(trueMsg);
+      } else {
+        this._pending.push(trueMsg);
+      }
     }
   }
   process(message2) {
-    const command = this._update(
+    const next = this._update(
       message2,
-      this.apply.bind(this)
+      this._context.toObject()
     );
-    if (command) command(this._context);
+    if (!Array.isArray(next)) return next;
+    const [now, ...later] = next;
+    later.forEach(
+      (promise) => promise.then(
+        (command) => this.consume(command)
+      )
+    );
+    return now;
   }
-}
-function identity(model) {
-  return model;
-}
-function replace(replacements) {
-  return (model) => ({ ...model, ...replacements });
 }
 function fromService(target, contextLabel) {
   return new FromService(target, contextLabel);
@@ -299,31 +302,34 @@ class AuthenticatedUser extends APIUser {
 const _AuthService = class _AuthService extends Service {
   constructor(context2, redirectForLogin) {
     super(
-      (msg, apply) => this.update(msg, apply),
+      (msg, model) => this.update(msg, model),
       context2,
       _AuthService.EVENT_TYPE
     );
     this._redirectForLogin = redirectForLogin;
   }
-  update(message2, apply) {
+  update(message2, model) {
     switch (message2[0]) {
       case "auth/signin":
-        const { token, redirect: redirect2 } = message2[1];
-        apply(signIn(token));
-        return redirection(redirect2);
+        const { token, redirect } = message2[1];
+        return [signIn(token), redirectLater(redirect)];
       case "auth/signout":
-        apply(signOut());
-        return redirection(this._redirectForLogin);
+        return [
+          signOut(model),
+          redirectLater(this._redirectForLogin)
+        ];
       case "auth/redirect":
-        return redirection(this._redirectForLogin, {
+        redirectNow(this._redirectForLogin, {
           next: window.location.href
         });
+        break;
       default:
         const unhandled = message2[0];
         throw new Error(
           `Unhandled Auth message "${unhandled}"`
         );
     }
+    return model;
   }
 };
 _AuthService.EVENT_TYPE = "auth:message";
@@ -352,39 +358,44 @@ class AuthProvider extends Provider {
     service.attach(this);
   }
 }
-const dispatch$2 = dispatcher(AuthService.EVENT_TYPE);
-function redirection(redirect2, query = {}) {
-  if (!redirect2) return void 0;
-  const base = window.location.href;
-  const target = new URL(redirect2, base);
-  Object.entries(query).forEach(
-    ([k, v]) => target.searchParams.set(k, v)
-  );
-  return () => {
-    console.log("Redirecting to ", redirect2);
+const dispatch$2 = dispatcher(
+  AuthService.EVENT_TYPE
+);
+function redirectLater(redirect, query = {}) {
+  return new Promise((resolve) => {
+    redirectNow(redirect, query);
+    resolve(None);
+  });
+}
+function redirectNow(redirect, query = {}) {
+  if (redirect) {
+    const base = window.location.href;
+    const target = new URL(redirect, base);
+    Object.entries(query).forEach(
+      ([k, v]) => target.searchParams.set(k, v)
+    );
+    console.log("Redirecting to ", redirect);
     window.location.assign(target);
-  };
+  }
 }
 function signIn(token) {
   const user = AuthenticatedUser.authenticate(token);
   const { authenticated, username } = user;
-  return replace({
+  return {
     authenticated,
     username,
     token
-  });
+  };
 }
-function signOut() {
-  return (model) => {
-    const oldUser = APIUser.deauthenticate(
-      new APIUser(model.username)
-    );
-    const { authenticated, username } = oldUser;
-    return {
-      username,
-      authenticated,
-      token: void 0
-    };
+function signOut(model) {
+  const oldUser = APIUser.deauthenticate(
+    new APIUser(model.username)
+  );
+  const { authenticated, username } = oldUser;
+  return {
+    username,
+    authenticated,
+    token: void 0
   };
 }
 function authHeaders(auth2) {
@@ -426,17 +437,25 @@ const _HistoryService = class _HistoryService extends Service {
       _HistoryService.EVENT_TYPE
     );
   }
-  update(message2, apply) {
+  update(message2, model) {
     switch (message2[0]) {
       case "history/navigate": {
         const { href, state } = message2[1];
-        apply(navigate(href, state));
-        break;
+        history.pushState(state, "", href);
+        return {
+          ...model,
+          location: document.location,
+          state: history.state
+        };
       }
       case "history/redirect": {
         const { href, state } = message2[1];
-        apply(redirect(href, state));
-        break;
+        history.replaceState(state, "", href);
+        return {
+          ...model,
+          location: document.location,
+          state: history.state
+        };
       }
     }
   }
@@ -444,9 +463,6 @@ const _HistoryService = class _HistoryService extends Service {
 _HistoryService.EVENT_TYPE = "history:message";
 let HistoryService = _HistoryService;
 class HistoryProvider extends Provider {
-  get base() {
-    return this.getAttribute("base") || void 0;
-  }
   constructor() {
     super(
       {
@@ -477,6 +493,9 @@ class HistoryProvider extends Provider {
       });
     });
   }
+  get base() {
+    return this.getAttribute("base") || void 0;
+  }
   connectedCallback() {
     const service = new HistoryService(this.context);
     service.attach(this);
@@ -499,20 +518,6 @@ function originalLinkTarget(event) {
     return void 0;
   }
 }
-function navigate(href, state = {}) {
-  history.pushState(state, "", href);
-  return () => ({
-    location: document.location,
-    state: history.state
-  });
-}
-function redirect(href, state = {}) {
-  history.replaceState(state, "", href);
-  return () => ({
-    location: document.location,
-    state: history.state
-  });
-}
 const dispatch$1 = dispatcher(
   HistoryService.EVENT_TYPE
 );
@@ -530,7 +535,7 @@ function commonjsRequire(path) {
   throw new Error('Could not dynamically require "' + path + '". Please configure the dynamicRequireTargets or/and ignoreDynamicRequires option of @rollup/plugin-commonjs appropriately for this require call to work.');
 }
 var compiledGrammar = {};
-(function(exports2) {
+(function(exports$1) {
   var parser2 = function() {
     var o = function(k, v, o2, l) {
       for (o2 = o2 || {}, l = k.length; l--; o2[k[l]] = v) ;
@@ -1030,9 +1035,9 @@ var compiledGrammar = {};
     return new Parser2();
   }();
   if (typeof commonjsRequire !== "undefined" && true) {
-    exports2.parser = parser2;
-    exports2.Parser = parser2.Parser;
-    exports2.parse = function() {
+    exports$1.parser = parser2;
+    exports$1.Parser = parser2.Parser;
+    exports$1.parse = function() {
       return parser2.parse.apply(parser2, arguments);
     };
   }
@@ -1217,9 +1222,9 @@ function Route$2(spec) {
   return route2;
 }
 var route = Route$2;
-var Route = route;
-var routeParser = Route;
-const Route$1 = /* @__PURE__ */ getDefaultExportFromCjs(routeParser);
+var Route$1 = route;
+var routeParser = Route$1;
+const Route = /* @__PURE__ */ getDefaultExportFromCjs(routeParser);
 function fromHistory(target, contextLabel = HISTORY_CONTEXT_DEFAULT) {
   return new FromService(target, contextLabel);
 }
@@ -1239,7 +1244,7 @@ class Switch extends HTMLElement {
     });
     this._cases = routes.map((r) => ({
       ...r,
-      route: new Route$1(r.path)
+      route: new Route(r.path)
     }));
     this.viewModel.createEffect(($) => {
       if ($.location) {
@@ -1279,11 +1284,11 @@ class Switch extends HTMLElement {
         }
       }
       if ("redirect" in m) {
-        const redirect2 = m.redirect;
-        if (typeof redirect2 === "string") {
-          this.redirect(redirect2);
+        const redirect = m.redirect;
+        if (typeof redirect === "string") {
+          this.redirect(redirect);
           return html.html`
-            <h1>Redirecting to ${redirect2}…</h1>
+            <h1>Redirecting to ${redirect}…</h1>
           `;
         }
       }
@@ -1323,22 +1328,7 @@ const STORE_CONTEXT_DEFAULT = "context:store";
 const _StoreService = class _StoreService extends Service {
   constructor(context2, update) {
     super(
-      (message2, apply) => {
-        apply((current) => {
-          const result = update(
-            current,
-            message2
-          );
-          if (!Array.isArray(result)) return result;
-          const [next, ...commands] = result;
-          commands.forEach(
-            (promise) => promise.then(
-              (message22) => this.consume(message22)
-            )
-          );
-          return next;
-        });
-      },
+      (message2, model) => update(model, message2),
       context2,
       _StoreService.EVENT_TYPE
     );
@@ -1423,5 +1413,3 @@ exports.fromAuth = fromAuth;
 exports.fromHistory = fromHistory;
 exports.fromService = fromService;
 exports.fromStore = fromStore;
-exports.identity = identity;
-exports.replace = replace;

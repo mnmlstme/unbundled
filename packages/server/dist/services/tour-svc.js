@@ -122,12 +122,8 @@ function trimIndex(t) {
 }
 function get(id) {
   return tourModel.findById(id).populate({
-    path: "entourage",
-    populate: {
-      path: "people"
-    }
+    path: "entourage"
   }).then((doc) => {
-    console.log("Tour: ", JSON.stringify(doc, null, "  "));
     return doc;
   }).catch((err) => {
     console.log("Not found!", err);
@@ -143,8 +139,10 @@ function update(id, tour) {
     tourModel.findByIdAndUpdate(id, tour, {
       new: true
     }).then((doc) => {
-      if (doc) resolve(doc);
-      else reject("Failed to update tour");
+      if (doc)
+        resolve(doc);
+      else
+        reject("Failed to update tour");
     });
   });
 }
@@ -171,7 +169,8 @@ function updateDestination(id, n, newDest) {
       if (doc) {
         const tour = doc;
         resolve(tour.destinations[n]);
-      } else reject(`Tour ${id} not found`);
+      } else
+        reject(`Tour ${id} not found`);
     }).catch((error) => {
       console.log("Cannot update Destination:", error);
       reject(error);

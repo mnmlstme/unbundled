@@ -48,7 +48,8 @@ function get(userid) {
 }
 function update(userid, traveler) {
   return TravelerModel.findOne({ userid }).then((found) => {
-    if (!found) throw `${userid} Not Found`;
+    if (!found)
+      throw `${userid} Not Found`;
     else
       return TravelerModel.findByIdAndUpdate(
         found._id,
@@ -58,8 +59,10 @@ function update(userid, traveler) {
         }
       );
   }).then((updated) => {
-    if (!updated) throw `${userid} not updated`;
-    else return updated;
+    if (!updated)
+      throw `${userid} not updated`;
+    else
+      return updated;
   });
 }
 function create(traveler) {
@@ -69,7 +72,8 @@ function create(traveler) {
 function remove(userid) {
   return TravelerModel.findOneAndDelete({ userid }).then(
     (deleted) => {
-      if (!deleted) throw `${userid} not deleted`;
+      if (!deleted)
+        throw `${userid} not deleted`;
     }
   );
 }

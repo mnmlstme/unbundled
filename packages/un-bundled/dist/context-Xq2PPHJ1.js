@@ -183,7 +183,7 @@ export {
   Context as C,
   EffectsManager as E,
   Scheduler as S,
-  createEffect as a,
-  SignalEvent as b,
+  SignalEvent as a,
+  createEffect as b,
   createContext as c
 };

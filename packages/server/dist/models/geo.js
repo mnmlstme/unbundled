@@ -37,15 +37,18 @@ function bboxOfPoints(points, padding = 0) {
 }
 function bboxOfFeatures(features, padding = 0.125) {
   const featurePts = (ft) => {
-    if ("lat" in ft && "lon" in ft) return [ft];
-    if ("path" in ft) return bboxOfPoints(ft.path);
+    if ("lat" in ft && "lon" in ft)
+      return [ft];
+    if ("path" in ft)
+      return bboxOfPoints(ft.path);
     return [];
   };
   const points = features.map(featurePts).flat();
   return bboxOfPoints(points, padding);
 }
 function featureLngLat(ft) {
-  if ("lat" in ft && "lon" in ft) return [ft.lon, ft.lat];
+  if ("lat" in ft && "lon" in ft)
+    return [ft.lon, ft.lat];
   if ("path" in ft) {
     const [pt0, pt1] = bboxOfFeatures(ft.path);
     return [(pt0.lon + pt1.lon) / 2, (pt0.lat + pt1.lat) / 2];

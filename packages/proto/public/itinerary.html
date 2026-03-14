@@ -14,13 +14,12 @@
     <script type="importmap">
       {
         "imports": {
-          "@un-/bundled": "/unpkg/un-bundled/index.js",
-          "@un-html": "/unpkg/un-bundled/html.js"
+          "@un-bundled/core": "/@un-bundled/core/index.js"
         }
       }
     </script>
     <script type="module">
-      import { define } from "@un-bundled/unbundled";
+      import { define } from "@un-bundled/core";
       import { BlzDestinationElement } from "/js/blz-destination.js";
 
       define({

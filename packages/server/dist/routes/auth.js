@@ -48,7 +48,8 @@ function generateAccessToken(username) {
       TOKEN_SECRET,
       { expiresIn: "1d" },
       (error, token) => {
-        if (error) reject(error);
+        if (error)
+          reject(error);
         else {
           resolve(token);
         }
@@ -96,8 +97,10 @@ function authorizeUser(checkFn) {
   const middleware = (req, res, next) => {
     const { username } = req.jwtPayload;
     console.log("Checking auth for user", username);
-    if (checkFn(req, username)) next();
-    else res.status(403).send();
+    if (checkFn(req, username))
+      next();
+    else
+      res.status(403).send();
   };
   return middleware;
 }

@@ -75,7 +75,8 @@ function verify(username, password) {
 }
 function create(username, password) {
   return credentialModel.find({ username }).then((found) => {
-    if (found.length) throw `Username exists: ${username}`;
+    if (found.length)
+      throw `Username exists: ${username}`;
   }).then(
     () => import_bcryptjs.default.genSalt(10).then((salt) => import_bcryptjs.default.hash(password, salt)).then((hashedPassword) => {
       const creds = new credentialModel({

@@ -57,7 +57,8 @@ router.post(
   "/",
   (0, import_auth.authorizeUser)((req, username) => {
     const { userid } = req.body;
-    if (userid && userid !== username) return false;
+    if (userid && userid !== username)
+      return false;
     req.body.userid = username;
     return true;
   }),

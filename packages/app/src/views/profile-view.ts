@@ -98,7 +98,6 @@ export class ProfileViewElement extends HTMLElement {
   `);
 
   mainView = createView<Traveler>(html`
-    <h1>mainView</h1>
     ${($) =>
       $.userid === this.viewModel.get("username")
         ? html`

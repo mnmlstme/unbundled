@@ -54,8 +54,10 @@ router.post("/", (req, res) => {
 router.get("/:id", (req, res) => {
   const { id } = req.params;
   import_tour_svc.default.get(id).then((tour) => {
-    if (!tour) throw "Not found";
-    else res.json(tour);
+    if (!tour)
+      throw "Not found";
+    else
+      res.json(tour);
   }).catch(() => res.status(404).end());
 });
 router.put("/:id", (req, res) => {

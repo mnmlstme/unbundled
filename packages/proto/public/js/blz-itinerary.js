@@ -1,4 +1,4 @@
-import { css, shadow, ViewModel, View } from "@un-bundled/unbundled";
+import { css, html, shadow, createViewModel, View } from "@un-bundled/core";
 
 export class BlzItineraryElement extends HTMLElement {
   viewModel = createViewModel({
@@ -6,6 +6,15 @@ export class BlzItineraryElement extends HTMLElement {
       destinations: []
     }
   });
+
+  static {
+    this.viewModel = createViewModel({
+      itinerary: {
+        destinations: []
+      }
+    })
+    console.log("BlzItineraryElement constructor, viewModel=", this.viewModel);
+  }
 
   constructor() {
     super();
@@ -51,12 +60,12 @@ export class BlzItineraryElement extends HTMLElement {
     }
   }
 
-  view = this.viewModel.html`<dl>
+  view = html`<dl>
       ${($) => View.map(this.destinationView, $.itinerary.destinations)}
     </dl>
     <button id="extend-stay">Extend Stay</button>`;
 
-  destinationView = View.html`<div>
+  destinationView = html`<div>
     <dt>${($) => `${$.startDate} to ${$.endDate}`}</dt>
     <dd>
       <blz-destination

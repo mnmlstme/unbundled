@@ -111,15 +111,12 @@ function get(id: string): Promise<Tour> {
     tourModel
       .findById(id)
       // when you fetch a single tour,
-      // the entourage is populated
+      // the entourage is populated with travelers
       .populate({
-        path: "entourage",
-        populate: {
-          path: "people"
-        }
+        path: "entourage"
       })
       .then((doc: unknown) => {
-        console.log("Tour: ", JSON.stringify(doc, null, "  "));
+        // console.log("Tour: ", JSON.stringify(doc, null, "  "));
         return doc as Tour;
       })
       .catch((err) => {

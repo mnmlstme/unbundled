@@ -1,5 +1,4 @@
 import { default as default_2 } from 'route-parser';
-import { ViewModel as ViewModel_2 } from '..';
 
 declare class APIUser {
     static TOKEN_KEY: string;
@@ -13,17 +12,15 @@ declare function apply<T extends object>(view: Template<[T]>, t: T | undefined):
 
 declare function apply2<U extends object | undefined, V extends object | undefined>(view: Template<[U, V]>, u: U | undefined, v: V | undefined): TemplateValue<[U, V]>;
 
-export declare type ApplyMap<M> = (fn: MapFn<M>) => void;
-
 declare function applyN<TT extends TemplateArgs>(view: Template<TT>, ...tuple: TT): TemplateValue<TT>;
 
 declare type ArrayArgs<TT extends TemplateArgs> = {
     [Index in keyof TT]: Array<TT[Index]>;
 };
 
-declare type Async<M, Cmd extends Base> = [
+declare type Async<M, Msg extends Base> = [
 now: M,
-...later: Array<Promise<Cmd>>
+...later: Array<Promise<Msg | None>>
 ];
 
 export declare namespace Auth {
@@ -91,7 +88,7 @@ declare class AuthService extends Service<AuthMsg, AuthModel> {
     static EVENT_TYPE: string;
     _redirectForLogin: string | undefined;
     constructor(context: Context<AuthModel>, redirectForLogin: string | undefined);
-    update(message: AuthMsg, apply: ApplyMap<AuthModel>): (() => void) | undefined;
+    update(message: AuthMsg, model: AuthModel): AuthModel | Message.Async<AuthModel, AuthMsg>;
 }
 
 declare interface AuthSuccessful {
@@ -108,8 +105,6 @@ declare type Case = CaseRoute & (ViewCase | RedirectCase);
 declare interface CaseRoute {
     route: default_2;
 }
-
-export declare type Command<M extends object> = (model: Context<M>) => void;
 
 export declare class Context<T extends object> {
     private manager;
@@ -286,8 +281,8 @@ declare type HistoryMsg = [
 ];
 
 declare class HistoryProvider extends Provider<HistoryModel> {
-    get base(): string | undefined;
     constructor();
+    get base(): string | undefined;
     connectedCallback(): void;
     attributeChangedCallback(): void;
 }
@@ -295,12 +290,10 @@ declare class HistoryProvider extends Provider<HistoryModel> {
 declare class HistoryService extends Service<HistoryMsg, HistoryModel> {
     static EVENT_TYPE: string;
     constructor(context: Context<HistoryModel>);
-    update(message: HistoryMsg, apply: ApplyMap<HistoryModel>): void;
+    update(message: HistoryMsg, model: HistoryModel): HistoryModel;
 }
 
 export declare function html<TT extends TemplateArgs>(template: TemplateStringsArray, ...params: Array<TemplateParameter<TT>>): Template<TT>;
-
-export declare function identity<M>(model: M): M;
 
 /**
  * Memory leak warning!
@@ -312,8 +305,6 @@ declare function listen(element: Element | DocumentFragment, map: EventMap): voi
 declare function map<T extends object>(view: Template<[T]>, list: Array<T>): TemplateValue<[T]>;
 
 declare function map2<U extends object | undefined, V extends object | undefined>(view: Template<[U, V]>, ulist: Array<U>, vlist: Array<V>): TemplateValue<[U, V]>;
-
-export declare type MapFn<M> = (model: M) => M;
 
 declare function mapN<TT extends TemplateArgs>(view: Template<TT>, ...lists: ArrayArgs<TT>): TemplateValue<TT>;
 
@@ -330,6 +321,7 @@ export declare namespace Message {
         dispatcher,
         Type,
         Base,
+        None,
         Async,
         Dispatch,
         dispatch
@@ -341,6 +333,7 @@ declare namespace Message_2 {
         dispatcher,
         Type,
         Base,
+        None,
         Async,
         Dispatch,
         dispatch
@@ -350,6 +343,12 @@ declare namespace Message_2 {
 export declare type NameMapping<T extends object, S extends object> = {
     [K in keyof Partial<T>]: keyof Partial<S> | ((s: S) => T[K]);
 };
+
+declare type None = [];
+
+declare const None: None;
+
+declare type None_2 = Message_2.None;
 
 export declare class Observer<T extends object> {
     private contextLabel;
@@ -377,8 +376,6 @@ declare interface RedirectCase {
 
 export declare type RenderFunction<TT extends TemplateArgs> = (...args: Scope<TT>) => DocumentFragment;
 
-export declare function replace<M>(replacements: Partial<M>): MapFn<M>;
-
 declare interface RouteData {
     params: RouteParams;
     query: URLSearchParams;
@@ -405,18 +402,17 @@ export declare type Scope<TT extends EffectArgs> = {
     [Index in keyof TT]: TT[Index] extends object ? Context<TT[Index]> : object;
 };
 
-export declare class Service<Msg extends Base, T extends object> {
+export declare class Service<Msg extends Message_2.Base, T extends object> {
     _context: Context<T>;
     _update: Update<Msg, T>;
     _eventType: string;
     _running: boolean;
     _pending: Array<Msg>;
+    constructor(update: Update<Msg, T>, context: Context<T>, eventType?: string, autostart?: boolean);
     attach(host: Provider<T>): void;
     start(): void;
-    constructor(update: Update<Msg, T>, context: Context<T>, eventType?: string, autostart?: boolean);
-    apply(fn: MapFn<T>): void;
-    consume(message: Msg): void;
-    process(message: Msg): void;
+    consume(message: Msg | None_2): void;
+    process(message: Msg): T;
 }
 
 export declare function shadow(el: HTMLElement, options?: ShadowRootInit): {
@@ -459,7 +455,7 @@ export declare namespace Store {
 declare const STORE_CONTEXT_DEFAULT = "context:store";
 
 declare class StoreProvider<M extends object, Msg extends Message.Base, Cmd extends Message.Base> extends Provider<M> {
-    viewModel: ViewModel_2<Auth.Model>;
+    viewModel: ViewModel<Auth.Model>;
     _updateFn: AuthorizedUpdateFn<M, Msg, Cmd>;
     constructor(updateFn: AuthorizedUpdateFn<M, Msg, Cmd>, init: M);
     connectedCallback(): void;
@@ -480,10 +476,10 @@ export declare namespace Switch {
 }
 
 declare class Switch_2 extends HTMLElement {
-    viewModel: ViewModel_2<SwitchData>;
+    viewModel: ViewModel<SwitchData>;
     _cases: Case[];
     _routeView: Template<[RouteData]>;
-    _routeViewModel: ViewModel_2<RouteData>;
+    _routeViewModel: ViewModel<RouteData>;
     constructor(routes: SwitchRoute[]);
     routeToView(location: Location, authenticated?: boolean, username?: string): Template<[RouteData]>;
     matchRoute(location: Location): Match | undefined;
@@ -518,9 +514,9 @@ export declare type TemplateValue<TT extends TemplateArgs> = BasicTemplateValue 
 
 declare function tokenPayload(user: APIUser | AuthenticatedUser): object;
 
-declare type Type<msg extends string, T extends object | undefined> = [msg, T] | [msg];
+declare type Type<msg extends string, T extends object | undefined> = [msg, T] | [msg] | None;
 
-export declare type Update<Msg extends Message_2.Base, M extends object> = (message: Msg, apply: ApplyMap<M>) => Command<M> | void;
+export declare type Update<Msg extends Message_2.Base, M extends object> = (message: Msg, model: M) => M | Message_2.Async<M, Msg>;
 
 declare type UpdateFn<M extends object, Msg extends Message.Base, Cmd extends Message.Base> = (model: M, message: Msg | Cmd) => M | Message.Async<M, Cmd>;
 

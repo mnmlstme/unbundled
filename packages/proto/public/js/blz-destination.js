@@ -1,4 +1,4 @@
-import { css, shadow, View, createViewModel } from "@un-bundled/unbundled";
+import { css, html, shadow, createViewModel } from "@un-bundled/core";
 
 export class BlzDestinationElement extends HTMLElement {
   viewModel = createViewModel({
@@ -8,7 +8,7 @@ export class BlzDestinationElement extends HTMLElement {
     link: "#"
   });
 
-  view = View.html`
+  view = html`
     <section>
       <header>
         <h2>

@@ -1,6 +1,6 @@
 {
-  "name": "@un-bundled/unbundled",
-  "version": "0.1.2",
+  "name": "@un-bundled/core",
+  "version": "0.2.0",
   "main": "./dist/index.js",
   "type": "module",
   "exports": {
@@ -17,6 +17,12 @@
       }
     },
     "./view": {
+      "import": {
+        "types": "./dist/view.d.ts",
+        "default": "./dist/view.js"
+      }
+    },
+    "./auth": {
       "import": {
         "types": "./dist/view.d.ts",
         "default": "./dist/view.js"
@@ -44,11 +50,12 @@
   "description": "",
   "devDependencies": {
     "@types/route-parser": "^0.1.7",
-    "typescript": "^5.4.5",
+    "typescript": "^5.9.3",
     "vite": "^5.3.1",
     "vite-plugin-dts": "^4.5.4"
   },
   "dependencies": {
+    "jwt-decode": "^4.0.0",
     "route-parser": "^0.0.5"
   }
 }

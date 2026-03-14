@@ -1,13 +1,15 @@
 export type Type<
   msg extends string,
   T extends object | undefined
-> = [msg, T] | [msg];
+> = [msg, T] | [msg] | None;
 
 export type Base = Type<string, object | undefined>;
+export type None = [];
+export const None: None = [];
 
-export type Async<M, Cmd extends Base> = [
+export type Async<M, Msg extends Base> = [
   now: M,
-  ...later: Array<Promise<Cmd>>
+  ...later: Array<Promise<Msg | None>>
 ];
 
 export class Dispatch<

@@ -1,11 +1,6 @@
 import { Context } from "../effects";
 import { Auth, fromAuth } from "../auth";
-import {
-  ApplyMap,
-  Message,
-  Provider,
-  Service
-} from "../service";
+import { Message, Provider, Service } from "../service";
 import { createViewModel } from "../view";
 
 const STORE_CONTEXT_DEFAULT = "context:store";
@@ -38,22 +33,7 @@ class StoreService<
     update: UpdateFn<M, Msg, Cmd>
   ) {
     super(
-      (message: Msg | Cmd, apply: ApplyMap<M>) => {
-        apply((current: M) => {
-          const result: M | Message.Async<M, Cmd> = update(
-            current,
-            message
-          );
-          if (!Array.isArray(result)) return result;
-          const [next, ...commands] = result;
-          commands.forEach((promise) =>
-            promise.then((message: Msg | Cmd) =>
-              this.consume(message)
-            )
-          );
-          return next;
-        });
-      },
+      (message: Msg | Cmd, model: M) => update(model, message),
       context,
       StoreService.EVENT_TYPE
     );

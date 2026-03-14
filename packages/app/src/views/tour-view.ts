@@ -63,8 +63,10 @@ export class TourViewElement extends HTMLElement {
     </section>
     <section class="entourage">
       <h3>Entourage</h3>
-      ${($) =>
-        View.map(this.travelerView, $.tour?.entourage || [])}
+      <ul>
+        ${($) =>
+          View.map(this.travelerView, $.tour?.entourage || [])}
+      </ul>
     </section>
   `);
 

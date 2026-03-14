@@ -1,30 +1,19 @@
-import { Context } from "../view/index.ts";
+import { Context } from "../effects";
 import { Provider } from "./provider.ts";
-import { Base, Dispatch } from "./message.ts";
-import { MapFn, Update } from "./update.ts";
+import * as Message from "./message.ts";
+import { Update } from "./update.ts";
 
-export class Service<Msg extends Base, T extends object> {
+type None = Message.None;
+
+export class Service<
+  Msg extends Message.Base,
+  T extends object
+> {
   _context: Context<T>;
   _update: Update<Msg, T>;
   _eventType: string;
   _running: boolean;
   _pending: Array<Msg> = [];
-
-  attach(host: Provider<T>) {
-    host.addEventListener(this._eventType, (ev: Event) => {
-      ev.stopPropagation();
-      const message = (ev as Dispatch<Msg>).detail;
-      this.consume(message);
-    });
-  }
-
-  start() {
-    if (!this._running) {
-      // console.log(`Starting ${this._eventType} service`);
-      this._running = true;
-      this._pending.forEach((msg) => this.process(msg));
-    }
-  }
 
   constructor(
     update: Update<Msg, T>,
@@ -38,19 +27,34 @@ export class Service<Msg extends Base, T extends object> {
     this._running = autostart;
   }
 
-  apply(fn: MapFn<T>) {
-    this._context.apply(fn);
+  attach(host: Provider<T>) {
+    host.addEventListener(this._eventType, (ev: Event) => {
+      ev.stopPropagation();
+      const message = (ev as Message.Dispatch<Msg>).detail;
+      this.consume(message);
+    });
   }
 
-  consume(message: Msg) {
-    if (this._running) {
-      this.process(message);
-    } else {
-      // console.log(
-      //   `📥 Queueing ${this._eventType} message`,
-      //   message
-      // );
-      this._pending.push(message);
+  start() {
+    if (!this._running) {
+      // console.log(`Starting ${this._eventType} service`);
+      this._running = true;
+      this._pending.forEach((msg) => this.process(msg));
+    }
+  }
+
+  consume(message: Msg | None) {
+    if (message.length === 0 ) {
+      const trueMsg = message as Msg;
+      if (this._running) {
+        this.process(trueMsg);
+      } else {
+        // console.log(
+        //   `📥 Queueing ${this._eventType} message`,
+        //   message
+        // );
+        this._pending.push(trueMsg);
+      }
     }
   }
 
@@ -59,10 +63,17 @@ export class Service<Msg extends Base, T extends object> {
     //   `📤 Processing ${this._eventType} message`,
     //   message
     // );
-    const command = this._update(
+    const next: T | Message.Async<T, Msg> = this._update(
       message,
-      this.apply.bind(this)
+      this._context.toObject()
     );
-    if (command) command(this._context);
+    if (!Array.isArray(next)) return next;
+    const [now, ...later] = next;
+    later.forEach((promise) =>
+      promise.then((command: Msg | None) =>
+        this.consume(command)
+      )
+    );
+    return now;
   }
 }

@@ -1,11 +1,5 @@
 import { jwtDecode } from "jwt-decode";
-import {
-  ApplyMap,
-  Provider,
-  Service,
-  Message,
-  replace
-} from "../service";
+import { Provider, Service, Message } from "../service";
 import { Context } from "../view";
 
 const AUTH_CONTEXT_DEFAULT = "context:auth";
@@ -84,32 +78,39 @@ class AuthService extends Service<AuthMsg, AuthModel> {
     redirectForLogin: string | undefined
   ) {
     super(
-      (msg, apply) => this.update(msg, apply),
+      (msg: AuthMsg, model: AuthModel) =>
+        this.update(msg, model),
       context,
       AuthService.EVENT_TYPE
     );
     this._redirectForLogin = redirectForLogin;
   }
 
-  update(message: AuthMsg, apply: ApplyMap<AuthModel>) {
+  update(
+    message: AuthMsg,
+    model: AuthModel
+  ): AuthModel | Message.Async<AuthModel, AuthMsg> {
     switch (message[0]) {
       case "auth/signin":
         const { token, redirect } = message[1];
-        apply(signIn(token));
-        return redirection(redirect);
+        return [signIn(token), redirectLater(redirect)];
       case "auth/signout":
-        apply(signOut());
-        return redirection(this._redirectForLogin);
+        return [
+          signOut(model),
+          redirectLater(this._redirectForLogin)
+        ];
       case "auth/redirect":
-        return redirection(this._redirectForLogin, {
+        redirectNow(this._redirectForLogin, {
           next: window.location.href
         });
+        break;
       default:
         const unhandled: never = message[0];
         throw new Error(
           `Unhandled Auth message "${unhandled}"`
         );
     }
+    return model;
   }
 }
 
@@ -144,49 +145,56 @@ class AuthProvider extends Provider<AuthModel> {
   }
 }
 
-const dispatch = Message.dispatcher<AuthMsg>(AuthService.EVENT_TYPE);
+const dispatch = Message.dispatcher<AuthMsg>(
+  AuthService.EVENT_TYPE
+);
 
-function redirection(
+function redirectLater(
   redirect: string | undefined,
   query: { [key: string]: string } = {}
 ) {
-  if (!redirect) return undefined;
-
-  const base = window.location.href;
-  const target = new URL(redirect, base);
-
-  Object.entries(query).forEach(([k, v]) =>
-    target.searchParams.set(k, v)
-  );
-
-  return () => {
-    console.log("Redirecting to ", redirect);
-    window.location.assign(target);
-  };
-}
-
-function signIn(token: string) {
-  const user = AuthenticatedUser.authenticate(token);
-  const { authenticated, username } = user;
-  return replace<AuthModel>({
-    authenticated,
-    username,
-    token
+  return new Promise<Message.None>((resolve) => {
+    redirectNow(redirect, query);
+    resolve(Message.None);
   });
 }
 
-function signOut() {
-  return (model: AuthModel) => {
-    const oldUser = APIUser.deauthenticate(
-      new APIUser(model.username)
-    );
-    const { authenticated, username } = oldUser;
+function redirectNow(
+  redirect: string | undefined,
+  query: { [key: string]: string } = {}
+) {
+  if (redirect) {
+    const base = window.location.href;
+    const target = new URL(redirect, base);
 
-    return {
-      username,
-      authenticated,
-      token: undefined
-    };
+    Object.entries(query).forEach(([k, v]) =>
+      target.searchParams.set(k, v)
+    );
+    console.log("Redirecting to ", redirect);
+    window.location.assign(target);
+  }
+}
+
+function signIn(token: string): AuthModel {
+  const user = AuthenticatedUser.authenticate(token);
+  const { authenticated, username } = user;
+  return {
+    authenticated,
+    username,
+    token
+  };
+}
+
+function signOut(model: AuthModel): AuthModel {
+  const oldUser = APIUser.deauthenticate(
+    new APIUser(model.username)
+  );
+  const { authenticated, username } = oldUser;
+
+  return {
+    username,
+    authenticated,
+    token: undefined
   };
 }
 

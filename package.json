@@ -17,9 +17,6 @@
     "@cre.ative/kram-11ty": "^1.6.5",
     "prettier": "^3.5.3"
   },
-  "dependencies": {
-    "@un-bundled/unbundled": "^0.1.0"
-  },
   "workspaces": [
     "packages/*"
   ]

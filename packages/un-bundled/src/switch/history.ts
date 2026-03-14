@@ -1,10 +1,5 @@
 import { Context } from "../effects";
-import {
-  ApplyMap,
-  Message,
-  Provider,
-  Service
-} from "../service";
+import { Message, Provider, Service } from "../service";
 
 const HISTORY_CONTEXT_DEFAULT = "context:history";
 
@@ -14,20 +9,14 @@ interface HistoryModel {
 }
 
 type HistoryMsg =
-  | [
-      "history/navigate",
-      {
-        href: string;
-        state?: object;
-      }
-    ]
-  | [
-      "history/redirect",
-      {
-        href: string;
-        state?: object;
-      }
-    ];
+  | ["history/navigate", {
+  href: string;
+  state?: object;
+}]
+  | ["history/redirect", {
+  href: string;
+  state?: object;
+}];
 
 class HistoryService extends Service<HistoryMsg, HistoryModel> {
   static EVENT_TYPE = "history:message";
@@ -40,27 +29,35 @@ class HistoryService extends Service<HistoryMsg, HistoryModel> {
     );
   }
 
-  update(message: HistoryMsg, apply: ApplyMap<HistoryModel>) {
+  update(
+    message: HistoryMsg,
+    model: HistoryModel
+  ):
+    HistoryModel {
     switch (message[0]) {
       case "history/navigate": {
         const { href, state } = message[1];
-        apply(navigate(href, state));
-        break;
+        history.pushState(state, "", href);
+        return {
+          ...model,
+          location: document.location,
+          state: history.state
+        };
       }
       case "history/redirect": {
         const { href, state } = message[1];
-        apply(redirect(href, state));
-        break;
+        history.replaceState(state, "", href);
+        return {
+          ...model,
+          location: document.location,
+          state: history.state
+        };
       }
     }
   }
 }
 
 class HistoryProvider extends Provider<HistoryModel> {
-  get base() {
-    return this.getAttribute("base") || undefined;
-  }
-
   constructor() {
     super(
       {
@@ -107,12 +104,17 @@ class HistoryProvider extends Provider<HistoryModel> {
     });
   }
 
+  get base() {
+    return this.getAttribute("base") || undefined;
+  }
+
   connectedCallback() {
     const service = new HistoryService(this.context);
     service.attach(this);
   }
 
-  attributeChangedCallback() {}
+  attributeChangedCallback() {
+  }
 }
 
 function originalLinkTarget(
@@ -144,21 +146,6 @@ function originalLinkTarget(
   }
 }
 
-function navigate(href: string, state: object = {}) {
-  history.pushState(state, "", href);
-  return () => ({
-    location: document.location,
-    state: history.state
-  });
-}
-
-function redirect(href: string, state: object = {}) {
-  history.replaceState(state, "", href);
-  return () => ({
-    location: document.location,
-    state: history.state
-  });
-}
 
 const dispatch = Message.dispatcher<HistoryMsg>(
   HistoryService.EVENT_TYPE
