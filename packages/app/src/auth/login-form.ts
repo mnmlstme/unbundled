@@ -1,6 +1,11 @@
-import { css, html, shadow, createViewModel, fromInputs } from "@un-/bundled";
+import { css, html, shadow, createViewModel, fromInputs } from "@un-bundled/core";
 import reset from "../styles/reset.css.js";
 import headings from "../styles/headings.css.js";
+
+interface LoginFormState {
+  username: string;
+  password: string;
+}
 
 export class LoginFormElement extends HTMLElement {
   static template = html`<template>
@@ -21,10 +26,11 @@ export class LoginFormElement extends HTMLElement {
     }
   `;
 
-  viewModel = createViewModel().merge(
-    fromInputs(shadow(this).root),
-    ["username", "password"]
-  );
+  viewModel = createViewModel<LoginFormState>()
+    .using<LoginFormState>(
+      fromInputs(shadow(this).root),
+      "username", "password"
+    );
 
   constructor() {
     super();

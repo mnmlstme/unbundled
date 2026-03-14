@@ -10,7 +10,7 @@ import {
   fromAuth,
   fromStore,
   shadow
-} from "@un-bundled/unbundled";
+} from "@un-bundled/core";
 import { Model } from "../model";
 import { Msg } from "../message";
 import reset from "../styles/reset.css.ts";
@@ -24,11 +24,11 @@ type ProfileViewAttributes = { "user-id"?: string };
 
 interface ProfileViewModel {
   mode: ProfileMode;
-  userid?: string;
+  userid: string | undefined;
   profile?: Traveler;
-  username?: string;
-  token?: string;
-  _avatar?: string;
+  username?: string | undefined
+  token?: string | undefined;
+  _avatar: string | undefined;
 }
 
 export class ProfileViewElement extends HTMLElement {
@@ -37,13 +37,15 @@ export class ProfileViewElement extends HTMLElement {
   });
 
   viewModel = createViewModel<ProfileViewModel>({
-    mode: "view" satisfies ProfileMode
+    mode: "view" as ProfileMode,
+    _avatar: undefined
   })
-    .merge(fromAttributes<ProfileViewAttributes>(this), {
-      userid: "user-id"
-    })
-    .merge(fromAuth(this), ["token", "username"])
-    .merge(fromStore<Model>(this), ["profile"]);
+    .renaming(
+      fromAttributes<ProfileViewAttributes>(this),
+      {userid: "user-id"}
+    )
+    .using(fromAuth(this), "token", "username")
+    .using(fromStore<Model>(this), "profile");
 
   dispatch(msg: Msg) {
     Store.dispatch<Msg>(this, msg);

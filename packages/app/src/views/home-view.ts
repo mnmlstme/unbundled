@@ -7,7 +7,7 @@ import {
   fromStore,
   html,
   shadow
-} from "@un-bundled/unbundled";
+} from "@un-bundled/core";
 import { TourIndex, Model } from "../model";
 import { Msg } from "../message";
 import { TourBrief } from "server/models";
@@ -15,16 +15,17 @@ import { TourBrief } from "server/models";
 type HomeViewAttributes = { "user-id"?: string };
 
 interface HomeViewModel {
-  userid?: string;
+  userid: string | undefined;
   tourIndex?: TourIndex;
 }
 
 export class HomeViewElement extends HTMLElement {
   viewModel = createViewModel<HomeViewModel>()
-    .merge(fromAttributes<HomeViewAttributes>(this), {
-      userid: "user-id"
-    })
-    .merge(fromStore<Model>(this), ["tourIndex"]);
+    .calculating(
+      fromAttributes<HomeViewAttributes>(this),
+      {userid: $ => $["user-id"]})
+    .using(fromStore<Model>(this),
+      "tourIndex");
 
   view = createView<HomeViewModel>(html`
     <dl>

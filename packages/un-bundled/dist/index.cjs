@@ -426,7 +426,7 @@ const auth = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty
   payload: tokenPayload
 }, Symbol.toStringTag, { value: "Module" }));
 function fromAuth(target, contextLabel = AUTH_CONTEXT_DEFAULT) {
-  return new FromService(target, contextLabel);
+  return fromService(target, contextLabel);
 }
 const HISTORY_CONTEXT_DEFAULT = "context:history";
 const _HistoryService = class _HistoryService extends Service {
@@ -1233,7 +1233,7 @@ class Switch extends HTMLElement {
     super();
     this.viewModel = view.createViewModel({
       authenticated: false
-    }).merge(fromAuth(this), ["authenticated", "username"]).merge(fromHistory(this), ["location"]);
+    }).using(fromAuth(this), "authenticated", "username").using(fromHistory(this), "location");
     this._cases = [];
     this._routeView = html.html`
     <h1>Routing...</h1>
@@ -1341,11 +1341,12 @@ class StoreProvider extends Provider {
     super(init, STORE_CONTEXT_DEFAULT);
     this.viewModel = view.createViewModel({
       authenticated: false
-    }).merge(fromAuth(this), [
+    }).using(
+      fromAuth(this),
       "authenticated",
       "username",
       "token"
-    ]);
+    );
     this._updateFn = updateFn;
   }
   connectedCallback() {
@@ -1391,6 +1392,7 @@ exports.createEffect = context.createEffect;
 exports.DirectEffect = effects.DirectEffect;
 exports.createScope = scope.createScope;
 exports.exposeTuple = scope.exposeTuple;
+exports.MappedSource = view.MappedSource;
 exports.View = view.View;
 exports.ViewModel = view.ViewModel;
 exports.createView = view.createView;
@@ -1400,8 +1402,8 @@ exports.createViewN = view.createViewN;
 exports.fromAttributes = view.fromAttributes;
 exports.fromInputs = view.fromInputs;
 exports.Auth = auth;
+exports.BrowserHistory = history$1;
 exports.FromService = FromService;
-exports.History = history$1;
 exports.Message = message;
 exports.Observer = Observer;
 exports.Provider = Provider;

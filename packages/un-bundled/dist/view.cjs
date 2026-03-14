@@ -2,6 +2,35 @@
 Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const context = require("./context-sArnt9mX.cjs");
 const scope = require("./scope-C2S-Cy77.cjs");
+class MappedSource {
+  constructor(source, mapping) {
+    this.origin = source;
+    const entries = mapEntries(mapping).map(([t, s]) => [s, t]);
+    this.inverse = Object.fromEntries(entries);
+  }
+  mapObservation(source) {
+    const entries = Object.entries(source);
+    return Object.fromEntries(
+      entries.map(([s, v]) => {
+        const t = this.inverse[s];
+        return [t, v];
+      }).filter((pair) => pair.length > 0)
+    );
+  }
+  start(fn) {
+    const sfn = (s, value) => {
+      const t = this.inverse[s];
+      fn(t, value);
+    };
+    return this.origin.start(sfn).then((obs) => this.mapObservation(obs));
+  }
+}
+function mapEntries(mapping) {
+  return Object.entries(mapping).map(([k, v]) => [
+    k,
+    v
+  ]);
+}
 function createView(html) {
   return html;
 }
@@ -45,12 +74,6 @@ const View = {
   map2,
   mapN
 };
-function mapEntries(mapping) {
-  return Object.entries(mapping).map(([k, v]) => [
-    k,
-    v
-  ]);
-}
 class ViewModel extends context.Context {
   constructor(init, adoptedContext) {
     super(init, adoptedContext);
@@ -58,19 +81,37 @@ class ViewModel extends context.Context {
   get $() {
     return this.toObject();
   }
-  merge(source, mapping) {
-    const entries = !Array.isArray(
-      mapping
-    ) ? mapEntries(mapping) : mapping.map(
-      (m) => typeof m === "string" ? [[m, m]] : mapEntries(m)
-    ).flat();
+  using(source, ...keys) {
+    const mapping = Object.fromEntries(
+      keys.map((k) => [k, k])
+    );
+    return this.merge(new MappedSource(source, mapping));
+  }
+  calculating(source, mapping) {
+    return this.merge(new MappedSource(source, mapping));
+  }
+  renaming(source, renaming) {
+    return this.merge(new MappedSource(source, renaming));
+  }
+  merge(source) {
     if (source) {
-      source.start((name, value) => {
-        const pair = entries.find(([_, s]) => s === name);
-        if (pair) this.set(pair[0], value);
+      const entries = source.start((name, value) => {
+        console.log(
+          "🪄 Merging effect",
+          name,
+          value,
+          entries
+        );
+        this.set(name, value);
       }).then((firstObservation) => {
-        entries.forEach(
-          ([t, s]) => this.set(t, firstObservation[s])
+        console.log(
+          "👀 ViewModel source observed:",
+          firstObservation,
+          entries
+        );
+        const keys = Object.keys(firstObservation);
+        keys.forEach(
+          (k) => this.set(k, firstObservation[k])
         );
       });
     }
@@ -80,8 +121,8 @@ class ViewModel extends context.Context {
     return template.render(this);
   }
 }
-function createViewModel(init) {
-  return new ViewModel(init || {});
+function createViewModel(init = {}) {
+  return new ViewModel(init);
 }
 function fromAttributes(subject) {
   return new FromAttributes(subject);
@@ -133,6 +174,7 @@ class FromInputs {
 }
 exports.Context = context.Context;
 exports.createContext = context.createContext;
+exports.MappedSource = MappedSource;
 exports.View = View;
 exports.ViewModel = ViewModel;
 exports.createView = createView;
