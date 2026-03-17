@@ -56,8 +56,8 @@ export class Switch extends HTMLElement {
   viewModel = createViewModel<SwitchData>({
     authenticated: false
   })
-    .using(fromAuth(this),"authenticated", "username")
-    .using(fromHistory(this), "location");
+    .with(fromAuth(this),"authenticated", "username")
+    .with(fromHistory(this), "location");
 
   _cases: Case[] = [];
   _routeView: Template<[RouteData]> = html`

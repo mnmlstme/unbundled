@@ -1234,7 +1234,7 @@ class Switch extends HTMLElement {
     super();
     this.viewModel = createViewModel({
       authenticated: false
-    }).using(fromAuth(this), "authenticated", "username").using(fromHistory(this), "location");
+    }).with(fromAuth(this), "authenticated", "username").with(fromHistory(this), "location");
     this._cases = [];
     this._routeView = html`
     <h1>Routing...</h1>
@@ -1342,7 +1342,7 @@ class StoreProvider extends Provider {
     super(init, STORE_CONTEXT_DEFAULT);
     this.viewModel = createViewModel({
       authenticated: false
-    }).using(
+    }).with(
       fromAuth(this),
       "authenticated",
       "username",

@@ -24,11 +24,11 @@ type ProfileViewAttributes = { "user-id"?: string };
 
 interface ProfileViewModel {
   mode: ProfileMode;
-  userid: string | undefined;
+  userid?: string;
   profile?: Traveler;
-  username?: string | undefined
+  username?: string | undefined;
   token?: string | undefined;
-  _avatar: string | undefined;
+  _avatar?: string;
 }
 
 export class ProfileViewElement extends HTMLElement {
@@ -40,12 +40,11 @@ export class ProfileViewElement extends HTMLElement {
     mode: "view" as ProfileMode,
     _avatar: undefined
   })
-    .renaming(
-      fromAttributes<ProfileViewAttributes>(this),
-      {userid: "user-id"}
-    )
-    .using(fromAuth(this), "token", "username")
-    .using(fromStore<Model>(this), "profile");
+    .withRenamed(fromAttributes<ProfileViewAttributes>(this), {
+      userid: "user-id"
+    })
+    .with(fromAuth(this), "token", "username")
+    .with(fromStore<Model>(this), "profile");
 
   dispatch(msg: Msg) {
     Store.dispatch<Msg>(this, msg);

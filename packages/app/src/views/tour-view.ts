@@ -37,10 +37,10 @@ export class TourViewElement extends HTMLElement {
   });
 
   viewModel = createViewModel<TourViewModel>()
-    .renaming(fromAttributes<TourViewAttributes>(this), {
+    .withRenamed(fromAttributes<TourViewAttributes>(this), {
       tourId: "tour-id"
     })
-    .using(fromStore<Model>(this), "tour");
+    .with(fromStore<Model>(this), "tour");
 
   view = createView<TourViewModel>(html`
     <section class="calendar">

@@ -31,13 +31,13 @@ export class CalendarWidget extends HTMLElement {
     /* CSS here */
   `;
 
-  viewModel = createViewModel<CalendarWidgetModel>()
-    .calculating<CalendarWidgetAttributes>(
-      fromAttributes(this),
+  viewModel =
+    createViewModel<CalendarWidgetModel>().withCalculated(
+      fromAttributes<CalendarWidgetAttributes>(this),
       {
         startDate: ($) => new Date($["start-date"]),
         endDate: ($) =>
-         $["end-date"] ? new Date($["end-date"]) : undefined
+          $["end-date"] ? new Date($["end-date"]) : undefined
       }
     );
 
@@ -63,9 +63,9 @@ export class CalendarWidget extends HTMLElement {
         ${($) =>
           $.startDate
             ? View.map(
-              this.dateView,
-              datesInRange($.startDate, $.endDate).map(toYMD)
-            )
+                this.dateView,
+                datesInRange($.startDate, $.endDate).map(toYMD)
+              )
             : ""}
       </fieldset>
       <button id="clear">Clear Selection</button>
@@ -78,7 +78,7 @@ export class CalendarWidget extends HTMLElement {
     shadow(this)
       .styles(CalendarWidget.styles)
       .replace(this.viewModel.render(this.view))
-      .delegate("input[name=\"cal\"]", {
+      .delegate('input[name="cal"]', {
         change: (ev: InputEvent) => {
           const input = ev.target as HTMLInputElement;
           const custom = new CustomEvent(this.changeEventType, {

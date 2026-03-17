@@ -8,9 +8,8 @@ import {
   createViewModel
 } from "@un-bundled/core";
 
-
 interface InputArrayAttributes {
-  name?: string
+  name?: string;
 }
 
 interface InputArrayData extends InputArrayAttributes {
@@ -20,9 +19,7 @@ interface InputArrayData extends InputArrayAttributes {
 export class InputArrayElement extends HTMLElement {
   viewModel = createViewModel<InputArrayData>({
     values: [] as Array<string>
-  }).using<InputArrayAttributes>(
-    fromAttributes(this), "name"
-  );
+  }).with(fromAttributes<InputArrayAttributes>(this), "name");
 
   static formAssociated = true;
 

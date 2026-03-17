@@ -1,4 +1,4 @@
-import{a as u,c as l,b as c,f as T,d as n,h as r,s as h,e as p,g as f,V as d,i as v,j as w,k as C,r as H,l as A,m as P,_ as U}from"./headings.css-ba42a53d.js";const j={};function q(a,e,t){var o,m,$;const[i,s]=e;switch(i){case"profile/request":if(((o=a.profile)==null?void 0:o.userid)===s.userid)break;return[{...a,profile:{userid:s.userid,name:"?",home:"?",airports:[]}},_(s,t)];case"profile/save":return[a,N(s,t)];case"profile/load":const{profile:S}=s;return{...a,profile:S};case"tourIndex/request":if(((m=a.tourIndex)==null?void 0:m.userid)===s.userid)break;return[{...a,tourIndex:{userid:s.userid,tours:[]}},F(s,t)];case"tourIndex/load":return{...a,tourIndex:s};case"tour/request":if((($=a.tour)==null?void 0:$.id)===s.id)break;return[{...a,tour:{id:s.id,name:"",startDate:new Date,endDate:new Date,destinations:[],transportation:[],entourage:[]}},L(s,t)];case"tour/load":const{tour:z}=s;return{...a,tour:z};default:console.log("Invalid message type:",i)}return a}function _(a,e){return fetch(`/api/travelers/${a.userid}`,{headers:u.headers(e)}).then(t=>{if(t.status!==200)throw`HTTP Status ${t.status}`;return t.json()}).then(t=>["profile/load",{profile:t}])}function N(a,e){return fetch(`/api/travelers/${a.userid}`,{method:"PUT",headers:{"Content-Type":"application/json",...u.headers(e)},body:JSON.stringify(a.profile)}).then(t=>{if(t.status!==200)throw new Error(`Failed to save profile for ${a.userid}`);return t.json()}).then(t=>["profile/load",{profile:t}])}function F(a,e){return fetch(`/api/tours/?userid=${a.userid}`,{headers:u.headers(e)}).then(t=>{if(t.status!==200)throw`HTTP Status ${t.status}`;return t.json()}).then(t=>{const{data:i}=t;return["tourIndex/load",{userid:a.userid,tours:i}]})}function L(a,e){return fetch(`/api/tours/${a.id}`,{headers:u.headers(e)}).then(t=>{if(t.status!==200)throw`HTTP Status ${t.status}`;return t.json()}).then(t=>["tour/load",{tour:t}])}const R=l`
+import{a as u,c as l,b as h,f as T,d as n,h as r,s as c,e as p,g as w,V as d,i as v,j as f,k as C,r as H,l as A,m as P,_ as U}from"./headings.css-ac687d31.js";const j={};function q(a,e,t){var o,m,$;const[i,s]=e;switch(i){case"profile/request":if(((o=a.profile)==null?void 0:o.userid)===s.userid)break;return[{...a,profile:{userid:s.userid,name:"?",home:"?",airports:[]}},_(s,t)];case"profile/save":return[a,N(s,t)];case"profile/load":const{profile:S}=s;return{...a,profile:S};case"tourIndex/request":if(((m=a.tourIndex)==null?void 0:m.userid)===s.userid)break;return[{...a,tourIndex:{userid:s.userid,tours:[]}},R(s,t)];case"tourIndex/load":return{...a,tourIndex:s};case"tour/request":if((($=a.tour)==null?void 0:$.id)===s.id)break;return[{...a,tour:{id:s.id,name:"",startDate:new Date,endDate:new Date,destinations:[],transportation:[],entourage:[]}},F(s,t)];case"tour/load":const{tour:z}=s;return{...a,tour:z};default:console.log("Invalid message type:",i)}return a}function _(a,e){return fetch(`/api/travelers/${a.userid}`,{headers:u.headers(e)}).then(t=>{if(t.status!==200)throw`HTTP Status ${t.status}`;return t.json()}).then(t=>["profile/load",{profile:t}])}function N(a,e){return fetch(`/api/travelers/${a.userid}`,{method:"PUT",headers:{"Content-Type":"application/json",...u.headers(e)},body:JSON.stringify(a.profile)}).then(t=>{if(t.status!==200)throw new Error(`Failed to save profile for ${a.userid}`);return t.json()}).then(t=>["profile/load",{profile:t}])}function R(a,e){return fetch(`/api/tours/?userid=${a.userid}`,{headers:u.headers(e)}).then(t=>{if(t.status!==200)throw`HTTP Status ${t.status}`;return t.json()}).then(t=>{const{data:i}=t;return["tourIndex/load",{userid:a.userid,tours:i}]})}function F(a,e){return fetch(`/api/tours/${a.id}`,{headers:u.headers(e)}).then(t=>{if(t.status!==200)throw`HTTP Status ${t.status}`;return t.json()}).then(t=>["tour/load",{tour:t}])}const L=l`
   h1,
   h2,
   h3,
@@ -36,7 +36,7 @@ import{a as u,c as l,b as c,f as T,d as n,h as r,s as h,e as p,g as f,V as d,i a
     font-weight: var(--font-weight-normal);
     font-style: italic;
   }
-`,O={styles:R},B=l`
+`,O={styles:L},B=l`
   * {
     margin: 0;
     box-sizing: border-box;
@@ -51,7 +51,7 @@ import{a as u,c as l,b as c,f as T,d as n,h as r,s as h,e as p,g as f,V as d,i a
     list-style: none;
     padding: 0;
   }
-`,W={styles:B},x=class M extends HTMLElement{constructor(){super(),this.viewModel=c().using(T(this),"authenticated","username"),this.view=n(r`
+`,W={styles:B},x=class M extends HTMLElement{constructor(){super(),this.viewModel=h().with(T(this),"authenticated","username"),this.view=n(r`
     <header>
       <h1>Blazing Travels</h1>
       <nav
@@ -67,7 +67,7 @@ import{a as u,c as l,b as c,f as T,d as n,h as r,s as h,e as p,g as f,V as d,i a
         </menu>
       </nav>
     </header>
-  `),h(this).styles(W.styles,O.styles,M.styles).replace(this.viewModel.render(this.view)).delegate(".when-signed-in a",{click:()=>this.signout()})}signout(){const e=new CustomEvent("auth:message",{bubbles:!0,composed:!0,detail:["auth/signout"]});this.dispatchEvent(e),u.dispatch(this,"auth/signout")}};x.styles=l`
+  `),c(this).styles(W.styles,O.styles,M.styles).replace(this.viewModel.render(this.view)).delegate(".when-signed-in a",{click:()=>this.signout()})}signout(){const e=new CustomEvent("auth:message",{bubbles:!0,composed:!0,detail:["auth/signout"]});this.dispatchEvent(e),u.dispatch(this,"auth/signout")}};x.styles=l`
     :host {
       display: contents;
     }
@@ -114,7 +114,7 @@ import{a as u,c as l,b as c,f as T,d as n,h as r,s as h,e as p,g as f,V as d,i a
     nav.logged-in .when-signed-out {
       display: none;
     }
-  `;let J=x;class Y extends HTMLElement{constructor(){super(),this.viewModel=c().calculating(p(this),{userid:e=>e["user-id"]}).using(f(this),"tourIndex"),this.view=n(r`
+  `;let J=x;class Y extends HTMLElement{constructor(){super(),this.viewModel=h().withCalculated(p(this),{userid:e=>e["user-id"]}).with(w(this),"tourIndex"),this.view=n(r`
     <dl>
       ${e=>{var t;return d.map(this.viewTour,((t=e.tourIndex)==null?void 0:t.tours)||[])}}
     </dl>
@@ -134,7 +134,7 @@ import{a as u,c as l,b as c,f as T,d as n,h as r,s as h,e as p,g as f,V as d,i a
         ${e=>e.userid}
       </a>
     </li>
-  `),h(this).replace(this.viewModel.render(this.view)),this.viewModel.createEffect(e=>{e.userid&&this.dispatch(["tourIndex/request",{userid:e.userid}])})}dispatch(e){v.dispatch(this,e)}}const E=class I extends HTMLElement{constructor(){super(),this.viewModel=c().calculating(p(this),{startDate:e=>new Date(e["start-date"]),endDate:e=>e["end-date"]?new Date(e["end-date"]):void 0}),this.dateView=n(r`
+  `),c(this).replace(this.viewModel.render(this.view)),this.viewModel.createEffect(e=>{e.userid&&this.dispatch(["tourIndex/request",{userid:e.userid}])})}dispatch(e){v.dispatch(this,e)}}const E=class I extends HTMLElement{constructor(){super(),this.viewModel=h().withCalculated(p(this),{startDate:e=>new Date(e["start-date"]),endDate:e=>e["end-date"]?new Date(e["end-date"]):void 0}),this.dateView=n(r`
     <label style="grid-column: ${e=>e.day+1}">
       <span>${e=>e.d}</span>
       <input
@@ -156,9 +156,9 @@ import{a as u,c as l,b as c,f as T,d as n,h as r,s as h,e as p,g as f,V as d,i a
       </fieldset>
       <button id="clear">Clear Selection</button>
     </section>
-  `),this.changeEventType=`${this.tagName}/change`,h(this).styles(I.styles).replace(this.viewModel.render(this.view)).delegate('input[name="cal"]',{change:e=>{const t=e.target,i=new CustomEvent(this.changeEventType,{bubbles:!0,composed:!0,detail:{dateString:t.value}});this.dispatchEvent(i)}})}};E.styles=l`
+  `),this.changeEventType=`${this.tagName}/change`,c(this).styles(I.styles).replace(this.viewModel.render(this.view)).delegate('input[name="cal"]',{change:e=>{const t=e.target,i=new CustomEvent(this.changeEventType,{bubbles:!0,composed:!0,detail:{dateString:t.value}});this.dispatchEvent(i)}})}};E.styles=l`
     /* CSS here */
-  `;let G=E;function K(a){return{d:a.getUTCDate(),m:a.getUTCMonth()+1,y:a.getUTCFullYear(),day:a.getUTCDay()}}function Q(a){const{y:e,m:t,d:i}=a;return[e,t,i].join("-")}function X(a,e){const t=e?e.getTime():a.getTime();let i=[],s=new Date(a);for(;s.getTime()<=t;)i.push(new Date(s)),s.setUTCDate(s.getUTCDate()+1);return i}const D=class g extends HTMLElement{constructor(){super(),this.uses=w({"calendar-widget":G}),this.viewModel=c().renaming(p(this),{tourId:"tour-id"}).using(f(this),"tour"),this.view=n(r`
+  `;let G=E;function K(a){return{d:a.getUTCDate(),m:a.getUTCMonth()+1,y:a.getUTCFullYear(),day:a.getUTCDay()}}function Q(a){const{y:e,m:t,d:i}=a;return[e,t,i].join("-")}function X(a,e){const t=e?e.getTime():a.getTime();let i=[],s=new Date(a);for(;s.getTime()<=t;)i.push(new Date(s)),s.setUTCDate(s.getUTCDate()+1);return i}const D=class g extends HTMLElement{constructor(){super(),this.uses=f({"calendar-widget":G}),this.viewModel=h().withRenamed(p(this),{tourId:"tour-id"}).with(w(this),"tour"),this.view=n(r`
     <section class="calendar">
       <h3>Calendar</h3>
       <calendar-widget
@@ -206,7 +206,7 @@ import{a as u,c as l,b as c,f as T,d as n,h as r,s as h,e as p,g as f,V as d,i a
         <h4>${e=>e.name}</h4>
       </a>
     </li>
-  `),h(this).styles(g.styles).replace(this.viewModel.render(this.view)).listen({"calendar-widget/change":e=>{const{dateString:t}=e.detail;this.viewModel.set("selectedDate",new Date(t))}}),this.viewModel.createEffect(e=>{e.tourId&&this.dispatch(["tour/request",{id:e.tourId}])})}static dateRange(e,t){return`${e==null?void 0:e.toString()}${t?`to ${t.toString()}`:""}`}dispatch(e){v.dispatch(this,e)}};D.styles=l``;let Z=D;const y=class V extends HTMLElement{constructor(){super(),this.viewModel=c({values:[]}).using(p(this),"name"),this.view=n(r`
+  `),c(this).styles(g.styles).replace(this.viewModel.render(this.view)).listen({"calendar-widget/change":e=>{const{dateString:t}=e.detail;this.viewModel.set("selectedDate",new Date(t))}}),this.viewModel.createEffect(e=>{e.tourId&&this.dispatch(["tour/request",{id:e.tourId}])})}static dateRange(e,t){return`${e==null?void 0:e.toString()}${t?`to ${t.toString()}`:""}`}dispatch(e){v.dispatch(this,e)}};D.styles=l``;let Z=D;const y=class V extends HTMLElement{constructor(){super(),this.viewModel=h({values:[]}).with(p(this),"name"),this.view=n(r`
     <fieldset name=${e=>e.name||"undefined"}>
       <ul>
         ${e=>d.map(this.itemView,e.values.map(t=>({value:t})))}
@@ -220,7 +220,7 @@ import{a as u,c as l,b as c,f as T,d as n,h as r,s as h,e as p,g as f,V as d,i a
       <input value=${e=>e.value} />
       <button class="remove">Remove</button>
     </li>
-  `),h(this).styles(V.styles).replace(this.viewModel.render(this.view)).delegate("input",{change:e=>{const t=e.target,i=t.closest("li");i&&this.changeItem(i,t.value)}}).delegate("button.add",{click:e=>{this.addItem("")}}).delegate("button.remove",{click:e=>{const i=e.target.closest("li");i&&this.removeItem(i)}})}get name(){return this.viewModel.$.name}get value(){return this.viewModel.$.values}set value(e){this.viewModel.set("values",e)}changeItem(e,t){const i=this.getItemIndex(e);i&&(this.viewModel.$.values[i]=t)}addItem(e){this.viewModel.set("values",this.viewModel.$.values.concat([e]))}removeItem(e){const t=this.getItemIndex(e);t>=0&&this.viewModel.set("values",this.viewModel.$.values.toSpliced(t,1))}getItemIndex(e){const t=e.parentElement;if(!t)return-1;const i=t.children;for(let s=0;i&&s<i.length;s++)if(i[s]===e)return s;return-1}};y.formAssociated=!0;y.styles=l`
+  `),c(this).styles(V.styles).replace(this.viewModel.render(this.view)).delegate("input",{change:e=>{const t=e.target,i=t.closest("li");i&&this.changeItem(i,t.value)}}).delegate("button.add",{click:e=>{this.addItem("")}}).delegate("button.remove",{click:e=>{const i=e.target.closest("li");i&&this.removeItem(i)}})}get name(){return this.viewModel.$.name}get value(){return this.viewModel.$.values}set value(e){this.viewModel.set("values",e)}changeItem(e,t){const i=this.getItemIndex(e);i&&(this.viewModel.$.values[i]=t)}addItem(e){this.viewModel.set("values",this.viewModel.$.values.concat([e]))}removeItem(e){const t=this.getItemIndex(e);t>=0&&this.viewModel.set("values",this.viewModel.$.values.toSpliced(t,1))}getItemIndex(e){const t=e.parentElement;if(!t)return-1;const i=t.children;for(let s=0;i&&s<i.length;s++)if(i[s]===e)return s;return-1}};y.formAssociated=!0;y.styles=l`
     fieldset {
       display: grid;
       grid-template-columns: subgrid;
@@ -242,7 +242,7 @@ import{a as u,c as l,b as c,f as T,d as n,h as r,s as h,e as p,g as f,V as d,i a
         grid-column: auto/-2;
       }
     }
-  `;let ee=y;const b=class k extends HTMLElement{constructor(){super(),this.viewModel=c({mode:"view",_avatar:void 0}).renaming(p(this),{userid:"user-id"}).using(T(this),"token","username").using(f(this),"profile"),this.view=n(r`
+  `;let ee=y;const b=class k extends HTMLElement{constructor(){super(),this.viewModel=h({mode:"view",_avatar:void 0}).withRenamed(p(this),{userid:"user-id"}).with(T(this),"token","username").with(w(this),"profile"),this.view=n(r`
     <section>
       ${e=>e.profile?d.apply(e.mode==="view"?this.mainView:this.editView,e.profile):""}
     </section>
@@ -335,7 +335,7 @@ import{a as u,c as l,b as c,f as T,d as n,h as r,s as h,e as p,g as f,V as d,i a
       <button id="cancel" type="button">Cancel</button>
       <button type="submit">Save</button>
      </form>
-  `),h(this).styles(H.styles,A.styles,k.styles).replace(this.viewModel.render(this.view)).delegate("#edit-mode",{click:()=>this.viewModel.set("mode","edit")}).delegate("#cancel",{click:()=>this.viewModel.set("mode","view")}).delegate('input[name="avatar"]',{change:e=>{const i=e.target.files;i&&i.length&&this.readAvatarBase64(i)}}).listen({submit:e=>this.submitForm(e)}),this.viewModel.createEffect(e=>{e.userid&&this.dispatch(["profile/request",{userid:e.userid}])})}dispatch(e){v.dispatch(this,e)}submitForm(e){e.preventDefault();const t=e.target,i=this.formDataToJSON(t),s=this.viewModel.$.userid;s&&this.dispatch(["profile/save",{userid:s,profile:i}])}formDataToJSON(e){const i=Array.from(e.elements).filter(s=>s.tagName!=="BUTTON"&&"name"in s).map(s=>{const o=s.name;switch(o){case"avatar":return[o,this.viewModel.get("_avatar")];default:return[o,s.value]}});return Object.fromEntries(i)}readAvatarBase64(e){e&&e.length&&new Promise((i,s)=>{const o=new FileReader;o.onload=()=>i(o.result),o.onerror=m=>s(m),o.readAsDataURL(e[0])}).then(i=>{this.viewModel.set("_avatar",i)})}};b.uses=w({"input-array":ee});b.styles=l`
+  `),c(this).styles(H.styles,A.styles,k.styles).replace(this.viewModel.render(this.view)).delegate("#edit-mode",{click:()=>this.viewModel.set("mode","edit")}).delegate("#cancel",{click:()=>this.viewModel.set("mode","view")}).delegate('input[name="avatar"]',{change:e=>{const i=e.target.files;i&&i.length&&this.readAvatarBase64(i)}}).listen({submit:e=>this.submitForm(e)}),this.viewModel.createEffect(e=>{e.userid&&this.dispatch(["profile/request",{userid:e.userid}])})}dispatch(e){v.dispatch(this,e)}submitForm(e){e.preventDefault();const t=e.target,i=this.formDataToJSON(t),s=this.viewModel.$.userid;s&&this.dispatch(["profile/save",{userid:s,profile:i}])}formDataToJSON(e){const i=Array.from(e.elements).filter(s=>s.tagName!=="BUTTON"&&"name"in s).map(s=>{const o=s.name;switch(o){case"avatar":return[o,this.viewModel.get("_avatar")];default:return[o,s.value]}});return Object.fromEntries(i)}readAvatarBase64(e){e&&e.length&&new Promise((i,s)=>{const o=new FileReader;o.onload=()=>i(o.result),o.onerror=m=>s(m),o.readAsDataURL(e[0])}).then(i=>{this.viewModel.set("_avatar",i)})}};b.uses=f({"input-array":ee});b.styles=l`
     :host {
       display: grid;
       grid-column: 1 / -1;
@@ -394,4 +394,4 @@ import{a as u,c as l,b as c,f as T,d as n,h as r,s as h,e as p,g as f,V as d,i a
     `},{path:"/app",view:r`
       <home-view
         user-id=${a=>{var e,t;return((e=a.user)==null?void 0:e.authenticated)&&((t=a.user)==null?void 0:t.username)||"anonymous"}}></home-view>
-    `},{path:"/",redirect:"/app"}];w({"auth-provider":u.Provider,"history-provider":P.Provider,"blazing-header":J,"router-switch":class extends U.Element{constructor(){super(ie)}},"store-provider":class extends v.Provider{constructor(){super(q,j)}},"home-view":Y,"profile-view":te,"tour-view":Z});
+    `},{path:"/",redirect:"/app"}];f({"auth-provider":u.Provider,"history-provider":P.Provider,"blazing-header":J,"router-switch":class extends U.Element{constructor(){super(ie)}},"store-provider":class extends v.Provider{constructor(){super(q,j)}},"home-view":Y,"profile-view":te,"tour-view":Z});

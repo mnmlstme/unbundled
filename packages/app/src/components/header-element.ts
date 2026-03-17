@@ -16,10 +16,11 @@ interface HeaderData {
 }
 
 export class HeaderElement extends HTMLElement {
-  viewModel = createViewModel<HeaderData>()
-    .using(fromAuth(this),
-      "authenticated", "username"
-    );
+  viewModel = createViewModel<HeaderData>().with(
+    fromAuth(this),
+    "authenticated",
+    "username"
+  );
 
   view = createView<HeaderData>(html`
     <header>

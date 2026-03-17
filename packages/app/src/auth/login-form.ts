@@ -27,7 +27,7 @@ export class LoginFormElement extends HTMLElement {
   `;
 
   viewModel = createViewModel<LoginFormState>()
-    .using<LoginFormState>(
+    .with<LoginFormState>(
       fromInputs(shadow(this).root),
       "username", "password"
     );

@@ -80,16 +80,16 @@ class ViewModel extends Context {
   get $() {
     return this.toObject();
   }
-  using(source, ...keys) {
+  with(source, ...keys) {
     const mapping = Object.fromEntries(
       keys.map((k) => [k, k])
     );
     return this.merge(new MappedSource(source, mapping));
   }
-  calculating(source, mapping) {
+  withCalculated(source, mapping) {
     return this.merge(new MappedSource(source, mapping));
   }
-  renaming(source, renaming) {
+  withRenamed(source, renaming) {
     return this.merge(new MappedSource(source, renaming));
   }
   merge(source) {

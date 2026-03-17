@@ -47,7 +47,7 @@ class StoreProvider<
 > extends Provider<M> {
   viewModel = createViewModel<Auth.Model>({
     authenticated: false
-  }).using(fromAuth(this),
+  }).with(fromAuth(this),
     "authenticated","username","token"
   );
 

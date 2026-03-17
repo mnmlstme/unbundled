@@ -21,11 +21,10 @@ interface HomeViewModel {
 
 export class HomeViewElement extends HTMLElement {
   viewModel = createViewModel<HomeViewModel>()
-    .calculating(
-      fromAttributes<HomeViewAttributes>(this),
-      {userid: $ => $["user-id"]})
-    .using(fromStore<Model>(this),
-      "tourIndex");
+    .withCalculated(fromAttributes<HomeViewAttributes>(this), {
+      userid: ($) => $["user-id"]
+    })
+    .with(fromStore<Model>(this), "tourIndex");
 
   view = createView<HomeViewModel>(html`
     <dl>

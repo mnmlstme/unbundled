@@ -5,15 +5,15 @@ import { Template } from "../html";
 export type ViewState<T = object> = { [K in keyof Partial<T>]: any }
 
 export class ViewModel<T extends ViewState<T>> extends Context<T> {
-  constructor(init: Partial<T>, adoptedContext?: Context<T>) {
-    super(init as T, adoptedContext);
+  constructor(init: T, adoptedContext?: Context<T>) {
+    super(init, adoptedContext);
   }
 
   get $(): Readonly<T> {
     return this.toObject();
   }
 
-  using<S extends ViewState<T> = T>(
+  with<S extends ViewState<T> = T>(
     source: Source<S>,
     ...keys: Array<keyof S & keyof T>
   ): ViewModel<T> {
@@ -23,14 +23,14 @@ export class ViewModel<T extends ViewState<T>> extends Context<T> {
     return this.merge(new MappedSource<S, T>(source, mapping))
   }
 
-  calculating<S extends ViewState>(
+  withCalculated<S extends ViewState>(
     source: Source<S>,
     mapping: NameMapping<T, S>
   ): ViewModel<T> {
     return this.merge(new MappedSource<S, T>(source, mapping))
   }
 
-  renaming<S extends ViewState>(
+  withRenamed<S extends ViewState>(
     source: Source<S>,
     renaming: {[K in keyof Partial<T>]: keyof S}
   ): ViewModel<T> {
@@ -76,7 +76,7 @@ export class ViewModel<T extends ViewState<T>> extends Context<T> {
 }
 
 export function createViewModel<T extends object>(
-  init: Partial<T> = {}
+  init: T = ({} as T)
 ): ViewModel<T> {
   return new ViewModel<T>(init);
 }
