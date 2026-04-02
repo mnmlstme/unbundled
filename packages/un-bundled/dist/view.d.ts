@@ -44,30 +44,15 @@ declare class Context_2<T extends object> {
     close(): void;
 }
 
-declare class Context_3<T extends object> {
-    private manager;
-    private object;
-    private proxy;
-    static CHANGE_EVENT_TYPE: string;
-    constructor(init: T, adoptedContext?: Context_3<T>);
-    get(prop: keyof T): T[typeof prop];
-    set(prop: keyof T, value: T[typeof prop]): void;
-    toObject(): Readonly<T>;
-    update(next: Partial<T>): void;
-    apply(mapFn: (t: T) => Partial<T>): void;
-    createEffect(fn: Effector_3<[T]>): void;
-    setHost(host: EventTarget, eventType?: string): void;
-    open(effect: Effect_3): Readonly<T>;
-    close(): void;
-}
-
 export declare function createContext<T extends object>(root: T, manager: EffectsManager<T>): T;
 
 export declare function createView<T extends object>(html: Template<[T]>): Template<[T]>;
 
 export declare function createView2<U extends object | undefined, V extends object | undefined>(html: Template<[U, V]>): Template<[U, V]>;
 
-export declare function createViewModel<T extends object>(init?: Partial<T>): ViewModel<T>;
+export declare function createViewModel<T extends object>(): {} extends T ? ViewModel<T> : never;
+
+export declare function createViewModel<T extends object>(init: T): ViewModel<T>;
 
 export declare function createViewN<TT extends TemplateArgs>(html: Template<TT>): Template<TT>;
 
@@ -79,21 +64,13 @@ declare interface Effect_2 {
     execute(): void;
 }
 
-declare interface Effect_3 {
-    execute(): void;
-}
-
 declare type EffectArgs = Array<object | undefined>;
 
 declare type EffectArgs_2 = Array<object | undefined>;
 
-declare type EffectArgs_3 = Array<object | undefined>;
-
 declare type Effector<TT extends EffectArgs> = (...scope: TT) => void;
 
 declare type Effector_2<TT extends EffectArgs_2> = (...scope: TT) => void;
-
-declare type Effector_3<TT extends EffectArgs_3> = (...scope: TT) => void;
 
 declare class EffectsManager<T extends object> {
     private running;
@@ -171,12 +148,12 @@ export declare const View: {
     mapN: typeof mapN;
 };
 
-export declare class ViewModel<T extends ViewState<T>> extends Context_3<T> {
-    constructor(init: Partial<T>, adoptedContext?: Context_3<T>);
+export declare class ViewModel<T extends ViewState<T>> extends Context<T> {
+    constructor(init: T, adoptedContext?: Context<T>);
     get $(): Readonly<T>;
-    using<S extends ViewState<T> = T>(source: Source<S>, ...keys: Array<keyof S & keyof T>): ViewModel<T>;
-    calculating<S extends ViewState>(source: Source<S>, mapping: NameMapping<T, S>): ViewModel<T>;
-    renaming<S extends ViewState>(source: Source<S>, renaming: {
+    with<S extends ViewState<T> = T>(source: Source<S>, ...keys: Array<keyof S & keyof T>): ViewModel<T>;
+    withCalculated<S extends ViewState>(source: Source<S>, mapping: NameMapping<T, S>): ViewModel<T>;
+    withRenamed<S extends ViewState>(source: Source<S>, renaming: {
         [K in keyof Partial<T>]: keyof S;
     }): ViewModel<T>;
     merge<S extends ViewState<T>>(source: Source<S>): ViewModel<T>;
