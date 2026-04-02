@@ -157,7 +157,9 @@ export declare function createView<T extends object>(html: Template<[T]>): Templ
 
 export declare function createView2<U extends object | undefined, V extends object | undefined>(html: Template<[U, V]>): Template<[U, V]>;
 
-export declare function createViewModel<T extends object>(init?: T): ViewModel<T>;
+export declare function createViewModel<T extends object>(): {} extends T ? ViewModel<T> : never;
+
+export declare function createViewModel<T extends object>(init: T): ViewModel<T>;
 
 export declare function createViewN<TT extends TemplateArgs>(html: Template<TT>): Template<TT>;
 

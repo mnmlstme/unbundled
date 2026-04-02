@@ -47,9 +47,7 @@ class StoreProvider<
 > extends Provider<M> {
   viewModel = createViewModel<Auth.Model>({
     authenticated: false
-  }).with(fromAuth(this),
-    "authenticated","username","token"
-  );
+  }).with(fromAuth(this), "authenticated", "username", "token");
 
   _updateFn: AuthorizedUpdateFn<M, Msg, Cmd>;
 
