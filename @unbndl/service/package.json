@@ -1,6 +1,6 @@
 {
   "name": "@unbndl/service",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Unbundled library for building client-side services",
   "main": "./dist/service.js",
   "type": "module",

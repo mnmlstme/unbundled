@@ -1,6 +1,6 @@
 {
   "name": "@unbndl/switch",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Unbundled library for client-side routing to views for single-page apps",
   "main": "./dist/switch.js",
   "type": "module",

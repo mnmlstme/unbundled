@@ -1,6 +1,6 @@
 {
   "name": "@unbndl/store",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Unbundled library for maintaining client-side state in a store, following the Elm architecture and MVU",
   "main": "./dist/store.js",
   "type": "module",

@@ -1,6 +1,6 @@
 {
   "name": "@unbndl/auth",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Unbundled library for auth services in browser",
   "main": "./dist/auth.js",
   "type": "module",
