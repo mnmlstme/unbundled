@@ -1,12 +1,16 @@
 {
   "name": "unbundled",
   "version": "0.1.0",
-  "description": "workspace for examples of Web Development, Unbundled",
+  "description": "Libraries and examples for the book Web Development, Unbundled",
   "scripts": {},
   "author": "ken@mnmlst.me",
   "license": "BSD-3-Clause",
   "workspaces": [
-    "packages/example/*",
-    "packages/un-bundled"
-  ]
+    "example/*",
+    "@unbndl/*"
+  ],
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vite": "^8.0.8"
+  }
 }
