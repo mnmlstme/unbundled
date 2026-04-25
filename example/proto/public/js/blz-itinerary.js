@@ -1,30 +1,10 @@
 import { css, html, shadow } from "@unbndl/html";
-import { createViewModel, View } from "@unbndl/view";
 
 export class BlzItineraryElement extends HTMLElement {
-  viewModel = createViewModel({
-    itinerary: {
-      destinations: []
-    }
-  });
-
-  static {
-    this.viewModel = createViewModel({
-      itinerary: {
-        destinations: []
-      }
-    });
-    console.log(
-      "BlzItineraryElement constructor, viewModel=",
-      this.viewModel
-    );
-  }
-
   constructor() {
     super();
     shadow(this)
       .styles(BlzItineraryElement.styles)
-      .replace(this.viewModel.render(this.view));
 
     this.addEventListener("click", (event) => {
       console.log("Click bubbled", event);
@@ -59,36 +39,22 @@ export class BlzItineraryElement extends HTMLElement {
   attributeChangedCallback(name, _, newValue) {
     if (name === "src") {
       this.hydrate(newValue).then((data) => {
-        console.log("Got itinerary:", data);
-        this.viewModel.set("itinerary", data);
-        console.log(
-          "Set itinerary in viewmodel:",
-          this.viewModel.$
-        );
+        console.log("Received JSON:", data);
+        const view = BlzItineraryElement.render(data)
+        shadow(this).replace(view);
       });
     }
   }
 
-    view = html`<dl>
-      ${($) => {
-        console.log("In view:", $);
-            return View.map(this.destinationView, $.itinerary.destinations)
-      }}
-    </dl>
-    <button id="extend-stay">Extend Stay</button>`;
+  static render(data) {
+    const destinations = data?.destinations || [];
+    return html`
+      <dl>
+        ${destinations.map(renderDestination)}
+      </dl>
+    `;
+  }
 
-  destinationView = html`<div>
-    <dt>${($) => `${$.startDate} to ${$.endDate}`}</dt>
-    <dd>
-      <blz-destination
-        href=${($) => $.link}
-        start-date=${($) => $.startDate}
-        end-date=${($) => $.endDate}
-      >
-        ${($) => $.name}
-      </blz-destination>
-    </dd>
-  </div>`;
 
   hydrate(src) {
     return fetch(src)
@@ -103,4 +69,24 @@ export class BlzItineraryElement extends HTMLElement {
   }
 
   static styles = css``;
+}
+
+
+function renderDestination(dest) {
+  const { name, link, startDate, endDate, featuredImage }
+    = dest;
+
+  return html`
+    <dt>${startDate} to ${endDate}</dt>
+    <dd>
+        <blz-destination
+            href=${link}
+            start-date=${startDate}
+            end-date=${endDate}
+            img-src=${featuredImage}
+        >
+            ${name}
+        </blz-destination>
+    </dd>
+  `;
 }

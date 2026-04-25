@@ -55,6 +55,22 @@ htmlParser.use([
   },
   {
     place: "element content",
+    types: (param: TemplateParameter<TemplateArgs>) =>
+      Array.isArray(param),
+    mutator: (
+      place: ElementContentPlace,
+      value: TemplateParameter<TemplateArgs>
+    ) => {
+      const fragment = new DocumentFragment();
+      const nodes = (value as Array<any>).map(
+        (v) => v instanceof Node ? v : new Text(v?.toString() || "")
+      );
+      fragment.append(...nodes);
+      return new ElementContentMutation(place, fragment)
+    }
+  },
+  {
+    place: "element content",
     types: ["function"],
     mutator: (
       place: ElementContentPlace,

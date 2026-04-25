@@ -387,6 +387,14 @@ w.use([
 	},
 	{
 		place: "element content",
+		types: (e) => Array.isArray(e),
+		mutator: (e, t) => {
+			let n = new DocumentFragment(), r = t.map((e) => e instanceof Node ? e : new Text(e?.toString() || ""));
+			return n.append(...r), new _(e, n);
+		}
+	},
+	{
+		place: "element content",
 		types: ["function"],
 		mutator: (e, t) => new y(e, t)
 	},
