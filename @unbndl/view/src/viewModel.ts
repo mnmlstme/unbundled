@@ -73,8 +73,8 @@ export class ViewModel<
   }
 
   render(template: Template<[T]>): DocumentFragment {
-    // console.log("📷 Rendering view, scope=", this.toObject());
-    return template.render(this);
+    console.log("📷 Rendering view, context=", this.$);
+    return template.render(this.$);
   }
 }
 

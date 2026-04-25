@@ -1,8 +1,5 @@
-import { css, html, shadow } from "@unbndl/modules/html";
-import {
-  createViewModel,
-  View
-} from "@unbndl/modules/view";
+import { css, html, shadow } from "@unbndl/html";
+import { createViewModel, View } from "@unbndl/view";
 
 export class BlzItineraryElement extends HTMLElement {
   viewModel = createViewModel({
@@ -63,17 +60,20 @@ export class BlzItineraryElement extends HTMLElement {
     if (name === "src") {
       this.hydrate(newValue).then((data) => {
         console.log("Got itinerary:", data);
-        console.log(
-          "Setting itinerary in viewmodel:",
-          this.viewModel
-        );
         this.viewModel.set("itinerary", data);
+        console.log(
+          "Set itinerary in viewmodel:",
+          this.viewModel.$
+        );
       });
     }
   }
 
-  view = html`<dl>
-      ${($) => View.map(this.destinationView, $.itinerary.destinations)}
+    view = html`<dl>
+      ${($) => {
+        console.log("In view:", $);
+            return View.map(this.destinationView, $.itinerary.destinations)
+      }}
     </dl>
     <button id="extend-stay">Extend Stay</button>`;
 

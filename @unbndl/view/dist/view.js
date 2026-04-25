@@ -455,7 +455,7 @@ var M = {
 		return this;
 	}
 	render(e) {
-		return e.render(this);
+		return console.log("📷 Rendering view, context=", this.$), e.render(this.$);
 	}
 };
 function P(e) {

@@ -1,5 +1,5 @@
-import { css, html, shadow } from "@unbndl/modules/html";
-import { createViewModel } from "@unbndl/modules/view";
+import { css, html, shadow } from "@unbndl/html";
+import { createViewModel } from "@unbndl/view";
 
 export class BlzDestinationElement extends HTMLElement {
   viewModel = createViewModel({
