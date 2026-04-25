@@ -55,7 +55,7 @@ used for client-side rendering: generating DOM
 that depends on data at run-time.
 
 ```ts
-import { html } from "@unbndl/modules/html";
+import { html } from "@unbndl/html";
 
 const name = "CSC 437";
 const today = new Date();

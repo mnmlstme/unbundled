@@ -32,7 +32,7 @@ are optional.
 #### Usage
 
 ```ts
-import { createViewModel } from "@unbndl/modules/view";
+import { createViewModel } from "@unbndl/view";
 
 type ProfileMode = "view" | "edit" | "new";
 
@@ -71,8 +71,8 @@ the names  in the source and the viewModel must be the same.)
 #### Usage
 
 ```ts
-import { createViewModel } from "@unbndl/modules/view";
-import { fromAuth } from "@unbndl/modules/auth";
+import { createViewModel } from "@unbndl/view";
+import { fromAuth } from "@unbndl/auth";
 
 export class ProfileViewElement extends HTMLElement {
   viewModel = createViewModel<ProfileViewModel>({
@@ -94,8 +94,8 @@ each value is the name of a property in the source.
 #### Usage
 
 ```ts
-import { createViewModel, fromAttributes } from "@unbndl/modules/view";
-import { fromAuth } from "@unbndl/modules/auth";
+import { createViewModel, fromAttributes } from "@unbndl/view";
+import { fromAuth } from "@unbndl/auth";
 
 type ProfileViewAttributes = { "user-id"?: string };
 
@@ -129,7 +129,7 @@ This is typically done in the component's constructor.
 #### Usage
 
 ```ts
-import { shadow } from "@unbndl/modules/html";
+import { shadow } from "@unbndl/html";
 
 export class ProfileViewElement extends HTMLElement {
   viewModel = // see above

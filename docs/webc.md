@@ -34,7 +34,8 @@ type ElementDefinitions = {
 > classes.
 
 ```js
-import { define, Auth } from "@unbndl/modules";
+import { define } from "@unbndl/html";
+import { Auth } from "@unbndl/auth";
 import { HeaderElement } from "../components/header.js";
 
 define({
@@ -80,7 +81,7 @@ See example below.
 ## Usage
 
 ```js
-import { html, shadow } from "@unbndl/modules/html";
+import { html, shadow } from "@unbndl/html";
 
 class HelloWorldElement extends HTMLElement {
   static template = html`

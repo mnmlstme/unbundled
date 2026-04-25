@@ -62,7 +62,8 @@ must extend `Store.Provider`, provide the required type
 arguments, and define the constructor.
 
 ```ts
-import { define, Store } from "@unbndl/modules";
+import { define } from "@unbndl/html";
+import { Store } from "@unbndl/store";
 import { Msg } from "./messages";
 import { init, Model } from "./model";
 import update from "./update";
@@ -143,7 +144,8 @@ The purpose of `update` is to accept a message and
 compute the next state of the store. 
 
 ```ts
-import { Auth, ThenUpdate } from "@unbndl/modules";
+import { Auth } from "@unbndl/auth";
+import { ThenUpdate } from "@unbndl/store";
 import { Msg } from "./messages";
 import { Model } from "./model";
 

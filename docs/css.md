@@ -30,7 +30,7 @@ used for styling the Shadow DOM in HTML custom elements.
 This technique is known as _constructed style sheets_.
 
 ```js
-import {css, html} from "@unbndl/modules/html";
+import {css, html} from "@unbndl/html";
 
 class DropdownElement extends HTMLElement {
   static template = html` <template>

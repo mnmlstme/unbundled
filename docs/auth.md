@@ -21,7 +21,8 @@ First, `import` `Auth` from `@unbndl` and `define` the custom element:
 
 ```html
   <script type="module">
-    import { define, Auth } from "@unbndl/modules";
+    import { define } from "@unbndl/html";
+    import { Auth } from "@unbndl/auth";
 
     define({
       "auth-provider": Auth.Provider
@@ -76,7 +77,7 @@ from `<auth-provider>` can access the state of the `Auth.Provider`.
 An observer is typically built as part of the component's constructor, but observations cannot be requested until the component is in the DOM tree which contains the `<auth-provider>` element.
 
 ```ts
-import { Auth } from "@unbndl/modules/auth";
+import { Auth } from "@unbndl/auth";
 
 class MyObserver extends HTMLElement {
   loggedIn = false;

@@ -25,7 +25,7 @@ The event created will have both `bubbles` and `composed` set to `true`.
 ### Usage
 
 ```js
-import { Events } from "@unbndl/modules/html";
+import { Events } from "@unbndl/html";
 
 // in class MyElement extends HTMLElement...
 Events.dispatchCustom(
@@ -51,7 +51,7 @@ This pattern is supported by the _relay_ function.
 ### Usage
 
 ```js
-import { Events } from "@unbndl/modules/html";
+import { Events } from "@unbndl/html";
 
 // in class MyElement extends HTMLElement...
 this.addEventListener("change", (event) =>
@@ -78,7 +78,7 @@ comparing each element to a CSS selector.
 ### Usage
 
 ```js
-import { Events } from "@unbndl/modules/html";
+import { Events } from "@unbndl/html";
 
 document.body.addEventListener(
   "click",

@@ -45,7 +45,7 @@ in your app, and bind that to the tag name. The examples
 here assume the tag name is `<router-switch>`.
 
 ```ts
-import { …, History, Switch } from "@unbndl/modules/switch";
+import { …, History, Switch } from "@unbndl/switch";
 
 define({
   "history-provider": History.Provider,

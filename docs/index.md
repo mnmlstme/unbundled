@@ -7,7 +7,7 @@ most frameworks, including:
 
 - Core HTML and DOM module
   - [HTML Templating](./html.md)
-  - [Event Handling](./events.md)
+  - [Event Handling](./event.md)
   - [Web Components and Shadow DOM](./webc.md)
   - [CSS Constructed Stylesheets](./css.md)
 - [Views and ViewModels module](./views.md)
@@ -21,12 +21,12 @@ imported individually, without having to load the entire framework.
 ## Using with JavaScript or TypeScript
 
 `@unbndl` is implemented in TypeScript and
-provided as ES modules and type descriptor files.
+provided as ES modules with type descriptor files.
 Use the JavaScript `import` statement to bring
 definitions from `@unbndl` into your code.
 
 ```ts
-import { define, html } from "@unbndl/modules/html";
+import { define, html } from "@unbndl/html";
 ```
 
 Refer to code examples for each `@unbndl` feature
@@ -35,13 +35,13 @@ for an example of the relevant `import` statement.
 
 ## Using with Vite
 
-You will need to install `@unbndl/modules` into your project 
+You will need to install `@unbndl/*` into your project 
 for [Vite](vite.dev) to resolve the `import`s from `@unbndl`,
 
 You can use `npm` to install `@unbndl` into your project as follows:
 
 ```sh
-npm install @unbndl/modules
+npm install @unbndl/html
 ```
 
 ## Using in the browser
@@ -53,7 +53,7 @@ Because we use ES modules, the `type="module"` attribute must be specified:
 <script type="module" src="myapp.js"></script>
 
 <script type="module">
-  import { html } from "@unbndl/modules/html";
+  import { html } from "@unbndl/html";
 
   function sayHello() {
     const hello = html`<h1>Hello, world!</h1>`;
@@ -64,16 +64,17 @@ Because we use ES modules, the `type="module"` attribute must be specified:
 
 In order to use `@unbndl` directly in the browser &mdash; 
 either in `<script>` tags or in unbundled JavaScript files &mdash; 
-you must set up an import map to resolve the `@unbndl/modules` package name.
+you must set up an import map to resolve any Unbundled package name,
+such as `@unbndl/html`.
 
-While you could serve `@unbndl` from your server, it may be more convenient to reference it from a site such as `unpkg.com`:
+While you could serve `@unbndl/html` from your server, it may be more convenient to reference it from a site such as `unpkg.com`:
 
 ```html
 <script type="importmap">
 {
   "imports": {
-    "@unbndl/modules":
-      "https://unpkg.com/@unbndl/modules"
+    "@unbndl/html":
+      "https://unpkg.com/@unbndl/html"
   }
 }
 </script>
