@@ -405,23 +405,38 @@ function T(e, ...t) {
 	return w.parse(e, t);
 }
 //#endregion
-//#region src/html/events.ts
+//#region src/events/listen.ts
 function E(e, t) {
 	for (let n in t) e.addEventListener(n, t[n]);
 }
+//#endregion
+//#region src/events/delegate.ts
 function D(e, t, n) {
 	for (let r in n) e.addEventListener(r, function(i) {
 		let a = i.target;
 		a && a instanceof HTMLElement && (a.matches(t) || e.contains(a.closest(t))) && n[r](i);
 	});
 }
-var O = {
+//#endregion
+//#region src/events/relay.ts
+function O(e, t, n) {
+	let r = e.target, i = new CustomEvent(t, {
+		bubbles: !0,
+		composed: !0,
+		detail: n
+	});
+	r.dispatchEvent(i), e.stopPropagation();
+}
+//#endregion
+//#region src/events/index.ts
+var k = {
 	listen: E,
-	delegate: D
+	delegate: D,
+	relay: O
 };
 //#endregion
 //#region src/html/shadow.ts
-function k(e, t = { mode: "open" }) {
+function A(e, t = { mode: "open" }) {
 	let n = e.shadowRoot || e.attachShadow(t), r = {
 		template: i,
 		styles: a,
@@ -442,11 +457,11 @@ function k(e, t = { mode: "open" }) {
 		return n.replaceChildren(e), r;
 	}
 	function s(e) {
-		return O.listen(n, e), r;
+		return k.listen(n, e), r;
 	}
 	function c(e, t) {
-		return O.delegate(n, e, t), r;
+		return k.delegate(n, e, t), r;
 	}
 }
 //#endregion
-export { i as Context, s as DirectEffect, r as EffectsManager, O as Events, n as Scheduler, e as SignalEvent, a as createContext, t as createEffect, l as createScope, f as createTemplate, u as css, d as define, c as exposeTuple, T as html, k as shadow };
+export { i as Context, s as DirectEffect, r as EffectsManager, k as Events, n as Scheduler, e as SignalEvent, a as createContext, t as createEffect, l as createScope, f as createTemplate, u as css, d as define, c as exposeTuple, T as html, A as shadow };

@@ -1,4 +1,4 @@
-import { Events, EventMap } from "./events.ts";
+import { Events, EventMap } from "../events";
 
 export function shadow(
   el: HTMLElement,
