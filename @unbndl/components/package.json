@@ -1,0 +1,23 @@
+{
+  "name": "@unbndl/components",
+  "version": "1.0.1",
+  "description": "Unbundled library containing common components implemented as HTML custom elements",
+  "main": "./dist/components.js",
+  "type": "module",
+  "scripts": {
+    "build": "npx vite build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "HTML",
+    "JavaScript",
+    "TypeScript",
+    "Unbundled",
+    "components"
+  ],
+  "author": "ken@mnmlst.me",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "@unbndl/html": "^1.0.1"
+  }
+}
