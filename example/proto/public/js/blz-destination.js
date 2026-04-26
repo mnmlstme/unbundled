@@ -1,20 +1,26 @@
-import { css, html, shadow } from "@unbndl/html";
+import { css, html, shadow } from "@un-bundled/modules/html";
+import { createViewModel } from "@un-bundled/modules/view";
 
 export class BlzDestinationElement extends HTMLElement {
-  static template = html`
-    <template>
+  viewModel = createViewModel({
+    startDate: "2000-01-01",
+    endDate: "2000-01-01",
+    featuredImage: "none",
+    link: "#"
+  });
+
+  view = html`
     <section>
       <header>
         <h2>
-          <a>
+          <a href=${($) => $.link}>
             <slot>Unnamed Destination</slot>
           </a>
         </h2>
-        <p><span id="nights">?</span> nights</p>
+        <p>${($) => nightsBetween($.startDate, $.endDate)} nights</p>
       </header>
       <slot name="highlights"></slot>
     </section>
-    </template>
   `;
 
   static styles = css`
@@ -32,8 +38,8 @@ export class BlzDestinationElement extends HTMLElement {
     super();
 
     shadow(this)
-      .template(BlzDestinationElement.template)
-      .styles(BlzDestinationElement.styles);
+      .styles(BlzDestinationElement.styles)
+      .replace(this.viewModel.render(this.view));
   }
 
   static observedAttributes = [
@@ -46,34 +52,18 @@ export class BlzDestinationElement extends HTMLElement {
   attributeChangedCallback(name, _, newValue) {
     switch (name) {
       case "href":
-        this._updateHref(newValue);
+        this.viewModel.set("link", newValue);
         break;
       case "img-src":
-        this._updateImgSrc(newValue);
+        this.viewModel.set("featuredImage", newValue);
         break;
       case "start-date":
+        this.viewModel.set("startDate", newValue);
+        break;
       case "end-date":
-        this._updateNights();
+        this.viewModel.set("endDate", newValue);
         break;
     }
-  }
-
-  _updateHref(href) {
-    const a = this.shadowRoot.querySelector("a");
-    a.setAttribute("href", href);
-  }
-
-  _updateImgSrc(imgSrc) {
-    this.style.setProperty("--img-src", `url(${imgSrc})`);
-  }
-
-  _updateNights() {
-    const span = this.shadowRoot.getElementById("nights");
-    const nights = nightsBetween(
-      this.getAttribute("start-date"),
-      this.getAttribute("end-date")
-    )
-    span.textContent = nights === undefined ? "" : nights.toString()
   }
 }
 
