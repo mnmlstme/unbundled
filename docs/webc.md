@@ -44,6 +44,12 @@ define({
 })
 ```
 
+### Under the hood
+
+Unbundle's `define` essentially invokes the standard
+`customElements.define()` function for each tagname/class pair presented. Some additional checks are made
+to avoid multiple definition of the same element type.
+
 ## `shadow`
 
 The `shadow` function is used to attach a Shadow DOM to
@@ -104,4 +110,22 @@ class HelloWorldElement extends HTMLElement {
       .styles(HelloWorldTemplate.styles);
   }
 }
+```
+
+### Under the hood
+
+Unbundled's `shadow()` function is a wrapper
+around various web components APIs, accessed 
+through the <em>`HTMLElement`</em>`.shadowRoot` property.
+
+If the element's shadow root does not already exist,  `shadow()` will create one:
+
+```js
+function shadow(
+  el: HTMLElement,
+  options: ShadowRootInit = { mode: "open" }
+) {
+  const shadowRoot: ShadowRoot = el.shadowRoot || el.attachShadow(options);
+
+  // ...
 ```
