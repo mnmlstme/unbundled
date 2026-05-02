@@ -8,17 +8,14 @@ export function createEffect<TT extends EffectArgs>(
 ): void {
   const effect = {
     execute() {
-      const args = scope.map((cx) =>
-        cx instanceof Context ? cx.open(effect) : cx
-      ) as TT;
+      console.log("Scope: ", scope);
+      const args = scope.map((cx) => cx.open(effect)) as TT;
       fn(...args);
-      scope.forEach(
-        (cx) => cx instanceof Context && cx.close()
-      );
+      scope.forEach((cx) => cx.close());
     }
   };
 
-  // console.log("▶️ Executing created effect:", scope, fn);
+  console.log("▶️ Executing created effect:", scope, fn);
   effect.execute();
 }
 

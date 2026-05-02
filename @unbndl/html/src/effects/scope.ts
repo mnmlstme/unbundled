@@ -2,17 +2,13 @@ import { Context } from "./context";
 import { EffectArgs } from "./effect";
 
 export type Scope<TT extends EffectArgs> = {
-  [Index in keyof TT]: TT[Index] extends object
-    ? Context<TT[Index]>
-    : object;
+  [Index in keyof TT]: Context<TT[Index]>
 };
 
 export function exposeTuple<TT extends EffectArgs>(
   scope: Scope<TT>
 ): TT {
-  return scope.map((cx) =>
-    cx instanceof Context ? cx.toObject() : cx
-  ) as TT;
+  return scope.map((cx) => cx.toObject()) as TT;
 }
 
 export function createScope<TT extends EffectArgs>(

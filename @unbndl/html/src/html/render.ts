@@ -9,7 +9,7 @@ export function renderForEffects<TT extends TemplateArgs>(
 ): DocumentFragment {
   const fragment = original.cloneNode(true) as DocumentFragment;
 
-  // console.log("🎞️ Rendering for effects:", fragment);
+  console.log("🎞️ Rendering for effects:", fragment);
   Array.from(effectors.entries()).forEach(
     ([label, mutations]) => {
       const site: HTMLElement | null = fragment.querySelector(

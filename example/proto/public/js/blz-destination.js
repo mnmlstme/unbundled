@@ -10,14 +10,20 @@ export class BlzDestinationElement extends HTMLElement {
   });
 
   view = html`
-    <section>
+    <section
+      style=${($) => `--img-src: url(${$.featuredImage})`}
+    >
       <header>
         <h2>
           <a href=${($) => $.link}>
             <slot>Unnamed Destination</slot>
           </a>
         </h2>
-        <p>${($) => nightsBetween($.startDate, $.endDate)} nights</p>
+        <p>${($) => {
+            console.log("$=", $);
+            return nightsBetween($.startDate, $.endDate)
+        }
+        } nights</p>
       </header>
       <slot name="highlights"></slot>
     </section>
@@ -26,11 +32,27 @@ export class BlzDestinationElement extends HTMLElement {
   static styles = css`
     :host {
       --img-src: none;
+      --color-text: var(--color-text-inverted);
+      --color-link: var(--color-link-inverted);
+    }
+    * {
+        margin: 0;
+        box-sizing: border-box;
     }
     section {
       aspect-ratio: 16/9;
       background-image: var(--img-src);
       background-size: cover;
+      padding: var(--size-spacing-medium);
+      color: var(--color-text);
+      text-shadow: 1px 1px 2px rgb(0 0 0 / 20%);
+    }
+    header {
+      font-family: var(--font-display);
+      font-style: var(--style-font-title);
+    }
+    a[href] {
+      color: var(--color-link);
     }
   `;
 
@@ -50,6 +72,7 @@ export class BlzDestinationElement extends HTMLElement {
   ];
 
   attributeChangedCallback(name, _, newValue) {
+    console.log("ACC", name, newValue);
     switch (name) {
       case "href":
         this.viewModel.set("link", newValue);
@@ -68,6 +91,7 @@ export class BlzDestinationElement extends HTMLElement {
 }
 
 function nightsBetween(startDate, endDate) {
+  console.log("Start/endDate:", startDate, endDate);
   const start = new Date(startDate);
   const end = new Date(endDate);
   return Math.floor(

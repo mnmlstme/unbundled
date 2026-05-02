@@ -1,5 +1,5 @@
 import { MappedSource, NameMapping, Source } from "./source.ts";
-import { Context, Template } from "@unbndl/html";
+import { Context, Template, Scope } from "@unbndl/html";
 
 export type ViewState<T = object> = {
   [K in keyof Partial<T>]: any;
@@ -73,8 +73,8 @@ export class ViewModel<
   }
 
   render(template: Template<[T]>): DocumentFragment {
-    console.log("📷 Rendering view, context=", this.$);
-    return template.render(this.$);
+    console.log("📷 Rendering view, context=", this);
+    return template.render(this as Context<T>);
   }
 }
 

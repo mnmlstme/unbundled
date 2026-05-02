@@ -1,1 +1,610 @@
-(function(e,t){typeof exports==`object`&&typeof module<`u`?t(exports):typeof define==`function`&&define.amd?define([`exports`],t):(e=typeof globalThis<`u`?globalThis:e||self,t(e.html={}))})(this,function(e){Object.defineProperty(e,Symbol.toStringTag,{value:`Module`});var t=class extends CustomEvent{constructor(e,t){super(e,{bubbles:!0,cancelable:!0,composed:!0,detail:t})}};function n(e,...t){let n={execute(){e(...t.map(e=>e instanceof a?e.open(n):e)),t.forEach(e=>e instanceof a&&e.close())}};n.execute()}var r=class e{constructor(){this.signals=new WeakMap,this.scheduled=new WeakSet}static{this.scheduler=new e}subscribe(e,t,n){let r=this.signals.get(e);r||(r=new Map,this.signals.set(e,r));let i=r.get(t);i||(i=new Set,r.set(t,i)),i.add(n)}scheduleEffects(e,t){let n=this.signals.get(e);if(!n)return;let r=n.get(t);if(r)for(let e of r)this.scheduled.has(e)||(this.scheduled.add(e),setTimeout(()=>{this.scheduled.delete(e),e.execute()}))}},i=class{constructor(){this.running=[],this.eventType=`un-effect:change`}isRunning(){return this.running.length>0}push(e){this.running.push(e)}pop(){this.running.pop()}current(){let e=this.running.length;return e?this.running[e-1]:void 0}subscribe(e,t){let n=this.current();n&&r.scheduler.subscribe(t,e,n)}runEffects(e,n){if(r.scheduler.scheduleEffects(n,e),this.host){let r=new t(this.eventType,{property:e,value:n[e]});this.host.dispatchEvent(r)}}setHost(e,t){this.host=e,t&&(this.eventType=t)}},a=class{static{this.CHANGE_EVENT_TYPE=`un-context:change`}constructor(e,t){t?(this.manager=t.manager,this.object=t.object,this.proxy=t.proxy,this.update(e)):(this.manager=new i,this.object=e,this.proxy=o(this.object,this.manager))}get(e){return this.proxy[e]}set(e,t){this.proxy[e]=t}toObject(){return this.object}update(e){Object.assign(this.proxy,e)}apply(e){this.update(e(this.proxy))}createEffect(e){n(e,this)}setHost(e,t){this.manager.setHost(e,t)}open(e){return this.manager.push(e),this.proxy}close(){this.manager.pop()}};function o(e,t){return new Proxy(e,{get:(e,n,r)=>{let i=Reflect.get(e,n,r);return t.isRunning()&&s(i)&&t.subscribe(n,e),i},set:(e,n,r,i)=>{let a=Reflect.set(e,n,r,i);return a&&s(r)&&t.runEffects(n,e),a}})}function s(e){switch(typeof e){case`object`:case`number`:case`string`:case`symbol`:case`boolean`:case`undefined`:return!0;default:return!1}}var c=class{constructor(e,...t){this.effectFn=()=>e(...t)}execute(){this.effectFn()}};function l(e){return e.map(e=>e instanceof a?e.toObject():e)}function u(e){return e.map(e=>e===void 0?null:new a(e))}function d(e,...t){let n=e.map((e,n)=>n?[t[n-1],e]:[e]).flat().join(``),r=new CSSStyleSheet;return r.replaceSync(n),r}function f(e){return Object.entries(e).map(([e,t])=>{customElements.get(e)||customElements.define(e,t)}),customElements}function p(e,t){return Object.assign(e,{render:t}),e}function m(e,t,...n){let r=e.cloneNode(!0);return Array.from(t.entries()).forEach(([e,t])=>{let i=r.querySelector(`[data-${e}]`);i&&t.forEach(e=>e(i,r,...n))}),r}var h=class e{static{this.parser=new DOMParser}constructor(e){this.docType=`text/html`,this.plugins=[],e&&(this.docType=e)}use(e){this.plugins=this.plugins.concat(e)}parse(t,n){let r={},i=t.map((e,i)=>{if(i>=n.length)return[e];let a=n[i],o=this.classifyPlace(i,t),s=this.tryReplacements(o,a);if(s){let t=r[o.nodeLabel];switch(t?t.push(s):r[o.nodeLabel]=[s],o.kind){case`attr value`:return[e,`"" data-${o.nodeLabel}`];case`tag content`:return[e,`data-${o.nodeLabel}`];case`element content`:return[e,`<ins data-${o.nodeLabel}></ins>`]}}else throw console.error(`No match for template parameter`,o,a),`Failed to render template parameter ${i} around ${e}`;return[e]}).flat().join(``),a=e.parser.parseFromString(i,this.docType),o=a.head.childElementCount?a.head.children:a.body.children,s=new DocumentFragment;s.replaceChildren(...o);let c=new Map;for(let e in r){let t=s.querySelector(`[data-${e}]`);t&&r[e].forEach(n=>{let r=n.apply(t,s);if(r){let t=c.get(e);t?t.push(r):c.set(e,[r])}})}return p(s,(...e)=>m(s,c,...e))}static{this.OPEN_RE=/<([a-zA-z][$a-zA-Z0-9.-]*)\s+[^>]*$/}static{this.IN_TAG_RE=/^(\s+|[^<>]*|"[^"]*")*$/}static{this.ATTR_RE=/([$.]?[a-zA-Z][$a-zA-Z0-9.-]*)=\s*$/}static{this.CLOSE_RE=/[/]?>[^<]*$/}classifyPlace(t,n){let r=null;for(let i=t;i>=0&&!(n[i].match(e.CLOSE_RE)||(r=n[i].match(e.OPEN_RE),r)||!n[i].match(e.IN_TAG_RE));i--);if(r){let i=n[t].match(e.ATTR_RE);return i?{kind:`attr value`,nodeLabel:`node${t}`,tagName:r[1],attrName:i[1]}:{kind:`tag content`,nodeLabel:`node${t}`,tagName:r[1]}}return{kind:`element content`,nodeLabel:`node${t}`}}tryReplacements(e,t){let n=this.plugins;for(let r=0;r<n.length;r++){let i=n[r];if(e.kind===i.place&&g(t,i))return i.mutator(e,t)}}};function g(e,t){return typeof t.types==`function`?t.types(e,t):t.types.includes(typeof e)}var _=class{constructor(e){this.place=e}apply(e,t){throw`abstract method 'apply' called`}},v=class extends _{constructor(e,t){super(e),this.content=t}apply(e,t){(e.parentNode||t).replaceChild(this.content,e)}},y=class extends _{constructor(e,t){super(e),this.text=t,this.name=e.attrName}apply(e){e.setAttribute(this.name,this.text)}},b=class extends _{constructor(e,t){super(e),this.fn=t}apply(e,t){let r=this.place.nodeLabel;return(e,t,...i)=>{let a=new Comment(` <<< ${r} `),o=new Comment(` >>> ${r} `),s=new DocumentFragment;s.replaceChildren(a,o),(e.parentNode||t).replaceChild(s,e),n((...e)=>{x(this.fn(...e),a,o)},...i)}}};function x(e,t,n){let r=t.parentNode;if(!r)throw Error(`No parent for placeholder`);let i=e=>{if(Array.isArray(e)){let t=new DocumentFragment,n=e.map(i);return t.replaceChildren(...n),t}else if(e instanceof Node)return e;else return new Text(e?.toString()||``)},a=i(e);console.log(`📸 Rendered for view:`,e,a);let o=t.nextSibling;for(;o&&o!==n;){let e=o;o=o.nextSibling,r.removeChild(e)}a&&r.insertBefore(a,n)}var S=class extends _{constructor(e,t){super(e),this.fn=t,this.name=e.attrName}apply(e,t){return(e,t,...r)=>n((...t)=>{C(this.fn(...t),e,this.name)},...r)}};function C(e,t,n){let r=n.match(/^([.$])(.+)$/);if(r){let[n,i,o]=r;switch(i){case`.`:t[o]=e;break;case`$`:`viewModel`in t&&t.viewModel instanceof a&&t.viewModel.set(o,e);break}}else switch(typeof e){case`string`:t.setAttribute(n,e);break;case`undefined`:case`object`:case`boolean`:e?t.setAttribute(n,n):t.removeAttribute(n);break;default:t.setAttribute(n,e?.toString())}}var w=class extends _{constructor(e,t){super(e),this.fn=t}apply(e,t){return(e,t,...r)=>n((...t)=>{let n=this.fn(...t);typeof n==`function`&&n(e)},...r)}},T=new h;T.use([{place:`element content`,types:[`string`,`number`,`bigint`,`symbol`,`boolean`],mutator:(e,t)=>new v(e,new Text(t?.toString()||``))},{place:`attr value`,types:[`string`,`number`,`bigint`,`symbol`],mutator:(e,t)=>new y(e,t?.toString()||``)},{place:`element content`,types:e=>e instanceof Node,mutator:(e,t)=>new v(e,t)},{place:`element content`,types:e=>Array.isArray(e),mutator:(e,t)=>{let n=new DocumentFragment,r=t.map(e=>e instanceof Node?e:new Text(e?.toString()||``));return n.append(...r),new v(e,n)}},{place:`element content`,types:[`function`],mutator:(e,t)=>new b(e,t)},{place:`attr value`,types:[`function`],mutator:(e,t)=>new S(e,t)},{place:`tag content`,types:[`function`],mutator:(e,t)=>new w(e,t)}]);function E(e,...t){return T.parse(e,t)}function D(e,t){for(let n in t)e.addEventListener(n,t[n])}function O(e,t,n){for(let r in n)e.addEventListener(r,function(i){let a=i.target;a&&a instanceof HTMLElement&&(a.matches(t)||e.contains(a.closest(t)))&&n[r](i)})}function k(e,t,n){let r=e.target,i=new CustomEvent(t,{bubbles:!0,composed:!0,detail:n});r.dispatchEvent(i),e.stopPropagation()}var A={listen:D,delegate:O,relay:k};function j(e,t={mode:`open`}){let n=e.shadowRoot||e.attachShadow(t),r={template:i,styles:a,replace:o,root:n,delegate:c,listen:s};return r;function i(e){let t=e.firstElementChild,i=t&&t.tagName===`TEMPLATE`?t:void 0;return i&&n.appendChild(i.content.cloneNode(!0)),r}function a(...e){return n.adoptedStyleSheets=e,r}function o(e){return n.replaceChildren(e),r}function s(e){return A.listen(n,e),r}function c(e,t){return A.delegate(n,e,t),r}}e.Context=a,e.DirectEffect=c,e.EffectsManager=i,e.Events=A,e.Scheduler=r,e.SignalEvent=t,e.createContext=o,e.createEffect=n,e.createScope=u,e.createTemplate=p,e.css=d,e.define=f,e.exposeTuple=l,e.html=E,e.shadow=j});
+(function(global, factory) {
+	typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global = typeof globalThis !== "undefined" ? globalThis : global || self, factory(global.html = {}));
+})(this, function(exports) {
+	Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
+	//#region src/effects/signal.ts
+	var SignalEvent = class extends CustomEvent {
+		constructor(eventType, signal) {
+			super(eventType, {
+				bubbles: true,
+				cancelable: true,
+				composed: true,
+				detail: signal
+			});
+		}
+	};
+	//#endregion
+	//#region src/effects/scheduler.ts
+	function createEffect(fn, ...scope) {
+		const effect = { execute() {
+			console.log("Scope: ", scope);
+			fn(...scope.map((cx) => cx.open(effect)));
+			scope.forEach((cx) => cx.close());
+		} };
+		console.log("▶️ Executing created effect:", scope, fn);
+		effect.execute();
+	}
+	var Scheduler = class Scheduler {
+		constructor() {
+			this.signals = /* @__PURE__ */ new WeakMap();
+			this.scheduled = /* @__PURE__ */ new WeakSet();
+		}
+		static {
+			this.scheduler = new Scheduler();
+		}
+		subscribe(scope, key, effect) {
+			let signals = this.signals.get(scope);
+			if (!signals) {
+				signals = /* @__PURE__ */ new Map();
+				this.signals.set(scope, signals);
+			}
+			let signal = signals.get(key);
+			if (!signal) {
+				signal = /* @__PURE__ */ new Set();
+				signals.set(key, signal);
+			}
+			signal.add(effect);
+		}
+		scheduleEffects(scope, key) {
+			const signals = this.signals.get(scope);
+			if (!signals) return;
+			const signal = signals.get(key);
+			if (signal) {
+				for (const effect of signal) if (!this.scheduled.has(effect)) {
+					this.scheduled.add(effect);
+					setTimeout(() => {
+						this.scheduled.delete(effect);
+						effect.execute();
+					});
+				}
+			}
+		}
+	};
+	//#endregion
+	//#region src/effects/manager.ts
+	var EffectsManager = class {
+		constructor() {
+			this.running = [];
+			this.eventType = "un-effect:change";
+		}
+		isRunning() {
+			return this.running.length > 0;
+		}
+		push(effect) {
+			console.log("Starting manager for effect", effect);
+			this.running.push(effect);
+		}
+		pop() {
+			console.log("Stopping manager for effect");
+			this.running.pop();
+		}
+		current() {
+			const len = this.running.length;
+			return len ? this.running[len - 1] : void 0;
+		}
+		subscribe(key, scope) {
+			const current = this.current();
+			console.log("Subscribing to signal", key, scope, !!current);
+			if (current) {
+				console.log("Subscribing to signal", key, scope);
+				Scheduler.scheduler.subscribe(scope, key, current);
+			}
+		}
+		runEffects(key, scope) {
+			console.log("Running effects for signal", key, scope);
+			Scheduler.scheduler.scheduleEffects(scope, key);
+			if (this.host) {
+				const evt = new SignalEvent(this.eventType, {
+					property: key,
+					value: scope[key]
+				});
+				this.host.dispatchEvent(evt);
+			}
+		}
+		setHost(host, eventType) {
+			this.host = host;
+			if (eventType) this.eventType = eventType;
+		}
+	};
+	//#endregion
+	//#region src/effects/context.ts
+	var Context = class {
+		static {
+			this.CHANGE_EVENT_TYPE = "un-context:change";
+		}
+		constructor(init, adoptedContext) {
+			if (adoptedContext) {
+				this.manager = adoptedContext.manager;
+				this.object = adoptedContext.object;
+				this.proxy = adoptedContext.proxy;
+				this.update(init);
+			} else {
+				this.manager = new EffectsManager();
+				this.object = init;
+				this.proxy = createContext(this.object, this.manager);
+			}
+		}
+		get(prop) {
+			return this.proxy[prop];
+		}
+		set(prop, value) {
+			console.log("Setting Context", prop, value, this.proxy);
+			this.proxy[prop] = value;
+		}
+		toObject() {
+			return this.proxy;
+		}
+		update(next) {
+			Object.assign(this.proxy, next);
+		}
+		apply(mapFn) {
+			this.update(mapFn(this.proxy));
+		}
+		createEffect(fn) {
+			createEffect(fn, this);
+		}
+		setHost(host, eventType) {
+			this.manager.setHost(host, eventType);
+		}
+		open(effect) {
+			this.manager.push(effect);
+			return this.proxy;
+		}
+		close() {
+			this.manager.pop();
+		}
+	};
+	function createContext(root, manager) {
+		return new Proxy(root, {
+			get: (subject, prop, receiver) => {
+				const value = Reflect.get(subject, prop, receiver);
+				console.log("Got value of signal", prop, value, manager.isRunning());
+				if (manager.isRunning() && isObservable(value)) manager.subscribe(prop, subject);
+				return value;
+			},
+			set: (subject, prop, newValue, receiver) => {
+				const didSet = Reflect.set(subject, prop, newValue, receiver);
+				console.log("Set value of signal", prop, newValue, didSet);
+				if (didSet && isObservable(newValue)) manager.runEffects(prop, subject);
+				return didSet;
+			}
+		});
+	}
+	function isObservable(value) {
+		switch (typeof value) {
+			case "object":
+			case "number":
+			case "string":
+			case "symbol":
+			case "boolean":
+			case "undefined": return true;
+			default: return false;
+		}
+	}
+	//#endregion
+	//#region src/effects/effect.ts
+	var DirectEffect = class {
+		constructor(fn, ...scope) {
+			this.effectFn = () => fn(...scope);
+		}
+		execute() {
+			this.effectFn();
+		}
+	};
+	//#endregion
+	//#region src/effects/scope.ts
+	function exposeTuple(scope) {
+		return scope.map((cx) => cx.toObject());
+	}
+	function createScope(tuple) {
+		return tuple.map((a) => typeof a === "undefined" ? null : new Context(a));
+	}
+	//#endregion
+	//#region src/html/css.ts
+	function css(template, ...params) {
+		const cssString = template.map((s, i) => i ? [params[i - 1], s] : [s]).flat().join("");
+		let sheet = new CSSStyleSheet();
+		sheet.replaceSync(cssString);
+		return sheet;
+	}
+	//#endregion
+	//#region src/html/define.ts
+	function define(defns) {
+		Object.entries(defns).map(([k, v]) => {
+			if (!customElements.get(k)) customElements.define(k, v);
+		});
+		return customElements;
+	}
+	//#endregion
+	//#region src/html/template.ts
+	function createTemplate(fragment, render) {
+		Object.assign(fragment, { render });
+		return fragment;
+	}
+	//#endregion
+	//#region src/html/render.ts
+	function renderForEffects(original, effectors, ...scope) {
+		const fragment = original.cloneNode(true);
+		console.log("🎞️ Rendering for effects:", fragment);
+		Array.from(effectors.entries()).forEach(([label, mutations]) => {
+			const site = fragment.querySelector(`[data-${label}]`);
+			if (site) mutations.forEach((fn) => fn(site, fragment, ...scope));
+		});
+		return fragment;
+	}
+	//#endregion
+	//#region src/html/parser.ts
+	var TemplateParser = class TemplateParser {
+		static {
+			this.parser = new DOMParser();
+		}
+		constructor(docType) {
+			this.docType = "text/html";
+			this.plugins = [];
+			if (docType) this.docType = docType;
+		}
+		use(plugin) {
+			this.plugins = this.plugins.concat(plugin);
+		}
+		parse(template, params) {
+			const postProcess = {};
+			const stringToParse = template.map((s, i) => {
+				if (i >= params.length) return [s];
+				const param = params[i];
+				const place = this.classifyPlace(i, template);
+				const mutation = this.tryReplacements(place, param);
+				if (mutation) {
+					const post = postProcess[place.nodeLabel];
+					if (post) post.push(mutation);
+					else postProcess[place.nodeLabel] = [mutation];
+					switch (place.kind) {
+						case "attr value": return [s, `"" data-${place.nodeLabel}`];
+						case "tag content": return [s, `data-${place.nodeLabel}`];
+						case "element content": return [s, `<ins data-${place.nodeLabel}></ins>`];
+					}
+				} else {
+					console.error("No match for template parameter", place, param);
+					throw `Failed to render template parameter ${i} around ${s}`;
+				}
+				return [s];
+			}).flat().join("");
+			const doc = TemplateParser.parser.parseFromString(stringToParse, this.docType);
+			const collection = doc.head.childElementCount ? doc.head.children : doc.body.children;
+			const fragment = new DocumentFragment();
+			fragment.replaceChildren(...collection);
+			const effectors = /* @__PURE__ */ new Map();
+			for (const label in postProcess) {
+				const site = fragment.querySelector(`[data-${label}]`);
+				if (site) postProcess[label].forEach((m) => {
+					const effector = m.apply(site, fragment);
+					if (effector) {
+						let list = effectors.get(label);
+						if (list) list.push(effector);
+						else effectors.set(label, [effector]);
+					}
+				});
+			}
+			return createTemplate(fragment, (...scope) => renderForEffects(fragment, effectors, ...scope));
+		}
+		static {
+			this.OPEN_RE = /<([a-zA-z][$a-zA-Z0-9.-]*)\s+[^>]*$/;
+		}
+		static {
+			this.IN_TAG_RE = /^(\s+|[^<>]*|"[^"]*")*$/;
+		}
+		static {
+			this.ATTR_RE = /([$.]?[a-zA-Z][$a-zA-Z0-9.-]*)=\s*$/;
+		}
+		static {
+			this.CLOSE_RE = /[/]?>[^<]*$/;
+		}
+		classifyPlace(i, template) {
+			let tagOpen = null;
+			for (let prev = i; prev >= 0; prev--) {
+				if (template[prev].match(TemplateParser.CLOSE_RE)) break;
+				tagOpen = template[prev].match(TemplateParser.OPEN_RE);
+				if (tagOpen) break;
+				if (!template[prev].match(TemplateParser.IN_TAG_RE)) break;
+			}
+			if (tagOpen) {
+				const tagAttr = template[i].match(TemplateParser.ATTR_RE);
+				if (tagAttr) return {
+					kind: "attr value",
+					nodeLabel: `node${i}`,
+					tagName: tagOpen[1],
+					attrName: tagAttr[1]
+				};
+				return {
+					kind: "tag content",
+					nodeLabel: `node${i}`,
+					tagName: tagOpen[1]
+				};
+			}
+			return {
+				kind: "element content",
+				nodeLabel: `node${i}`
+			};
+		}
+		tryReplacements(place, param) {
+			const replacements = this.plugins;
+			for (let i = 0; i < replacements.length; i++) {
+				const sub = replacements[i];
+				if (place.kind === sub.place && checkType(param, sub)) return sub.mutator(place, param);
+			}
+		}
+	};
+	function checkType(param, sub) {
+		if (typeof sub.types === "function") return sub.types(param, sub);
+		return sub.types.includes(typeof param);
+	}
+	//#endregion
+	//#region src/html/mutation.ts
+	var Mutation = class {
+		constructor(place) {
+			this.place = place;
+		}
+		apply(_site, _fragment) {
+			throw "abstract method 'apply' called";
+		}
+	};
+	var ElementContentMutation = class extends Mutation {
+		constructor(place, content) {
+			super(place);
+			this.content = content;
+		}
+		apply(site, fragment) {
+			(site.parentNode || fragment).replaceChild(this.content, site);
+		}
+	};
+	var AttributeValueMutation = class extends Mutation {
+		constructor(place, text) {
+			super(place);
+			this.text = text;
+			this.name = place.attrName;
+		}
+		apply(site) {
+			site.setAttribute(this.name, this.text);
+		}
+	};
+	var ElementContentEffect = class extends Mutation {
+		constructor(place, fn) {
+			super(place);
+			this.fn = fn;
+		}
+		apply(_site, _fragment) {
+			const key = this.place.nodeLabel;
+			return (site, fragment, ...scope) => {
+				const start = new Comment(` <<< ${key} `);
+				const end = new Comment(` >>> ${key} `);
+				const placeholder = new DocumentFragment();
+				placeholder.replaceChildren(start, end);
+				(site.parentNode || fragment).replaceChild(placeholder, site);
+				createEffect((...args) => {
+					replaceElementContent(this.fn(...args), start, end);
+				}, ...scope);
+			};
+		}
+	};
+	function replaceElementContent(value, start, end) {
+		const parent = start.parentNode;
+		if (!parent) throw new Error("No parent for placeholder");
+		const valueToNode = (v) => {
+			if (Array.isArray(v)) {
+				const frag = new DocumentFragment();
+				const nodes = v.map(valueToNode);
+				frag.replaceChildren(...nodes);
+				return frag;
+			} else if (v instanceof Node) return v;
+			else return new Text(v?.toString() || "");
+		};
+		const node = valueToNode(value);
+		console.log("📸 Rendered for view:", value, node);
+		let p = start.nextSibling;
+		while (p && p !== end) {
+			const old = p;
+			p = p.nextSibling;
+			parent.removeChild(old);
+		}
+		if (node) parent.insertBefore(node, end);
+	}
+	var AttributeValueEffect = class extends Mutation {
+		constructor(place, fn) {
+			super(place);
+			this.fn = fn;
+			this.name = place.attrName;
+		}
+		apply(_site, _fragment) {
+			return (site, _, ...scope) => createEffect((...args) => {
+				replaceAttributeValue(this.fn(...args), site, this.name);
+			}, ...scope);
+		}
+	};
+	function replaceAttributeValue(value, site, attrName) {
+		const special = attrName.match(/^([.$])(.+)$/);
+		if (special) {
+			const [_, pre, name] = special;
+			switch (pre) {
+				case ".":
+					site[name] = value;
+					break;
+				case "$":
+					if ("viewModel" in site && site.viewModel instanceof Context) site.viewModel.set(name, value);
+					break;
+			}
+		} else switch (typeof value) {
+			case "string":
+				site.setAttribute(attrName, value);
+				break;
+			case "undefined":
+			case "object":
+			case "boolean":
+				if (value) site.setAttribute(attrName, attrName);
+				else site.removeAttribute(attrName);
+				break;
+			default: site.setAttribute(attrName, value?.toString());
+		}
+	}
+	var TagReferenceEffect = class extends Mutation {
+		constructor(place, fn) {
+			super(place);
+			this.fn = fn;
+		}
+		apply(_site, _fragment) {
+			return (site, _, ...scope) => createEffect((...args) => {
+				const value = this.fn(...args);
+				if (typeof value === "function") value(site);
+			}, ...scope);
+		}
+	};
+	//#endregion
+	//#region src/html/html.ts
+	var htmlParser = new TemplateParser();
+	htmlParser.use([
+		{
+			place: "element content",
+			types: [
+				"string",
+				"number",
+				"bigint",
+				"symbol",
+				"boolean"
+			],
+			mutator: (place, value) => new ElementContentMutation(place, new Text(value?.toString() || ""))
+		},
+		{
+			place: "attr value",
+			types: [
+				"string",
+				"number",
+				"bigint",
+				"symbol"
+			],
+			mutator: (place, value) => new AttributeValueMutation(place, value?.toString() || "")
+		},
+		{
+			place: "element content",
+			types: (param) => param instanceof Node,
+			mutator: (place, value) => new ElementContentMutation(place, value)
+		},
+		{
+			place: "element content",
+			types: (param) => Array.isArray(param),
+			mutator: (place, value) => {
+				const fragment = new DocumentFragment();
+				const nodes = value.map((v) => v instanceof Node ? v : new Text(v?.toString() || ""));
+				fragment.append(...nodes);
+				return new ElementContentMutation(place, fragment);
+			}
+		},
+		{
+			place: "element content",
+			types: ["function"],
+			mutator: (place, param) => new ElementContentEffect(place, param)
+		},
+		{
+			place: "attr value",
+			types: ["function"],
+			mutator: (place, param) => new AttributeValueEffect(place, param)
+		},
+		{
+			place: "tag content",
+			types: ["function"],
+			mutator: (place, param) => new TagReferenceEffect(place, param)
+		}
+	]);
+	function html(template, ...params) {
+		return htmlParser.parse(template, params);
+	}
+	//#endregion
+	//#region src/events/listen.ts
+	/**
+	* Memory leak warning!
+	* Need to also clean up all the event listeners, probably
+	* on disconnectCallback();
+	*/
+	function listen(element, map) {
+		for (const eventType in map) element.addEventListener(eventType, map[eventType]);
+	}
+	//#endregion
+	//#region src/events/delegate.ts
+	function delegate(element, selector, map) {
+		for (const eventType in map) {
+			const listener = function(ev) {
+				const target = ev.target;
+				if (target && target instanceof HTMLElement && (target.matches(selector) || element.contains(target.closest(selector)))) map[eventType](ev);
+			};
+			element.addEventListener(eventType, listener);
+		}
+	}
+	//#endregion
+	//#region src/events/relay.ts
+	function relay(event, customType, detail) {
+		const relay = event.target;
+		const customEvent = new CustomEvent(customType, {
+			bubbles: true,
+			composed: true,
+			detail
+		});
+		relay.dispatchEvent(customEvent);
+		event.stopPropagation();
+	}
+	//#endregion
+	//#region src/events/index.ts
+	var Events = {
+		listen,
+		delegate,
+		relay
+	};
+	//#endregion
+	//#region src/html/shadow.ts
+	function shadow(el, options = { mode: "open" }) {
+		const shadowRoot = el.shadowRoot || el.attachShadow(options);
+		const chain = {
+			template,
+			styles,
+			replace,
+			root: shadowRoot,
+			delegate,
+			listen
+		};
+		return chain;
+		function template(fragment) {
+			const first = fragment.firstElementChild;
+			const template = first && first.tagName === "TEMPLATE" ? first : void 0;
+			if (template) shadowRoot.appendChild(template.content.cloneNode(true));
+			return chain;
+		}
+		function styles(...sheets) {
+			shadowRoot.adoptedStyleSheets = sheets;
+			return chain;
+		}
+		function replace(fragment) {
+			shadowRoot.replaceChildren(fragment);
+			return chain;
+		}
+		function listen(map) {
+			Events.listen(shadowRoot, map);
+			return chain;
+		}
+		function delegate(selector, map) {
+			Events.delegate(shadowRoot, selector, map);
+			return chain;
+		}
+	}
+	//#endregion
+	exports.Context = Context;
+	exports.DirectEffect = DirectEffect;
+	exports.EffectsManager = EffectsManager;
+	exports.Events = Events;
+	exports.Scheduler = Scheduler;
+	exports.SignalEvent = SignalEvent;
+	exports.createContext = createContext;
+	exports.createEffect = createEffect;
+	exports.createScope = createScope;
+	exports.createTemplate = createTemplate;
+	exports.css = css;
+	exports.define = define;
+	exports.exposeTuple = exposeTuple;
+	exports.html = html;
+	exports.shadow = shadow;
+});

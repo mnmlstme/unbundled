@@ -1,4 +1,4 @@
-export type EffectArgs = Array<object | undefined>;
+export type EffectArgs = Array<object>;
 
 export interface Effect {
   execute(): void;

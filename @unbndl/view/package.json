@@ -1,8 +1,9 @@
 {
   "name": "@unbndl/view",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Unbundled library for working with views expressed as HTML custom elements",
   "main": "./dist/view.js",
+  "types": "./dist/view.d.ts",
   "type": "module",
   "scripts": {
     "build": "npx vite build",

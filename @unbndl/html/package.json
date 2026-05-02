@@ -1,8 +1,9 @@
 {
   "name": "@unbndl/html",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Unbundled library for working with HTML and custom elements",
   "main": "./dist/html.js",
+  "types": "./dist/html.d.ts",
   "type": "module",
   "scripts": {
     "build": "npx vite build",

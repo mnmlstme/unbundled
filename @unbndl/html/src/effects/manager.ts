@@ -12,12 +12,12 @@ export class EffectsManager<T extends object> {
   }
 
   push(effect: Effect): void {
-    // console.log("Starting manager for effect", effect);
+    console.log("Starting manager for effect", effect);
     this.running.push(effect);
   }
 
   pop(): void {
-    // console.log("Stopping manager for effect");
+    console.log("Stopping manager for effect");
     this.running.pop();
   }
 
@@ -28,14 +28,15 @@ export class EffectsManager<T extends object> {
 
   subscribe(key: keyof T, scope: T): void {
     const current = this.current();
+    console.log("Subscribing to signal", key, scope, !!current);
     if (current) {
-      // console.log("Subscribing to signal", key, scope);
+      console.log("Subscribing to signal", key, scope);
       Scheduler.scheduler.subscribe(scope, key, current);
     }
   }
 
   runEffects(key: keyof T, scope: T): void {
-    // console.log("Running effects for signal", key, scope);
+    console.log("Running effects for signal", key, scope);
     Scheduler.scheduler.scheduleEffects(scope, key);
     if (this.host) {
       const evt = new SignalEvent(this.eventType, {

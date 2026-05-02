@@ -1,204 +1,268 @@
 //#region src/source.ts
-var e = class {
-	constructor(e, n) {
-		this.origin = e;
-		let r = t(n).map(([e, t]) => [t, e]);
-		this.inverse = Object.fromEntries(r);
+var MappedSource = class {
+	constructor(source, mapping) {
+		this.origin = source;
+		const entries = mapEntries(mapping).map(([t, s]) => [s, t]);
+		this.inverse = Object.fromEntries(entries);
 	}
-	mapObservation(e) {
-		let t = Object.entries(e);
-		return Object.fromEntries(t.map(([e, t]) => [this.inverse[e], t]).filter((e) => e.length > 0));
+	mapObservation(source) {
+		const entries = Object.entries(source);
+		return Object.fromEntries(entries.map(([s, v]) => {
+			return [this.inverse[s], v];
+		}).filter((pair) => pair.length > 0));
 	}
-	start(e) {
-		return this.origin.start((t, n) => {
-			let r = this.inverse[t];
-			e(r, n);
-		}).then((e) => this.mapObservation(e));
+	start(fn) {
+		const sfn = (s, value) => {
+			const t = this.inverse[s];
+			fn(t, value);
+		};
+		return this.origin.start(sfn).then((obs) => this.mapObservation(obs));
 	}
 };
-function t(e) {
-	return Object.entries(e).map(([e, t]) => [e, t]);
+function mapEntries(mapping) {
+	return Object.entries(mapping).map(([k, v]) => [k, v]);
 }
 //#endregion
 //#region ../html/dist/html.js
-var n = class extends CustomEvent {
-	constructor(e, t) {
-		super(e, {
-			bubbles: !0,
-			cancelable: !0,
-			composed: !0,
-			detail: t
+var SignalEvent = class extends CustomEvent {
+	constructor(eventType, signal) {
+		super(eventType, {
+			bubbles: true,
+			cancelable: true,
+			composed: true,
+			detail: signal
 		});
 	}
 };
-function r(e, ...t) {
-	let n = { execute() {
-		e(...t.map((e) => e instanceof o ? e.open(n) : e)), t.forEach((e) => e instanceof o && e.close());
+function createEffect(fn, ...scope) {
+	const effect = { execute() {
+		console.log("Scope: ", scope);
+		fn(...scope.map((cx) => cx.open(effect)));
+		scope.forEach((cx) => cx.close());
 	} };
-	n.execute();
+	console.log("▶️ Executing created effect:", scope, fn);
+	effect.execute();
 }
-var i = class e {
+var Scheduler = class Scheduler {
 	constructor() {
-		this.signals = /* @__PURE__ */ new WeakMap(), this.scheduled = /* @__PURE__ */ new WeakSet();
+		this.signals = /* @__PURE__ */ new WeakMap();
+		this.scheduled = /* @__PURE__ */ new WeakSet();
 	}
 	static {
-		this.scheduler = new e();
+		this.scheduler = new Scheduler();
 	}
-	subscribe(e, t, n) {
-		let r = this.signals.get(e);
-		r || (r = /* @__PURE__ */ new Map(), this.signals.set(e, r));
-		let i = r.get(t);
-		i || (i = /* @__PURE__ */ new Set(), r.set(t, i)), i.add(n);
+	subscribe(scope, key, effect) {
+		let signals = this.signals.get(scope);
+		if (!signals) {
+			signals = /* @__PURE__ */ new Map();
+			this.signals.set(scope, signals);
+		}
+		let signal = signals.get(key);
+		if (!signal) {
+			signal = /* @__PURE__ */ new Set();
+			signals.set(key, signal);
+		}
+		signal.add(effect);
 	}
-	scheduleEffects(e, t) {
-		let n = this.signals.get(e);
-		if (!n) return;
-		let r = n.get(t);
-		if (r) for (let e of r) this.scheduled.has(e) || (this.scheduled.add(e), setTimeout(() => {
-			this.scheduled.delete(e), e.execute();
-		}));
+	scheduleEffects(scope, key) {
+		const signals = this.signals.get(scope);
+		if (!signals) return;
+		const signal = signals.get(key);
+		if (signal) {
+			for (const effect of signal) if (!this.scheduled.has(effect)) {
+				this.scheduled.add(effect);
+				setTimeout(() => {
+					this.scheduled.delete(effect);
+					effect.execute();
+				});
+			}
+		}
 	}
-}, a = class {
+};
+var EffectsManager = class {
 	constructor() {
-		this.running = [], this.eventType = "un-effect:change";
+		this.running = [];
+		this.eventType = "un-effect:change";
 	}
 	isRunning() {
 		return this.running.length > 0;
 	}
-	push(e) {
-		this.running.push(e);
+	push(effect) {
+		console.log("Starting manager for effect", effect);
+		this.running.push(effect);
 	}
 	pop() {
+		console.log("Stopping manager for effect");
 		this.running.pop();
 	}
 	current() {
-		let e = this.running.length;
-		return e ? this.running[e - 1] : void 0;
+		const len = this.running.length;
+		return len ? this.running[len - 1] : void 0;
 	}
-	subscribe(e, t) {
-		let n = this.current();
-		n && i.scheduler.subscribe(t, e, n);
-	}
-	runEffects(e, t) {
-		if (i.scheduler.scheduleEffects(t, e), this.host) {
-			let r = new n(this.eventType, {
-				property: e,
-				value: t[e]
-			});
-			this.host.dispatchEvent(r);
+	subscribe(key, scope) {
+		const current = this.current();
+		console.log("Subscribing to signal", key, scope, !!current);
+		if (current) {
+			console.log("Subscribing to signal", key, scope);
+			Scheduler.scheduler.subscribe(scope, key, current);
 		}
 	}
-	setHost(e, t) {
-		this.host = e, t && (this.eventType = t);
+	runEffects(key, scope) {
+		console.log("Running effects for signal", key, scope);
+		Scheduler.scheduler.scheduleEffects(scope, key);
+		if (this.host) {
+			const evt = new SignalEvent(this.eventType, {
+				property: key,
+				value: scope[key]
+			});
+			this.host.dispatchEvent(evt);
+		}
 	}
-}, o = class {
+	setHost(host, eventType) {
+		this.host = host;
+		if (eventType) this.eventType = eventType;
+	}
+};
+var Context = class {
 	static {
 		this.CHANGE_EVENT_TYPE = "un-context:change";
 	}
-	constructor(e, t) {
-		t ? (this.manager = t.manager, this.object = t.object, this.proxy = t.proxy, this.update(e)) : (this.manager = new a(), this.object = e, this.proxy = s(this.object, this.manager));
+	constructor(init, adoptedContext) {
+		if (adoptedContext) {
+			this.manager = adoptedContext.manager;
+			this.object = adoptedContext.object;
+			this.proxy = adoptedContext.proxy;
+			this.update(init);
+		} else {
+			this.manager = new EffectsManager();
+			this.object = init;
+			this.proxy = createContext(this.object, this.manager);
+		}
 	}
-	get(e) {
-		return this.proxy[e];
+	get(prop) {
+		return this.proxy[prop];
 	}
-	set(e, t) {
-		this.proxy[e] = t;
+	set(prop, value) {
+		console.log("Setting Context", prop, value, this.proxy);
+		this.proxy[prop] = value;
 	}
 	toObject() {
-		return this.object;
+		return this.proxy;
 	}
-	update(e) {
-		Object.assign(this.proxy, e);
+	update(next) {
+		Object.assign(this.proxy, next);
 	}
-	apply(e) {
-		this.update(e(this.proxy));
+	apply(mapFn) {
+		this.update(mapFn(this.proxy));
 	}
-	createEffect(e) {
-		r(e, this);
+	createEffect(fn) {
+		createEffect(fn, this);
 	}
-	setHost(e, t) {
-		this.manager.setHost(e, t);
+	setHost(host, eventType) {
+		this.manager.setHost(host, eventType);
 	}
-	open(e) {
-		return this.manager.push(e), this.proxy;
+	open(effect) {
+		this.manager.push(effect);
+		return this.proxy;
 	}
 	close() {
 		this.manager.pop();
 	}
 };
-function s(e, t) {
-	return new Proxy(e, {
-		get: (e, n, r) => {
-			let i = Reflect.get(e, n, r);
-			return t.isRunning() && c(i) && t.subscribe(n, e), i;
+function createContext(root, manager) {
+	return new Proxy(root, {
+		get: (subject, prop, receiver) => {
+			const value = Reflect.get(subject, prop, receiver);
+			console.log("Got value of signal", prop, value, manager.isRunning());
+			if (manager.isRunning() && isObservable(value)) manager.subscribe(prop, subject);
+			return value;
 		},
-		set: (e, n, r, i) => {
-			let a = Reflect.set(e, n, r, i);
-			return a && c(r) && t.runEffects(n, e), a;
+		set: (subject, prop, newValue, receiver) => {
+			const didSet = Reflect.set(subject, prop, newValue, receiver);
+			console.log("Set value of signal", prop, newValue, didSet);
+			if (didSet && isObservable(newValue)) manager.runEffects(prop, subject);
+			return didSet;
 		}
 	});
 }
-function c(e) {
-	switch (typeof e) {
+function isObservable(value) {
+	switch (typeof value) {
 		case "object":
 		case "number":
 		case "string":
 		case "symbol":
 		case "boolean":
-		case "undefined": return !0;
-		default: return !1;
+		case "undefined": return true;
+		default: return false;
 	}
 }
-function l(e) {
-	return e.map((e) => e === void 0 ? null : new o(e));
+function createScope(tuple) {
+	return tuple.map((a) => typeof a === "undefined" ? null : new Context(a));
 }
-function u(e, t) {
-	return Object.assign(e, { render: t }), e;
+function createTemplate(fragment, render) {
+	Object.assign(fragment, { render });
+	return fragment;
 }
-function d(e, t, ...n) {
-	let r = e.cloneNode(!0);
-	return Array.from(t.entries()).forEach(([e, t]) => {
-		let i = r.querySelector(`[data-${e}]`);
-		i && t.forEach((e) => e(i, r, ...n));
-	}), r;
+function renderForEffects(original, effectors, ...scope) {
+	const fragment = original.cloneNode(true);
+	console.log("🎞️ Rendering for effects:", fragment);
+	Array.from(effectors.entries()).forEach(([label, mutations]) => {
+		const site = fragment.querySelector(`[data-${label}]`);
+		if (site) mutations.forEach((fn) => fn(site, fragment, ...scope));
+	});
+	return fragment;
 }
-var f = class e {
+var TemplateParser = class TemplateParser {
 	static {
 		this.parser = new DOMParser();
 	}
-	constructor(e) {
-		this.docType = "text/html", this.plugins = [], e && (this.docType = e);
+	constructor(docType) {
+		this.docType = "text/html";
+		this.plugins = [];
+		if (docType) this.docType = docType;
 	}
-	use(e) {
-		this.plugins = this.plugins.concat(e);
+	use(plugin) {
+		this.plugins = this.plugins.concat(plugin);
 	}
-	parse(t, n) {
-		let r = {}, i = t.map((e, i) => {
-			if (i >= n.length) return [e];
-			let a = n[i], o = this.classifyPlace(i, t), s = this.tryReplacements(o, a);
-			if (s) {
-				let t = r[o.nodeLabel];
-				switch (t ? t.push(s) : r[o.nodeLabel] = [s], o.kind) {
-					case "attr value": return [e, `"" data-${o.nodeLabel}`];
-					case "tag content": return [e, `data-${o.nodeLabel}`];
-					case "element content": return [e, `<ins data-${o.nodeLabel}></ins>`];
+	parse(template, params) {
+		const postProcess = {};
+		const stringToParse = template.map((s, i) => {
+			if (i >= params.length) return [s];
+			const param = params[i];
+			const place = this.classifyPlace(i, template);
+			const mutation = this.tryReplacements(place, param);
+			if (mutation) {
+				const post = postProcess[place.nodeLabel];
+				if (post) post.push(mutation);
+				else postProcess[place.nodeLabel] = [mutation];
+				switch (place.kind) {
+					case "attr value": return [s, `"" data-${place.nodeLabel}`];
+					case "tag content": return [s, `data-${place.nodeLabel}`];
+					case "element content": return [s, `<ins data-${place.nodeLabel}></ins>`];
 				}
-			} else throw console.error("No match for template parameter", o, a), `Failed to render template parameter ${i} around ${e}`;
-			return [e];
-		}).flat().join(""), a = e.parser.parseFromString(i, this.docType), o = a.head.childElementCount ? a.head.children : a.body.children, s = new DocumentFragment();
-		s.replaceChildren(...o);
-		let c = /* @__PURE__ */ new Map();
-		for (let e in r) {
-			let t = s.querySelector(`[data-${e}]`);
-			t && r[e].forEach((n) => {
-				let r = n.apply(t, s);
-				if (r) {
-					let t = c.get(e);
-					t ? t.push(r) : c.set(e, [r]);
+			} else {
+				console.error("No match for template parameter", place, param);
+				throw `Failed to render template parameter ${i} around ${s}`;
+			}
+			return [s];
+		}).flat().join("");
+		const doc = TemplateParser.parser.parseFromString(stringToParse, this.docType);
+		const collection = doc.head.childElementCount ? doc.head.children : doc.body.children;
+		const fragment = new DocumentFragment();
+		fragment.replaceChildren(...collection);
+		const effectors = /* @__PURE__ */ new Map();
+		for (const label in postProcess) {
+			const site = fragment.querySelector(`[data-${label}]`);
+			if (site) postProcess[label].forEach((m) => {
+				const effector = m.apply(site, fragment);
+				if (effector) {
+					let list = effectors.get(label);
+					if (list) list.push(effector);
+					else effectors.set(label, [effector]);
 				}
 			});
 		}
-		return u(s, (...e) => d(s, c, ...e));
+		return createTemplate(fragment, (...scope) => renderForEffects(fragment, effectors, ...scope));
 	}
 	static {
 		this.OPEN_RE = /<([a-zA-z][$a-zA-Z0-9.-]*)\s+[^>]*$/;
@@ -212,137 +276,163 @@ var f = class e {
 	static {
 		this.CLOSE_RE = /[/]?>[^<]*$/;
 	}
-	classifyPlace(t, n) {
-		let r = null;
-		for (let i = t; i >= 0 && !(n[i].match(e.CLOSE_RE) || (r = n[i].match(e.OPEN_RE), r) || !n[i].match(e.IN_TAG_RE)); i--);
-		if (r) {
-			let i = n[t].match(e.ATTR_RE);
-			return i ? {
+	classifyPlace(i, template) {
+		let tagOpen = null;
+		for (let prev = i; prev >= 0; prev--) {
+			if (template[prev].match(TemplateParser.CLOSE_RE)) break;
+			tagOpen = template[prev].match(TemplateParser.OPEN_RE);
+			if (tagOpen) break;
+			if (!template[prev].match(TemplateParser.IN_TAG_RE)) break;
+		}
+		if (tagOpen) {
+			const tagAttr = template[i].match(TemplateParser.ATTR_RE);
+			if (tagAttr) return {
 				kind: "attr value",
-				nodeLabel: `node${t}`,
-				tagName: r[1],
-				attrName: i[1]
-			} : {
+				nodeLabel: `node${i}`,
+				tagName: tagOpen[1],
+				attrName: tagAttr[1]
+			};
+			return {
 				kind: "tag content",
-				nodeLabel: `node${t}`,
-				tagName: r[1]
+				nodeLabel: `node${i}`,
+				tagName: tagOpen[1]
 			};
 		}
 		return {
 			kind: "element content",
-			nodeLabel: `node${t}`
+			nodeLabel: `node${i}`
 		};
 	}
-	tryReplacements(e, t) {
-		let n = this.plugins;
-		for (let r = 0; r < n.length; r++) {
-			let i = n[r];
-			if (e.kind === i.place && p(t, i)) return i.mutator(e, t);
+	tryReplacements(place, param) {
+		const replacements = this.plugins;
+		for (let i = 0; i < replacements.length; i++) {
+			const sub = replacements[i];
+			if (place.kind === sub.place && checkType(param, sub)) return sub.mutator(place, param);
 		}
 	}
 };
-function p(e, t) {
-	return typeof t.types == "function" ? t.types(e, t) : t.types.includes(typeof e);
+function checkType(param, sub) {
+	if (typeof sub.types === "function") return sub.types(param, sub);
+	return sub.types.includes(typeof param);
 }
-var m = class {
-	constructor(e) {
-		this.place = e;
+var Mutation = class {
+	constructor(place) {
+		this.place = place;
 	}
-	apply(e, t) {
+	apply(_site, _fragment) {
 		throw "abstract method 'apply' called";
 	}
-}, h = class extends m {
-	constructor(e, t) {
-		super(e), this.content = t;
+};
+var ElementContentMutation = class extends Mutation {
+	constructor(place, content) {
+		super(place);
+		this.content = content;
 	}
-	apply(e, t) {
-		(e.parentNode || t).replaceChild(this.content, e);
+	apply(site, fragment) {
+		(site.parentNode || fragment).replaceChild(this.content, site);
 	}
-}, g = class extends m {
-	constructor(e, t) {
-		super(e), this.text = t, this.name = e.attrName;
+};
+var AttributeValueMutation = class extends Mutation {
+	constructor(place, text) {
+		super(place);
+		this.text = text;
+		this.name = place.attrName;
 	}
-	apply(e) {
-		e.setAttribute(this.name, this.text);
+	apply(site) {
+		site.setAttribute(this.name, this.text);
 	}
-}, _ = class extends m {
-	constructor(e, t) {
-		super(e), this.fn = t;
+};
+var ElementContentEffect = class extends Mutation {
+	constructor(place, fn) {
+		super(place);
+		this.fn = fn;
 	}
-	apply(e, t) {
-		let n = this.place.nodeLabel;
-		return (e, t, ...i) => {
-			let a = new Comment(` <<< ${n} `), o = new Comment(` >>> ${n} `), s = new DocumentFragment();
-			s.replaceChildren(a, o), (e.parentNode || t).replaceChild(s, e), r((...e) => {
-				v(this.fn(...e), a, o);
-			}, ...i);
+	apply(_site, _fragment) {
+		const key = this.place.nodeLabel;
+		return (site, fragment, ...scope) => {
+			const start = new Comment(` <<< ${key} `);
+			const end = new Comment(` >>> ${key} `);
+			const placeholder = new DocumentFragment();
+			placeholder.replaceChildren(start, end);
+			(site.parentNode || fragment).replaceChild(placeholder, site);
+			createEffect((...args) => {
+				replaceElementContent(this.fn(...args), start, end);
+			}, ...scope);
 		};
 	}
 };
-function v(e, t, n) {
-	let r = t.parentNode;
-	if (!r) throw Error("No parent for placeholder");
-	let i = (e) => {
-		if (Array.isArray(e)) {
-			let t = new DocumentFragment(), n = e.map(i);
-			return t.replaceChildren(...n), t;
-		} else if (e instanceof Node) return e;
-		else return new Text(e?.toString() || "");
-	}, a = i(e);
-	console.log("📸 Rendered for view:", e, a);
-	let o = t.nextSibling;
-	for (; o && o !== n;) {
-		let e = o;
-		o = o.nextSibling, r.removeChild(e);
+function replaceElementContent(value, start, end) {
+	const parent = start.parentNode;
+	if (!parent) throw new Error("No parent for placeholder");
+	const valueToNode = (v) => {
+		if (Array.isArray(v)) {
+			const frag = new DocumentFragment();
+			const nodes = v.map(valueToNode);
+			frag.replaceChildren(...nodes);
+			return frag;
+		} else if (v instanceof Node) return v;
+		else return new Text(v?.toString() || "");
+	};
+	const node = valueToNode(value);
+	console.log("📸 Rendered for view:", value, node);
+	let p = start.nextSibling;
+	while (p && p !== end) {
+		const old = p;
+		p = p.nextSibling;
+		parent.removeChild(old);
 	}
-	a && r.insertBefore(a, n);
+	if (node) parent.insertBefore(node, end);
 }
-var y = class extends m {
-	constructor(e, t) {
-		super(e), this.fn = t, this.name = e.attrName;
+var AttributeValueEffect = class extends Mutation {
+	constructor(place, fn) {
+		super(place);
+		this.fn = fn;
+		this.name = place.attrName;
 	}
-	apply(e, t) {
-		return (e, t, ...n) => r((...t) => {
-			b(this.fn(...t), e, this.name);
-		}, ...n);
+	apply(_site, _fragment) {
+		return (site, _, ...scope) => createEffect((...args) => {
+			replaceAttributeValue(this.fn(...args), site, this.name);
+		}, ...scope);
 	}
 };
-function b(e, t, n) {
-	let r = n.match(/^([.$])(.+)$/);
-	if (r) {
-		let [n, i, a] = r;
-		switch (i) {
+function replaceAttributeValue(value, site, attrName) {
+	const special = attrName.match(/^([.$])(.+)$/);
+	if (special) {
+		const [_, pre, name] = special;
+		switch (pre) {
 			case ".":
-				t[a] = e;
+				site[name] = value;
 				break;
 			case "$":
-				"viewModel" in t && t.viewModel instanceof o && t.viewModel.set(a, e);
+				if ("viewModel" in site && site.viewModel instanceof Context) site.viewModel.set(name, value);
 				break;
 		}
-	} else switch (typeof e) {
+	} else switch (typeof value) {
 		case "string":
-			t.setAttribute(n, e);
+			site.setAttribute(attrName, value);
 			break;
 		case "undefined":
 		case "object":
 		case "boolean":
-			e ? t.setAttribute(n, n) : t.removeAttribute(n);
+			if (value) site.setAttribute(attrName, attrName);
+			else site.removeAttribute(attrName);
 			break;
-		default: t.setAttribute(n, e?.toString());
+		default: site.setAttribute(attrName, value?.toString());
 	}
 }
-var x = class extends m {
-	constructor(e, t) {
-		super(e), this.fn = t;
+var TagReferenceEffect = class extends Mutation {
+	constructor(place, fn) {
+		super(place);
+		this.fn = fn;
 	}
-	apply(e, t) {
-		return (e, t, ...n) => r((...t) => {
-			let n = this.fn(...t);
-			typeof n == "function" && n(e);
-		}, ...n);
+	apply(_site, _fragment) {
+		return (site, _, ...scope) => createEffect((...args) => {
+			const value = this.fn(...args);
+			if (typeof value === "function") value(site);
+		}, ...scope);
 	}
 };
-new f().use([
+new TemplateParser().use([
 	{
 		place: "element content",
 		types: [
@@ -352,7 +442,7 @@ new f().use([
 			"symbol",
 			"boolean"
 		],
-		mutator: (e, t) => new h(e, new Text(t?.toString() || ""))
+		mutator: (place, value) => new ElementContentMutation(place, new Text(value?.toString() || ""))
 	},
 	{
 		place: "attr value",
@@ -362,147 +452,170 @@ new f().use([
 			"bigint",
 			"symbol"
 		],
-		mutator: (e, t) => new g(e, t?.toString() || "")
+		mutator: (place, value) => new AttributeValueMutation(place, value?.toString() || "")
 	},
 	{
 		place: "element content",
-		types: (e) => e instanceof Node,
-		mutator: (e, t) => new h(e, t)
+		types: (param) => param instanceof Node,
+		mutator: (place, value) => new ElementContentMutation(place, value)
+	},
+	{
+		place: "element content",
+		types: (param) => Array.isArray(param),
+		mutator: (place, value) => {
+			const fragment = new DocumentFragment();
+			const nodes = value.map((v) => v instanceof Node ? v : new Text(v?.toString() || ""));
+			fragment.append(...nodes);
+			return new ElementContentMutation(place, fragment);
+		}
 	},
 	{
 		place: "element content",
 		types: ["function"],
-		mutator: (e, t) => new _(e, t)
+		mutator: (place, param) => new ElementContentEffect(place, param)
 	},
 	{
 		place: "attr value",
 		types: ["function"],
-		mutator: (e, t) => new y(e, t)
+		mutator: (place, param) => new AttributeValueEffect(place, param)
 	},
 	{
 		place: "tag content",
 		types: ["function"],
-		mutator: (e, t) => new x(e, t)
+		mutator: (place, param) => new TagReferenceEffect(place, param)
 	}
 ]);
 //#endregion
 //#region src/view.ts
-function S(e) {
-	return e;
+function createView(html) {
+	return html;
 }
-function C(e) {
-	return e;
+function createView2(html) {
+	return html;
 }
-function w(e) {
-	return e;
+function createViewN(html) {
+	return html;
 }
-function T(...e) {
-	let t = e.map((e) => e.length).reduce((e, t) => Math.max(e, t), 0);
-	return Array.from(Array(t).keys()).map((t) => e.map((e) => e[t]));
+function zipArgs(...lists) {
+	const maxLength = lists.map((arr) => arr.length).reduce((a, b) => Math.max(a, b), 0);
+	return Array.from(Array(maxLength).keys()).map((i) => lists.map((arr) => arr[i]));
 }
-function E(e, t) {
-	return O(e, t);
+function map(view, list) {
+	return mapN(view, list);
 }
-function D(e, t, n) {
-	return O(e, t, n);
+function map2(view, ulist, vlist) {
+	return mapN(view, ulist, vlist);
 }
-function O(e, ...t) {
-	return t.length ? T(...t).map((t) => j(e, ...t)).flat() : "";
+function mapN(view, ...lists) {
+	if (!lists.length) return "";
+	return zipArgs(...lists).map((tuple) => applyN(view, ...tuple)).flat();
 }
-function k(e, t) {
-	return t === void 0 ? "" : j(e, t);
+function apply(view, t) {
+	return typeof t === "undefined" ? "" : applyN(view, t);
 }
-function A(e, t, n) {
-	return t === void 0 || n === void 0 ? "" : j(e, t, n);
+function apply2(view, u, v) {
+	return typeof u === "undefined" || typeof v === "undefined" ? "" : applyN(view, u, v);
 }
-function j(e, ...t) {
-	if (!t) return "";
-	let n = l(t);
-	return e.render(...n);
+function applyN(view, ...tuple) {
+	if (!tuple) return "";
+	const scope = createScope(tuple);
+	return view.render(...scope);
 }
-var M = {
-	apply: k,
-	apply2: A,
-	applyN: j,
-	map: E,
-	map2: D,
-	mapN: O
-}, N = class extends o {
-	constructor(e, t) {
-		super(e, t);
+var View = {
+	apply,
+	apply2,
+	applyN,
+	map,
+	map2,
+	mapN
+};
+//#endregion
+//#region src/viewModel.ts
+var ViewModel = class extends Context {
+	constructor(init, adoptedContext) {
+		super(init, adoptedContext);
 	}
 	get $() {
 		return this.toObject();
 	}
-	with(t, ...n) {
-		let r = Object.fromEntries(n.map((e) => [e, e]));
-		return this.merge(new e(t, r));
+	with(source, ...keys) {
+		const mapping = Object.fromEntries(keys.map((k) => [k, k]));
+		return this.merge(new MappedSource(source, mapping));
 	}
-	withCalculated(t, n) {
-		return this.merge(new e(t, n));
+	withCalculated(source, mapping) {
+		return this.merge(new MappedSource(source, mapping));
 	}
-	withRenamed(t, n) {
-		return this.merge(new e(t, n));
+	withRenamed(source, renaming) {
+		return this.merge(new MappedSource(source, renaming));
 	}
-	merge(e) {
-		if (e) {
-			let t = e.start((e, n) => {
-				console.log("🪄 Merging effect", e, n, t), this.set(e, n);
-			}).then((e) => {
-				console.log("👀 ViewModel source observed:", e, t), Object.keys(e).forEach((t) => this.set(t, e[t]));
+	merge(source) {
+		if (source) {
+			const entries = source.start((name, value) => {
+				console.log("🪄 Merging effect", name, value, entries);
+				this.set(name, value);
+			}).then((firstObservation) => {
+				console.log("👀 ViewModel source observed:", firstObservation, entries);
+				Object.keys(firstObservation).forEach((k) => this.set(k, firstObservation[k]));
 			});
 		}
 		return this;
 	}
-	render(e) {
-		return console.log("📷 Rendering view, context=", this.$), e.render(this.$);
+	render(template) {
+		console.log("📷 Rendering view, context=", this);
+		return template.render(this);
 	}
 };
-function P(e) {
-	return e === void 0 ? new N({}) : new N(e);
+function createViewModel(init) {
+	if (init === void 0) return new ViewModel({});
+	else return new ViewModel(init);
 }
 //#endregion
 //#region src/fromAttributes.ts
-function F(e) {
-	return new I(e);
+function fromAttributes(subject) {
+	return new FromAttributes(subject);
 }
-var I = class {
-	constructor(e) {
-		this.subject = e;
+var FromAttributes = class {
+	constructor(subject) {
+		this.subject = subject;
 	}
-	start(e) {
-		let t = new MutationObserver(r), n = this.subject;
-		return t.observe(n, { attributes: !0 }), new Promise((e, t) => {
-			let r = {}, i = n.attributes;
-			for (let e of i) r[e.name] = e.value;
-			e(r);
+	start(fn) {
+		const observer = new MutationObserver(effectChanges);
+		const element = this.subject;
+		observer.observe(element, { attributes: true });
+		return new Promise((resolve, _reject) => {
+			const init = {};
+			const attributes = element.attributes;
+			for (const attr of attributes) init[attr.name] = attr.value;
+			resolve(init);
 		});
-		function r(t) {
-			t.forEach((t) => {
-				let r = t.attributeName;
-				e(r, n.getAttribute(r));
+		function effectChanges(mutations) {
+			mutations.forEach((mut) => {
+				const name = mut.attributeName;
+				fn(name, element.getAttribute(name));
 			});
 		}
 	}
 };
 //#endregion
 //#region src/fromInputs.ts
-function L(e) {
-	return new R(e);
+function fromInputs(subject) {
+	return new FromInputs(subject);
 }
-var R = class {
-	constructor(e) {
-		this.subject = e;
+var FromInputs = class {
+	constructor(subject) {
+		this.subject = subject;
 	}
-	start(e) {
-		return this.subject.addEventListener("change", (t) => {
-			let n = t.target;
-			if (n) {
-				let t = n.name, r = n.value;
-				e(t, r);
+	start(fn) {
+		this.subject.addEventListener("change", (event) => {
+			const input = event.target;
+			if (input) {
+				const name = input.name;
+				const value = input.value;
+				fn(name, value);
 			}
-		}), new Promise((e, t) => {});
+		});
+		return new Promise((_resolve, _reject) => {});
 	}
 };
 //#endregion
-export { e as MappedSource, M as View, N as ViewModel, S as createView, C as createView2, P as createViewModel, w as createViewN, F as fromAttributes, L as fromInputs };
+export { MappedSource, View, ViewModel, createView, createView2, createViewModel, createViewN, fromAttributes, fromInputs };
