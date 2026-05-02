@@ -27,7 +27,6 @@ export class Context<T extends object> {
   }
 
   set(prop: keyof T, value: T[typeof prop]) {
-    console.log("Setting Context", prop, value, this.proxy);
     this.proxy[prop] = value;
   }
 
@@ -68,7 +67,6 @@ export function createContext<T extends object>(
   let proxy = new Proxy(root, {
     get: (subject: T, prop: string, receiver) => {
       const value = Reflect.get(subject, prop, receiver);
-      console.log("Got value of signal", prop, value, manager.isRunning());
       if (manager.isRunning() && isObservable(value)) {
         manager.subscribe(prop as keyof T, subject);
       }
@@ -81,8 +79,6 @@ export function createContext<T extends object>(
         newValue,
         receiver
       );
-      console.log("Set value of signal", prop, newValue, didSet);
-
       if (didSet && isObservable(newValue)) {
         manager.runEffects(prop as keyof T, subject);
       }

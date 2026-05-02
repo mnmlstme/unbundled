@@ -1,6 +1,6 @@
 {
   "name": "@unbndl/view",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Unbundled library for working with views expressed as HTML custom elements",
   "main": "./dist/view.js",
   "types": "./dist/view.d.ts",

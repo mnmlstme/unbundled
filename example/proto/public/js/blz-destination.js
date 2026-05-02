@@ -19,11 +19,8 @@ export class BlzDestinationElement extends HTMLElement {
             <slot>Unnamed Destination</slot>
           </a>
         </h2>
-        <p>${($) => {
-            console.log("$=", $);
-            return nightsBetween($.startDate, $.endDate)
-        }
-        } nights</p>
+        <p>${($) => nightsBetween($.startDate, $.endDate)}
+        nights</p>
       </header>
       <slot name="highlights"></slot>
     </section>
@@ -72,7 +69,6 @@ export class BlzDestinationElement extends HTMLElement {
   ];
 
   attributeChangedCallback(name, _, newValue) {
-    console.log("ACC", name, newValue);
     switch (name) {
       case "href":
         this.viewModel.set("link", newValue);
@@ -91,7 +87,6 @@ export class BlzDestinationElement extends HTMLElement {
 }
 
 function nightsBetween(startDate, endDate) {
-  console.log("Start/endDate:", startDate, endDate);
   const start = new Date(startDate);
   const end = new Date(endDate);
   return Math.floor(

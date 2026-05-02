@@ -136,21 +136,9 @@ export class ElementContentEffect<
       placeholder.replaceChildren(start, end);
       const parent = site.parentNode || fragment;
       parent.replaceChild(placeholder, site);
-      // console.log(
-      //   "🅿️ Placeholder inserted:",
-      //   start,
-      //   end,
-      //   parent
-      // );
       createEffect<TT>(
         (...args: TT) => {
           const value = this.fn(...args);
-          // console.log(
-          //   "Replacing element content",
-          //   value,
-          //   start,
-          //   end
-          // );
           replaceElementContent(
             value as TemplateValue<TT>,
             start,
@@ -187,7 +175,7 @@ function replaceElementContent<TT extends TemplateArgs>(
 
   const node = valueToNode(value);
 
-  console.log("📸 Rendered for view:", value, node);
+  // console.log("📸 Rendered for view:", value, node);
 
   let p = start.nextSibling;
   while (p && p !== end) {
@@ -212,7 +200,6 @@ export class AttributeValueEffect<
     super(place);
     this.fn = fn;
     this.name = place.attrName;
-    // console.log("Created new attribute effect", this);
   }
 
   override apply(
@@ -244,7 +231,6 @@ function replaceAttributeValue<TT extends TemplateArgs>(
     const [_, pre, name] = special;
     switch (pre) {
       case ".":
-        // console.log("Setting property", name, value);
         (site as unknown as { [name]: any })[name] = value;
         break;
       case "$":
@@ -288,7 +274,6 @@ export class TagReferenceEffect<
   ) {
     super(place);
     this.fn = fn;
-    // console.log("Created new tag effect", this);
   }
 
   override apply(

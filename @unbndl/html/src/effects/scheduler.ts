@@ -8,14 +8,13 @@ export function createEffect<TT extends EffectArgs>(
 ): void {
   const effect = {
     execute() {
-      console.log("Scope: ", scope);
       const args = scope.map((cx) => cx.open(effect)) as TT;
       fn(...args);
       scope.forEach((cx) => cx.close());
     }
   };
 
-  console.log("▶️ Executing created effect:", scope, fn);
+  // console.log("▶️ Executing created effect:", scope, fn);
   effect.execute();
 }
 
@@ -36,11 +35,6 @@ export class Scheduler {
     key: keyof T,
     effect: Effect
   ) {
-    // console.log(
-    //   `🙋🏼 Subscribe to signal '${String(key)}'`,
-    //   scope,
-    //   effect
-    // );
     let signals: Signals<T> | undefined =
       this.signals.get(scope);
     if (!signals) {
@@ -61,10 +55,6 @@ export class Scheduler {
 
     if (!signals) return;
     const signal = signals.get(key);
-    // console.log(
-    //   `Scheduling effects of signal '${String(key)}'`,
-    //   signal
-    // );
     if (signal) {
       for (const effect of signal) {
         if (!this.scheduled.has(effect)) {

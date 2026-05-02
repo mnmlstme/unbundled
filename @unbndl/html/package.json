@@ -1,6 +1,6 @@
 {
   "name": "@unbndl/html",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Unbundled library for working with HTML and custom elements",
   "main": "./dist/html.js",
   "types": "./dist/html.d.ts",

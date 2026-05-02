@@ -40,11 +40,9 @@
 	};
 	function createEffect(fn, ...scope) {
 		const effect = { execute() {
-			console.log("Scope: ", scope);
 			fn(...scope.map((cx) => cx.open(effect)));
 			scope.forEach((cx) => cx.close());
 		} };
-		console.log("▶️ Executing created effect:", scope, fn);
 		effect.execute();
 	}
 	var Scheduler = class Scheduler {
@@ -92,11 +90,9 @@
 			return this.running.length > 0;
 		}
 		push(effect) {
-			console.log("Starting manager for effect", effect);
 			this.running.push(effect);
 		}
 		pop() {
-			console.log("Stopping manager for effect");
 			this.running.pop();
 		}
 		current() {
@@ -105,14 +101,9 @@
 		}
 		subscribe(key, scope) {
 			const current = this.current();
-			console.log("Subscribing to signal", key, scope, !!current);
-			if (current) {
-				console.log("Subscribing to signal", key, scope);
-				Scheduler.scheduler.subscribe(scope, key, current);
-			}
+			if (current) Scheduler.scheduler.subscribe(scope, key, current);
 		}
 		runEffects(key, scope) {
-			console.log("Running effects for signal", key, scope);
 			Scheduler.scheduler.scheduleEffects(scope, key);
 			if (this.host) {
 				const evt = new SignalEvent(this.eventType, {
@@ -147,7 +138,6 @@
 			return this.proxy[prop];
 		}
 		set(prop, value) {
-			console.log("Setting Context", prop, value, this.proxy);
 			this.proxy[prop] = value;
 		}
 		toObject() {
@@ -177,13 +167,11 @@
 		return new Proxy(root, {
 			get: (subject, prop, receiver) => {
 				const value = Reflect.get(subject, prop, receiver);
-				console.log("Got value of signal", prop, value, manager.isRunning());
 				if (manager.isRunning() && isObservable(value)) manager.subscribe(prop, subject);
 				return value;
 			},
 			set: (subject, prop, newValue, receiver) => {
 				const didSet = Reflect.set(subject, prop, newValue, receiver);
-				console.log("Set value of signal", prop, newValue, didSet);
 				if (didSet && isObservable(newValue)) manager.runEffects(prop, subject);
 				return didSet;
 			}
@@ -209,7 +197,6 @@
 	}
 	function renderForEffects(original, effectors, ...scope) {
 		const fragment = original.cloneNode(true);
-		console.log("🎞️ Rendering for effects:", fragment);
 		Array.from(effectors.entries()).forEach(([label, mutations]) => {
 			const site = fragment.querySelector(`[data-${label}]`);
 			if (site) mutations.forEach((fn) => fn(site, fragment, ...scope));
@@ -378,7 +365,6 @@
 			else return new Text(v?.toString() || "");
 		};
 		const node = valueToNode(value);
-		console.log("📸 Rendered for view:", value, node);
 		let p = start.nextSibling;
 		while (p && p !== end) {
 			const old = p;
@@ -553,19 +539,14 @@
 			return this.merge(new MappedSource(source, renaming));
 		}
 		merge(source) {
-			if (source) {
-				const entries = source.start((name, value) => {
-					console.log("🪄 Merging effect", name, value, entries);
-					this.set(name, value);
-				}).then((firstObservation) => {
-					console.log("👀 ViewModel source observed:", firstObservation, entries);
-					Object.keys(firstObservation).forEach((k) => this.set(k, firstObservation[k]));
-				});
-			}
+			if (source) source.start((name, value) => {
+				this.set(name, value);
+			}).then((firstObservation) => {
+				Object.keys(firstObservation).forEach((k) => this.set(k, firstObservation[k]));
+			});
 			return this;
 		}
 		render(template) {
-			console.log("📷 Rendering view, context=", this);
 			return template.render(this);
 		}
 	};

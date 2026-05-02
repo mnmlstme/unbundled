@@ -11,18 +11,6 @@ export class BlzItineraryElement extends HTMLElement {
     }
   });
 
-  static {
-    this.viewModel = createViewModel({
-      itinerary: {
-        destinations: []
-      }
-    });
-    console.log(
-      "BlzItineraryElement constructor, viewModel=",
-      this.viewModel
-    );
-  }
-
   constructor() {
     super();
     shadow(this)
@@ -50,7 +38,6 @@ export class BlzItineraryElement extends HTMLElement {
               endDate: endDate.toISOString().substr(0, 10)
             })
           };
-          console.log("Setting itinerary:", newItinerary);
           this.viewModel.set("itinerary", newItinerary);
           return;
       }

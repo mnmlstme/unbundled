@@ -46,20 +46,9 @@ export class ViewModel<
     if (source) {
       const entries = source
         .start((name: keyof S, value: any) => {
-          console.log(
-            "🪄 Merging effect",
-            name,
-            value,
-            entries
-          );
           this.set(name, value);
         })
         .then((firstObservation: Partial<S>) => {
-          console.log(
-            "👀 ViewModel source observed:",
-            firstObservation,
-            entries
-          );
           const keys = Object.keys(firstObservation) as Array<
             keyof S
           >;
@@ -73,7 +62,7 @@ export class ViewModel<
   }
 
   render(template: Template<[T]>): DocumentFragment {
-    console.log("📷 Rendering view, context=", this);
+    // console.log("📷 Rendering view, context=", this);
     return template.render(this as Context<T>);
   }
 }
