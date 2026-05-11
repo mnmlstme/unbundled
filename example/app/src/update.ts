@@ -1,4 +1,5 @@
-import { Message, Auth } from "@unbndl/modules";
+import { Message } from "@unbndl/service";
+import { Auth } from "@unbndl/auth";
 import { Model, TourIndex } from "./model";
 import { Msg } from "./message";
 import { Tour, TourBrief, Traveler } from "server/models";

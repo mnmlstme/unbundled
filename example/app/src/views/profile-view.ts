@@ -2,15 +2,21 @@ import {
   css,
   define,
   html,
+  shadow
+} from "@unbndl/html";
+import {
   View,
-  Store,
   createView,
   createViewModel,
   fromAttributes,
-  fromAuth,
-  fromStore,
-  shadow
-} from "@unbndl/modules";
+} from "@unbndl/view";
+import {
+  fromAuth
+} from "@unbndl/auth";
+import {
+  Store,
+  fromStore
+} from "@unbndl/store";
 import { Model } from "../model";
 import { Msg } from "../message";
 import reset from "../styles/reset.css.ts";

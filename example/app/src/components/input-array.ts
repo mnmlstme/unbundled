@@ -1,12 +1,14 @@
 import {
   css,
   html,
-  shadow,
+  shadow
+} from "@unbndl/html";
+import {
   fromAttributes,
   View,
   createView,
   createViewModel
-} from "@un-bundled/modules";
+} from "@unbndl/view";
 
 interface InputArrayAttributes {
   name?: string;

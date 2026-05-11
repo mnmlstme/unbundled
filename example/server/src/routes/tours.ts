@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { Destination, Tour } from "../models";
-import tours from "../services/tour-svc";
+import tours from "../services/tour-svc.ts";
 
 const router = express.Router();
 

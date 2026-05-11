@@ -1,12 +1,16 @@
 import {
-  Auth,
   css,
-  fromAuth,
   html,
   shadow,
+} from "@unbndl/html";
+import {
+  Auth,
+  fromAuth
+} from "@unbndl/auth";
+import {
   createView,
   createViewModel
-} from "@unbndl/modules";
+} from "@unbndl/view";
 import headings from "../styles/headings.css";
 import reset from "../styles/reset.css";
 

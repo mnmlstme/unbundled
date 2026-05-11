@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "src/index.ts",
+  "type": "module",
   "exports": {
     "./models": {
       "import": "./src/models/index.ts"
@@ -14,7 +15,7 @@
     "start": "npm run build && npm run start:node",
     "start:node": "node dist/index.js",
     "start:app": "cross-env STATIC=../app/dist npm run start",
-    "start:proto": "cross-env STATIC=../proto/dist npm run start",
+    "start:proto": "cross-env STATIC=../proto/public npm run start",
     "check": "tsc --noEmit"
   },
   "keywords": [

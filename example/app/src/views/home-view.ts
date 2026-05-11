@@ -1,13 +1,17 @@
 import {
-  Store,
+  html,
+  shadow
+} from "@unbndl/html";
+import {
   View,
   createView,
   createViewModel,
   fromAttributes,
-  fromStore,
-  html,
-  shadow
-} from "@unbndl/modules";
+} from "@unbndl/view";
+import {
+  Store,
+  fromStore
+} from "@unbndl/store";
 import { TourIndex, Model } from "../model";
 import { Msg } from "../message";
 import { TourBrief } from "server/models";

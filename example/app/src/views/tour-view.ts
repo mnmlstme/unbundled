@@ -1,16 +1,7 @@
-import {
-  Store,
-  View,
-  createView,
-  createView2,
-  createViewModel,
-  css,
-  define,
-  fromAttributes,
-  fromStore,
-  html,
-  shadow
-} from "@unbndl/modules";
+import { css, define, html, shadow } from "@unbndl/html";
+import {  View, createView, createView2, createViewModel, fromAttributes } from "@unbndl/view";
+import { Store, fromStore } from "@unbndl/store";
+
 import { Model } from "../model";
 import { Msg } from "../message";
 import {

@@ -1,5 +1,5 @@
 //#region \0rolldown/runtime.js
-var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescriptor, r = Object.getOwnPropertyNames, i = Object.getPrototypeOf, a = Object.prototype.hasOwnProperty, o = (e, t) => () => (t || e((t = { exports: {} }).exports, t), t.exports), s = (e, n) => {
+var e = Object.create, t = Object.defineProperty, n = Object.getOwnPropertyDescriptor, r = Object.getOwnPropertyNames, i = Object.getPrototypeOf, a = Object.prototype.hasOwnProperty, o = (e, t) => () => (t || (e((t = { exports: {} }).exports, t), e = null), t.exports), s = (e, n) => {
 	let r = {};
 	for (var i in e) t(r, i, {
 		get: e[i],
@@ -54,7 +54,7 @@ var h = m(), te = class extends CustomEvent {
 };
 function g(e, ...t) {
 	let n = { execute() {
-		e(...t.map((e) => e instanceof y ? e.open(n) : e)), t.forEach((e) => e instanceof y && e.close());
+		e(...t.map((e) => e.open(n))), t.forEach((e) => e.close());
 	} };
 	n.execute();
 }
@@ -126,7 +126,7 @@ var _ = class e {
 		this.proxy[e] = t;
 	}
 	toObject() {
-		return this.object;
+		return this.proxy;
 	}
 	update(e) {
 		Object.assign(this.proxy, e);
@@ -277,21 +277,21 @@ var D = class {
 	apply(e, t) {
 		throw "abstract method 'apply' called";
 	}
-}, ne = class extends D {
+}, O = class extends D {
 	constructor(e, t) {
 		super(e), this.content = t;
 	}
 	apply(e, t) {
 		(e.parentNode || t).replaceChild(this.content, e);
 	}
-}, re = class extends D {
+}, ne = class extends D {
 	constructor(e, t) {
 		super(e), this.text = t, this.name = e.attrName;
 	}
 	apply(e) {
 		e.setAttribute(this.name, this.text);
 	}
-}, ie = class extends D {
+}, re = class extends D {
 	constructor(e, t) {
 		super(e), this.fn = t;
 	}
@@ -300,12 +300,12 @@ var D = class {
 		return (e, t, ...r) => {
 			let i = new Comment(` <<< ${n} `), a = new Comment(` >>> ${n} `), o = new DocumentFragment();
 			o.replaceChildren(i, a), (e.parentNode || t).replaceChild(o, e), g((...e) => {
-				ae(this.fn(...e), i, a);
+				ie(this.fn(...e), i, a);
 			}, ...r);
 		};
 	}
 };
-function ae(e, t, n) {
+function ie(e, t, n) {
 	let r = t.parentNode;
 	if (!r) throw Error("No parent for placeholder");
 	let i = (e) => {
@@ -314,26 +314,24 @@ function ae(e, t, n) {
 			return t.replaceChildren(...n), t;
 		} else if (e instanceof Node) return e;
 		else return new Text(e?.toString() || "");
-	}, a = i(e);
-	console.log("📸 Rendered for view:", e, a);
-	let o = t.nextSibling;
+	}, a = i(e), o = t.nextSibling;
 	for (; o && o !== n;) {
 		let e = o;
 		o = o.nextSibling, r.removeChild(e);
 	}
 	a && r.insertBefore(a, n);
 }
-var oe = class extends D {
+var ae = class extends D {
 	constructor(e, t) {
 		super(e), this.fn = t, this.name = e.attrName;
 	}
 	apply(e, t) {
 		return (e, t, ...n) => g((...t) => {
-			se(this.fn(...t), e, this.name);
+			oe(this.fn(...t), e, this.name);
 		}, ...n);
 	}
 };
-function se(e, t, n) {
+function oe(e, t, n) {
 	let r = n.match(/^([.$])(.+)$/);
 	if (r) {
 		let [n, i, a] = r;
@@ -357,7 +355,7 @@ function se(e, t, n) {
 		default: t.setAttribute(n, e?.toString());
 	}
 }
-var ce = class extends D {
+var se = class extends D {
 	constructor(e, t) {
 		super(e), this.fn = t;
 	}
@@ -378,7 +376,7 @@ new T().use([
 			"symbol",
 			"boolean"
 		],
-		mutator: (e, t) => new ne(e, new Text(t?.toString() || ""))
+		mutator: (e, t) => new O(e, new Text(t?.toString() || ""))
 	},
 	{
 		place: "attr value",
@@ -388,30 +386,38 @@ new T().use([
 			"bigint",
 			"symbol"
 		],
-		mutator: (e, t) => new re(e, t?.toString() || "")
+		mutator: (e, t) => new ne(e, t?.toString() || "")
 	},
 	{
 		place: "element content",
 		types: (e) => e instanceof Node,
-		mutator: (e, t) => new ne(e, t)
+		mutator: (e, t) => new O(e, t)
+	},
+	{
+		place: "element content",
+		types: (e) => Array.isArray(e),
+		mutator: (e, t) => {
+			let n = new DocumentFragment(), r = t.map((e) => e instanceof Node ? e : new Text(e?.toString() || ""));
+			return n.append(...r), new O(e, n);
+		}
 	},
 	{
 		place: "element content",
 		types: ["function"],
-		mutator: (e, t) => new ie(e, t)
+		mutator: (e, t) => new re(e, t)
 	},
 	{
 		place: "attr value",
 		types: ["function"],
-		mutator: (e, t) => new oe(e, t)
+		mutator: (e, t) => new ae(e, t)
 	},
 	{
 		place: "tag content",
 		types: ["function"],
-		mutator: (e, t) => new ce(e, t)
+		mutator: (e, t) => new se(e, t)
 	}
 ]);
-var O = class e extends HTMLElement {
+var ce = class e extends HTMLElement {
 	static {
 		this.DISCOVERY_EVENT = "un-provider:discover";
 	}
@@ -423,11 +429,11 @@ var O = class e extends HTMLElement {
 	}
 	static {
 		document.addEventListener(e.DISCOVERY_EVENT, (e) => {
-			let [t, n] = e.detail, r = fe(t);
+			let [t, n] = e.detail, r = de(t);
 			r && n(r);
 		}), document.addEventListener(e.REGISTRY_EVENT, (e) => {
 			let [t, n] = e.detail;
-			de(t, n);
+			ue(t, n);
 		});
 	}
 	constructor(t, n) {
@@ -451,7 +457,7 @@ var O = class e extends HTMLElement {
 };
 function le(e, t) {
 	return new Promise((n, r) => {
-		let i = new CustomEvent(O.DISCOVERY_EVENT, {
+		let i = new CustomEvent(ce.DISCOVERY_EVENT, {
 			bubbles: !0,
 			composed: !0,
 			detail: [t, (e) => e ? n(e) : r()]
@@ -459,14 +465,14 @@ function le(e, t) {
 		e.isConnected ? e.dispatchEvent(i) : document.dispatchEvent(i);
 	});
 }
-var ue = {};
-function de(e, t) {
-	ue[e] = t;
+var k = {};
+function ue(e, t) {
+	k[e] = t;
 }
-function fe(e) {
-	return ue[e];
+function de(e) {
+	return k[e];
 }
-var pe = class {
+var fe = class {
 	constructor(e) {
 		this.contextLabel = e;
 	}
@@ -487,7 +493,7 @@ var pe = class {
 		});
 		return this.observed = t, t;
 	}
-}, me = class {
+}, pe = class {
 	constructor(e, t, n = "service:message", r = !0) {
 		this._pending = [], this._context = t, this._update = e, this._eventType = n, this._running = r;
 	}
@@ -513,21 +519,21 @@ var pe = class {
 		let [n, ...r] = t;
 		return r.forEach((e) => e.then((e) => this.consume(e))), n;
 	}
-}, he = class {
+}, me = class {
 	constructor(e, t) {
-		this.client = e, this.observer = new pe(t);
+		this.client = e, this.observer = new fe(t);
 	}
 	start(e) {
 		return this.observer.observe(this.client, (t) => {
 			e(t.property, t.value);
 		});
 	}
-}, ge = /* @__PURE__ */ s({
-	CONTEXT_DEFAULT: () => k,
-	Provider: () => _e,
-	Service: () => A,
-	dispatch: () => j
-}), k = "context:history", A = class e extends me {
+}, he = /* @__PURE__ */ s({
+	CONTEXT_DEFAULT: () => A,
+	Provider: () => ge,
+	Service: () => j,
+	dispatch: () => M
+}), A = "context:history", j = class e extends pe {
 	static {
 		this.EVENT_TYPE = "history:message";
 	}
@@ -554,16 +560,16 @@ var pe = class {
 			}
 		}
 	}
-}, _e = class extends O {
+}, ge = class extends ce {
 	constructor() {
 		super({
 			location: document.location,
 			state: {}
-		}, k), this.addEventListener("click", (e) => {
-			let t = ve(e);
+		}, A), this.addEventListener("click", (e) => {
+			let t = _e(e);
 			if (t) {
 				let n = new URL(t.href), r = this.context.get("location");
-				r && n.origin === r.origin && n.pathname.startsWith(this.base || "/") && (e.preventDefault(), j(t, "history/navigate", { href: n.pathname + n.search }));
+				r && n.origin === r.origin && n.pathname.startsWith(this.base || "/") && (e.preventDefault(), M(t, "history/navigate", { href: n.pathname + n.search }));
 			}
 		}), window.addEventListener("popstate", (e) => {
 			this.context.update({
@@ -576,11 +582,11 @@ var pe = class {
 		return this.getAttribute("base") || void 0;
 	}
 	connectedCallback() {
-		new A(this.context).attach(this);
+		new j(this.context).attach(this);
 	}
 	attributeChangedCallback() {}
 };
-function ve(e) {
+function _e(e) {
 	let t = e.currentTarget, n = (e) => e.tagName == "A" && e.href;
 	if (e.button === 0) {
 		if (e.composed) return e.composedPath().find(n) || void 0;
@@ -588,7 +594,7 @@ function ve(e) {
 		return;
 	}
 }
-var j = ee.dispatcher(A.EVENT_TYPE), ye = /* @__PURE__ */ o(((e) => {
+var M = ee.dispatcher(j.EVENT_TYPE), ve = /* @__PURE__ */ o(((e) => {
 	var t = (function() {
 		var e = function(e, t, n, r) {
 			for (n ||= {}, r = e.length; r--; n[e[r]] = t);
@@ -984,7 +990,7 @@ var j = ee.dispatcher(A.EVENT_TYPE), ye = /* @__PURE__ */ o(((e) => {
 	u !== void 0 && e !== void 0 && (e.parser = t, e.Parser = t.Parser, e.parse = function() {
 		return t.parse.apply(t, arguments);
 	});
-})), M = /* @__PURE__ */ o(((e, t) => {
+})), N = /* @__PURE__ */ o(((e, t) => {
 	function n(e) {
 		return function(t, n) {
 			return {
@@ -1002,11 +1008,11 @@ var j = ee.dispatcher(A.EVENT_TYPE), ye = /* @__PURE__ */ o(((e) => {
 		Param: n("Param"),
 		Optional: n("Optional")
 	};
+})), ye = /* @__PURE__ */ o(((e, t) => {
+	var n = ve().parser;
+	n.yy = N(), t.exports = n;
 })), be = /* @__PURE__ */ o(((e, t) => {
-	var n = ye().parser;
-	n.yy = M(), t.exports = n;
-})), N = /* @__PURE__ */ o(((e, t) => {
-	var n = Object.keys(M());
+	var n = Object.keys(N());
 	function r(e) {
 		return n.forEach(function(t) {
 			if (e[t] === void 0) throw Error("No handler defined for " + t.displayName);
@@ -1019,7 +1025,7 @@ var j = ee.dispatcher(A.EVENT_TYPE), ye = /* @__PURE__ */ o(((e) => {
 	}
 	t.exports = r;
 })), xe = /* @__PURE__ */ o(((e, t) => {
-	var n = N(), r = /[\-{}\[\]+?.,\\\^$|#\s]/g;
+	var n = be(), r = /[\-{}\[\]+?.,\\\^$|#\s]/g;
 	function i(e) {
 		this.captures = e.captures, this.re = e.re;
 	}
@@ -1075,7 +1081,7 @@ var j = ee.dispatcher(A.EVENT_TYPE), ye = /* @__PURE__ */ o(((e) => {
 		}
 	});
 })), Se = /* @__PURE__ */ o(((e, t) => {
-	t.exports = N()({
+	t.exports = be()({
 		Concat: function(e, t) {
 			var n = e.children.map(function(e) {
 				return this.visit(e, t);
@@ -1103,7 +1109,7 @@ var j = ee.dispatcher(A.EVENT_TYPE), ye = /* @__PURE__ */ o(((e) => {
 		}
 	});
 })), Ce = /* @__PURE__ */ o(((e, t) => {
-	var n = be(), r = xe(), i = Se();
+	var n = ye(), r = xe(), i = Se();
 	a.prototype = Object.create(null), a.prototype.match = function(e) {
 		return r.visit(this.ast).match(e) || !1;
 	}, a.prototype.reverse = function(e) {
@@ -1129,7 +1135,7 @@ var j = ee.dispatcher(A.EVENT_TYPE), ye = /* @__PURE__ */ o(((e) => {
 };
 function P(e, ...t) {
 	let n = { execute() {
-		e(...t.map((e) => e instanceof F ? e.open(n) : e)), t.forEach((e) => e instanceof F && e.close());
+		e(...t.map((e) => e.open(n))), t.forEach((e) => e.close());
 	} };
 	n.execute();
 }
@@ -1187,12 +1193,12 @@ var Ee = class e {
 	setHost(e, t) {
 		this.host = e, t && (this.eventType = t);
 	}
-}, F = class {
+}, Oe = class {
 	static {
 		this.CHANGE_EVENT_TYPE = "un-context:change";
 	}
 	constructor(e, t) {
-		t ? (this.manager = t.manager, this.object = t.object, this.proxy = t.proxy, this.update(e)) : (this.manager = new De(), this.object = e, this.proxy = Oe(this.object, this.manager));
+		t ? (this.manager = t.manager, this.object = t.object, this.proxy = t.proxy, this.update(e)) : (this.manager = new De(), this.object = e, this.proxy = ke(this.object, this.manager));
 	}
 	get(e) {
 		return this.proxy[e];
@@ -1201,7 +1207,7 @@ var Ee = class e {
 		this.proxy[e] = t;
 	}
 	toObject() {
-		return this.object;
+		return this.proxy;
 	}
 	update(e) {
 		Object.assign(this.proxy, e);
@@ -1222,19 +1228,19 @@ var Ee = class e {
 		this.manager.pop();
 	}
 };
-function Oe(e, t) {
+function ke(e, t) {
 	return new Proxy(e, {
 		get: (e, n, r) => {
 			let i = Reflect.get(e, n, r);
-			return t.isRunning() && ke(i) && t.subscribe(n, e), i;
+			return t.isRunning() && Ae(i) && t.subscribe(n, e), i;
 		},
 		set: (e, n, r, i) => {
 			let a = Reflect.set(e, n, r, i);
-			return a && ke(r) && t.runEffects(n, e), a;
+			return a && Ae(r) && t.runEffects(n, e), a;
 		}
 	});
 }
-function ke(e) {
+function Ae(e) {
 	switch (typeof e) {
 		case "object":
 		case "number":
@@ -1245,17 +1251,17 @@ function ke(e) {
 		default: return !1;
 	}
 }
-function Ae(e, t) {
+function je(e, t) {
 	return Object.assign(e, { render: t }), e;
 }
-function je(e, t, ...n) {
+function Me(e, t, ...n) {
 	let r = e.cloneNode(!0);
 	return Array.from(t.entries()).forEach(([e, t]) => {
 		let i = r.querySelector(`[data-${e}]`);
 		i && t.forEach((e) => e(i, r, ...n));
 	}), r;
 }
-var Me = class e {
+var Ne = class e {
 	static {
 		this.parser = new DOMParser();
 	}
@@ -1291,7 +1297,7 @@ var Me = class e {
 				}
 			});
 		}
-		return Ae(s, (...e) => je(s, c, ...e));
+		return je(s, (...e) => Me(s, c, ...e));
 	}
 	static {
 		this.OPEN_RE = /<([a-zA-z][$a-zA-Z0-9.-]*)\s+[^>]*$/;
@@ -1330,35 +1336,35 @@ var Me = class e {
 		let n = this.plugins;
 		for (let r = 0; r < n.length; r++) {
 			let i = n[r];
-			if (e.kind === i.place && Ne(t, i)) return i.mutator(e, t);
+			if (e.kind === i.place && Pe(t, i)) return i.mutator(e, t);
 		}
 	}
 };
-function Ne(e, t) {
+function Pe(e, t) {
 	return typeof t.types == "function" ? t.types(e, t) : t.types.includes(typeof e);
 }
-var I = class {
+var F = class {
 	constructor(e) {
 		this.place = e;
 	}
 	apply(e, t) {
 		throw "abstract method 'apply' called";
 	}
-}, Pe = class extends I {
+}, I = class extends F {
 	constructor(e, t) {
 		super(e), this.content = t;
 	}
 	apply(e, t) {
 		(e.parentNode || t).replaceChild(this.content, e);
 	}
-}, Fe = class extends I {
+}, Fe = class extends F {
 	constructor(e, t) {
 		super(e), this.text = t, this.name = e.attrName;
 	}
 	apply(e) {
 		e.setAttribute(this.name, this.text);
 	}
-}, Ie = class extends I {
+}, Ie = class extends F {
 	constructor(e, t) {
 		super(e), this.fn = t;
 	}
@@ -1381,16 +1387,14 @@ function Le(e, t, n) {
 			return t.replaceChildren(...n), t;
 		} else if (e instanceof Node) return e;
 		else return new Text(e?.toString() || "");
-	}, a = i(e);
-	console.log("📸 Rendered for view:", e, a);
-	let o = t.nextSibling;
+	}, a = i(e), o = t.nextSibling;
 	for (; o && o !== n;) {
 		let e = o;
 		o = o.nextSibling, r.removeChild(e);
 	}
 	a && r.insertBefore(a, n);
 }
-var Re = class extends I {
+var Re = class extends F {
 	constructor(e, t) {
 		super(e), this.fn = t, this.name = e.attrName;
 	}
@@ -1409,7 +1413,7 @@ function ze(e, t, n) {
 				t[a] = e;
 				break;
 			case "$":
-				"viewModel" in t && t.viewModel instanceof F && t.viewModel.set(a, e);
+				"viewModel" in t && t.viewModel instanceof Oe && t.viewModel.set(a, e);
 				break;
 		}
 	} else switch (typeof e) {
@@ -1424,7 +1428,7 @@ function ze(e, t, n) {
 		default: t.setAttribute(n, e?.toString());
 	}
 }
-var Be = class extends I {
+var Be = class extends F {
 	constructor(e, t) {
 		super(e), this.fn = t;
 	}
@@ -1434,8 +1438,8 @@ var Be = class extends I {
 			typeof n == "function" && n(e);
 		}, ...n);
 	}
-}, Ve = new Me();
-Ve.use([
+}, L = new Ne();
+L.use([
 	{
 		place: "element content",
 		types: [
@@ -1445,7 +1449,7 @@ Ve.use([
 			"symbol",
 			"boolean"
 		],
-		mutator: (e, t) => new Pe(e, new Text(t?.toString() || ""))
+		mutator: (e, t) => new I(e, new Text(t?.toString() || ""))
 	},
 	{
 		place: "attr value",
@@ -1460,7 +1464,15 @@ Ve.use([
 	{
 		place: "element content",
 		types: (e) => e instanceof Node,
-		mutator: (e, t) => new Pe(e, t)
+		mutator: (e, t) => new I(e, t)
+	},
+	{
+		place: "element content",
+		types: (e) => Array.isArray(e),
+		mutator: (e, t) => {
+			let n = new DocumentFragment(), r = t.map((e) => e instanceof Node ? e : new Text(e?.toString() || ""));
+			return n.append(...r), new I(e, n);
+		}
 	},
 	{
 		place: "element content",
@@ -1478,21 +1490,30 @@ Ve.use([
 		mutator: (e, t) => new Be(e, t)
 	}
 ]);
-function L(e, ...t) {
-	return Ve.parse(e, t);
+function R(e, ...t) {
+	return L.parse(e, t);
 }
-function He(e, t) {
+function Ve(e, t) {
 	for (let n in t) e.addEventListener(n, t[n]);
 }
-function Ue(e, t, n) {
+function He(e, t, n) {
 	for (let r in n) e.addEventListener(r, function(i) {
 		let a = i.target;
 		a && a instanceof HTMLElement && (a.matches(t) || e.contains(a.closest(t))) && n[r](i);
 	});
 }
+function Ue(e, t, n) {
+	let r = e.target, i = new CustomEvent(t, {
+		bubbles: !0,
+		composed: !0,
+		detail: n
+	});
+	r.dispatchEvent(i), e.stopPropagation();
+}
 var We = {
-	listen: He,
-	delegate: Ue
+	listen: Ve,
+	delegate: He,
+	relay: Ue
 };
 function Ge(e, t = { mode: "open" }) {
 	let n = e.shadowRoot || e.attachShadow(t), r = {
@@ -1523,7 +1544,7 @@ function Ge(e, t = { mode: "open" }) {
 }
 //#endregion
 //#region ../view/dist/view.js
-var R = class {
+var z = class {
 	constructor(e, t) {
 		this.origin = e;
 		let n = Ke(t).map(([e, t]) => [t, e]);
@@ -1553,13 +1574,13 @@ var qe = class extends CustomEvent {
 		});
 	}
 };
-function z(e, ...t) {
+function B(e, ...t) {
 	let n = { execute() {
-		e(...t.map((e) => e instanceof V ? e.open(n) : e)), t.forEach((e) => e instanceof V && e.close());
+		e(...t.map((e) => e.open(n))), t.forEach((e) => e.close());
 	} };
 	n.execute();
 }
-var B = class e {
+var Je = class e {
 	constructor() {
 		this.signals = /* @__PURE__ */ new WeakMap(), this.scheduled = /* @__PURE__ */ new WeakSet();
 	}
@@ -1580,7 +1601,7 @@ var B = class e {
 			this.scheduled.delete(e), e.execute();
 		}));
 	}
-}, Je = class {
+}, Ye = class {
 	constructor() {
 		this.running = [], this.eventType = "un-effect:change";
 	}
@@ -1599,10 +1620,10 @@ var B = class e {
 	}
 	subscribe(e, t) {
 		let n = this.current();
-		n && B.scheduler.subscribe(t, e, n);
+		n && Je.scheduler.subscribe(t, e, n);
 	}
 	runEffects(e, t) {
-		if (B.scheduler.scheduleEffects(t, e), this.host) {
+		if (Je.scheduler.scheduleEffects(t, e), this.host) {
 			let n = new qe(this.eventType, {
 				property: e,
 				value: t[e]
@@ -1613,12 +1634,12 @@ var B = class e {
 	setHost(e, t) {
 		this.host = e, t && (this.eventType = t);
 	}
-}, V = class {
+}, Xe = class {
 	static {
 		this.CHANGE_EVENT_TYPE = "un-context:change";
 	}
 	constructor(e, t) {
-		t ? (this.manager = t.manager, this.object = t.object, this.proxy = t.proxy, this.update(e)) : (this.manager = new Je(), this.object = e, this.proxy = Ye(this.object, this.manager));
+		t ? (this.manager = t.manager, this.object = t.object, this.proxy = t.proxy, this.update(e)) : (this.manager = new Ye(), this.object = e, this.proxy = Ze(this.object, this.manager));
 	}
 	get(e) {
 		return this.proxy[e];
@@ -1627,7 +1648,7 @@ var B = class e {
 		this.proxy[e] = t;
 	}
 	toObject() {
-		return this.object;
+		return this.proxy;
 	}
 	update(e) {
 		Object.assign(this.proxy, e);
@@ -1636,7 +1657,7 @@ var B = class e {
 		this.update(e(this.proxy));
 	}
 	createEffect(e) {
-		z(e, this);
+		B(e, this);
 	}
 	setHost(e, t) {
 		this.manager.setHost(e, t);
@@ -1648,19 +1669,19 @@ var B = class e {
 		this.manager.pop();
 	}
 };
-function Ye(e, t) {
+function Ze(e, t) {
 	return new Proxy(e, {
 		get: (e, n, r) => {
 			let i = Reflect.get(e, n, r);
-			return t.isRunning() && H(i) && t.subscribe(n, e), i;
+			return t.isRunning() && V(i) && t.subscribe(n, e), i;
 		},
 		set: (e, n, r, i) => {
 			let a = Reflect.set(e, n, r, i);
-			return a && H(r) && t.runEffects(n, e), a;
+			return a && V(r) && t.runEffects(n, e), a;
 		}
 	});
 }
-function H(e) {
+function V(e) {
 	switch (typeof e) {
 		case "object":
 		case "number":
@@ -1671,17 +1692,17 @@ function H(e) {
 		default: return !1;
 	}
 }
-function Xe(e, t) {
+function Qe(e, t) {
 	return Object.assign(e, { render: t }), e;
 }
-function Ze(e, t, ...n) {
+function $e(e, t, ...n) {
 	let r = e.cloneNode(!0);
 	return Array.from(t.entries()).forEach(([e, t]) => {
 		let i = r.querySelector(`[data-${e}]`);
 		i && t.forEach((e) => e(i, r, ...n));
 	}), r;
 }
-var Qe = class e {
+var et = class e {
 	static {
 		this.parser = new DOMParser();
 	}
@@ -1717,7 +1738,7 @@ var Qe = class e {
 				}
 			});
 		}
-		return Xe(s, (...e) => Ze(s, c, ...e));
+		return Qe(s, (...e) => $e(s, c, ...e));
 	}
 	static {
 		this.OPEN_RE = /<([a-zA-z][$a-zA-Z0-9.-]*)\s+[^>]*$/;
@@ -1756,35 +1777,35 @@ var Qe = class e {
 		let n = this.plugins;
 		for (let r = 0; r < n.length; r++) {
 			let i = n[r];
-			if (e.kind === i.place && $e(t, i)) return i.mutator(e, t);
+			if (e.kind === i.place && tt(t, i)) return i.mutator(e, t);
 		}
 	}
 };
-function $e(e, t) {
+function tt(e, t) {
 	return typeof t.types == "function" ? t.types(e, t) : t.types.includes(typeof e);
 }
-var U = class {
+var H = class {
 	constructor(e) {
 		this.place = e;
 	}
 	apply(e, t) {
 		throw "abstract method 'apply' called";
 	}
-}, W = class extends U {
+}, U = class extends H {
 	constructor(e, t) {
 		super(e), this.content = t;
 	}
 	apply(e, t) {
 		(e.parentNode || t).replaceChild(this.content, e);
 	}
-}, et = class extends U {
+}, nt = class extends H {
 	constructor(e, t) {
 		super(e), this.text = t, this.name = e.attrName;
 	}
 	apply(e) {
 		e.setAttribute(this.name, this.text);
 	}
-}, tt = class extends U {
+}, rt = class extends H {
 	constructor(e, t) {
 		super(e), this.fn = t;
 	}
@@ -1792,13 +1813,13 @@ var U = class {
 		let n = this.place.nodeLabel;
 		return (e, t, ...r) => {
 			let i = new Comment(` <<< ${n} `), a = new Comment(` >>> ${n} `), o = new DocumentFragment();
-			o.replaceChildren(i, a), (e.parentNode || t).replaceChild(o, e), z((...e) => {
-				nt(this.fn(...e), i, a);
+			o.replaceChildren(i, a), (e.parentNode || t).replaceChild(o, e), B((...e) => {
+				it(this.fn(...e), i, a);
 			}, ...r);
 		};
 	}
 };
-function nt(e, t, n) {
+function it(e, t, n) {
 	let r = t.parentNode;
 	if (!r) throw Error("No parent for placeholder");
 	let i = (e) => {
@@ -1807,26 +1828,24 @@ function nt(e, t, n) {
 			return t.replaceChildren(...n), t;
 		} else if (e instanceof Node) return e;
 		else return new Text(e?.toString() || "");
-	}, a = i(e);
-	console.log("📸 Rendered for view:", e, a);
-	let o = t.nextSibling;
+	}, a = i(e), o = t.nextSibling;
 	for (; o && o !== n;) {
 		let e = o;
 		o = o.nextSibling, r.removeChild(e);
 	}
 	a && r.insertBefore(a, n);
 }
-var rt = class extends U {
+var at = class extends H {
 	constructor(e, t) {
 		super(e), this.fn = t, this.name = e.attrName;
 	}
 	apply(e, t) {
-		return (e, t, ...n) => z((...t) => {
-			it(this.fn(...t), e, this.name);
+		return (e, t, ...n) => B((...t) => {
+			ot(this.fn(...t), e, this.name);
 		}, ...n);
 	}
 };
-function it(e, t, n) {
+function ot(e, t, n) {
 	let r = n.match(/^([.$])(.+)$/);
 	if (r) {
 		let [n, i, a] = r;
@@ -1835,7 +1854,7 @@ function it(e, t, n) {
 				t[a] = e;
 				break;
 			case "$":
-				"viewModel" in t && t.viewModel instanceof V && t.viewModel.set(a, e);
+				"viewModel" in t && t.viewModel instanceof Xe && t.viewModel.set(a, e);
 				break;
 		}
 	} else switch (typeof e) {
@@ -1850,18 +1869,18 @@ function it(e, t, n) {
 		default: t.setAttribute(n, e?.toString());
 	}
 }
-var at = class extends U {
+var st = class extends H {
 	constructor(e, t) {
 		super(e), this.fn = t;
 	}
 	apply(e, t) {
-		return (e, t, ...n) => z((...t) => {
+		return (e, t, ...n) => B((...t) => {
 			let n = this.fn(...t);
 			typeof n == "function" && n(e);
 		}, ...n);
 	}
 };
-new Qe().use([
+new et().use([
 	{
 		place: "element content",
 		types: [
@@ -1871,7 +1890,7 @@ new Qe().use([
 			"symbol",
 			"boolean"
 		],
-		mutator: (e, t) => new W(e, new Text(t?.toString() || ""))
+		mutator: (e, t) => new U(e, new Text(t?.toString() || ""))
 	},
 	{
 		place: "attr value",
@@ -1881,30 +1900,38 @@ new Qe().use([
 			"bigint",
 			"symbol"
 		],
-		mutator: (e, t) => new et(e, t?.toString() || "")
+		mutator: (e, t) => new nt(e, t?.toString() || "")
 	},
 	{
 		place: "element content",
 		types: (e) => e instanceof Node,
-		mutator: (e, t) => new W(e, t)
+		mutator: (e, t) => new U(e, t)
+	},
+	{
+		place: "element content",
+		types: (e) => Array.isArray(e),
+		mutator: (e, t) => {
+			let n = new DocumentFragment(), r = t.map((e) => e instanceof Node ? e : new Text(e?.toString() || ""));
+			return n.append(...r), new U(e, n);
+		}
 	},
 	{
 		place: "element content",
 		types: ["function"],
-		mutator: (e, t) => new tt(e, t)
+		mutator: (e, t) => new rt(e, t)
 	},
 	{
 		place: "attr value",
 		types: ["function"],
-		mutator: (e, t) => new rt(e, t)
+		mutator: (e, t) => new at(e, t)
 	},
 	{
 		place: "tag content",
 		types: ["function"],
-		mutator: (e, t) => new at(e, t)
+		mutator: (e, t) => new st(e, t)
 	}
 ]);
-var G = class extends V {
+var W = class extends Xe {
 	constructor(e, t) {
 		super(e, t);
 	}
@@ -1913,42 +1940,39 @@ var G = class extends V {
 	}
 	with(e, ...t) {
 		let n = Object.fromEntries(t.map((e) => [e, e]));
-		return this.merge(new R(e, n));
+		return this.merge(new z(e, n));
 	}
 	withCalculated(e, t) {
-		return this.merge(new R(e, t));
+		return this.merge(new z(e, t));
 	}
 	withRenamed(e, t) {
-		return this.merge(new R(e, t));
+		return this.merge(new z(e, t));
 	}
 	merge(e) {
-		if (e) {
-			let t = e.start((e, n) => {
-				console.log("🪄 Merging effect", e, n, t), this.set(e, n);
-			}).then((e) => {
-				console.log("👀 ViewModel source observed:", e, t), Object.keys(e).forEach((t) => this.set(t, e[t]));
-			});
-		}
-		return this;
+		return e && e.start((e, t) => {
+			this.set(e, t);
+		}).then((e) => {
+			Object.keys(e).forEach((t) => this.set(t, e[t]));
+		}), this;
 	}
 	render(e) {
 		return e.render(this);
 	}
 };
-function ot(e) {
-	return e === void 0 ? new G({}) : new G(e);
+function G(e) {
+	return e === void 0 ? new W({}) : new W(e);
 }
 //#endregion
 //#region ../auth/dist/auth.js
-var st = Object.defineProperty, ct = (e, t) => {
+var K = Object.defineProperty, ct = (e, t) => {
 	let n = {};
-	for (var r in e) st(n, r, {
+	for (var r in e) K(n, r, {
 		get: e[r],
 		enumerable: !0
 	});
-	return t || st(n, Symbol.toStringTag, { value: "Module" }), n;
-}, K = class extends Error {};
-K.prototype.name = "InvalidTokenError";
+	return t || K(n, Symbol.toStringTag, { value: "Module" }), n;
+}, q = class extends Error {};
+q.prototype.name = "InvalidTokenError";
 function lt(e) {
 	return decodeURIComponent(atob(e).replace(/(.)/g, (e, t) => {
 		let n = t.charCodeAt(0).toString(16).toUpperCase();
@@ -1974,20 +1998,20 @@ function ut(e) {
 	}
 }
 function dt(e, t) {
-	if (typeof e != "string") throw new K("Invalid token specified: must be a string");
+	if (typeof e != "string") throw new q("Invalid token specified: must be a string");
 	t ||= {};
 	let n = t.header === !0 ? 0 : 1, r = e.split(".")[n];
-	if (typeof r != "string") throw new K(`Invalid token specified: missing part #${n + 1}`);
+	if (typeof r != "string") throw new q(`Invalid token specified: missing part #${n + 1}`);
 	let i;
 	try {
 		i = ut(r);
 	} catch (e) {
-		throw new K(`Invalid token specified: invalid base64 for part #${n + 1} (${e.message})`);
+		throw new q(`Invalid token specified: invalid base64 for part #${n + 1} (${e.message})`);
 	}
 	try {
 		return JSON.parse(i);
 	} catch (e) {
-		throw new K(`Invalid token specified: invalid json for part #${n + 1} (${e.message})`);
+		throw new q(`Invalid token specified: invalid json for part #${n + 1} (${e.message})`);
 	}
 }
 var ft = Object.defineProperty, pt = /* @__PURE__ */ ((e, t) => {
@@ -2024,9 +2048,9 @@ var _t = gt(), vt = class extends CustomEvent {
 		});
 	}
 };
-function q(e, ...t) {
+function J(e, ...t) {
 	let n = { execute() {
-		e(...t.map((e) => e instanceof J ? e.open(n) : e)), t.forEach((e) => e instanceof J && e.close());
+		e(...t.map((e) => e instanceof Y ? e.open(n) : e)), t.forEach((e) => e instanceof Y && e.close());
 	} };
 	n.execute();
 }
@@ -2084,7 +2108,7 @@ var yt = class e {
 	setHost(e, t) {
 		this.host = e, t && (this.eventType = t);
 	}
-}, J = class {
+}, Y = class {
 	static {
 		this.CHANGE_EVENT_TYPE = "un-context:change";
 	}
@@ -2107,7 +2131,7 @@ var yt = class e {
 		this.update(e(this.proxy));
 	}
 	createEffect(e) {
-		q(e, this);
+		J(e, this);
 	}
 	setHost(e, t) {
 		this.manager.setHost(e, t);
@@ -2242,28 +2266,28 @@ var Et = class e {
 function Dt(e, t) {
 	return typeof t.types == "function" ? t.types(e, t) : t.types.includes(typeof e);
 }
-var Y = class {
+var X = class {
 	constructor(e) {
 		this.place = e;
 	}
 	apply(e, t) {
 		throw "abstract method 'apply' called";
 	}
-}, X = class extends Y {
+}, Ot = class extends X {
 	constructor(e, t) {
 		super(e), this.content = t;
 	}
 	apply(e, t) {
 		(e.parentNode || t).replaceChild(this.content, e);
 	}
-}, Ot = class extends Y {
+}, kt = class extends X {
 	constructor(e, t) {
 		super(e), this.text = t, this.name = e.attrName;
 	}
 	apply(e) {
 		e.setAttribute(this.name, this.text);
 	}
-}, kt = class extends Y {
+}, At = class extends X {
 	constructor(e, t) {
 		super(e), this.fn = t;
 	}
@@ -2271,13 +2295,13 @@ var Y = class {
 		let n = this.place.nodeLabel;
 		return (e, t, ...r) => {
 			let i = new Comment(` <<< ${n} `), a = new Comment(` >>> ${n} `), o = new DocumentFragment();
-			o.replaceChildren(i, a), (e.parentNode || t).replaceChild(o, e), q((...e) => {
-				At(this.fn(...e), i, a);
+			o.replaceChildren(i, a), (e.parentNode || t).replaceChild(o, e), J((...e) => {
+				jt(this.fn(...e), i, a);
 			}, ...r);
 		};
 	}
 };
-function At(e, t, n) {
+function jt(e, t, n) {
 	let r = t.parentNode;
 	if (!r) throw Error("No parent for placeholder");
 	let i = (e) => {
@@ -2295,17 +2319,17 @@ function At(e, t, n) {
 	}
 	a && r.insertBefore(a, n);
 }
-var jt = class extends Y {
+var Mt = class extends X {
 	constructor(e, t) {
 		super(e), this.fn = t, this.name = e.attrName;
 	}
 	apply(e, t) {
-		return (e, t, ...n) => q((...t) => {
-			Mt(this.fn(...t), e, this.name);
+		return (e, t, ...n) => J((...t) => {
+			Nt(this.fn(...t), e, this.name);
 		}, ...n);
 	}
 };
-function Mt(e, t, n) {
+function Nt(e, t, n) {
 	let r = n.match(/^([.$])(.+)$/);
 	if (r) {
 		let [n, i, a] = r;
@@ -2314,7 +2338,7 @@ function Mt(e, t, n) {
 				t[a] = e;
 				break;
 			case "$":
-				"viewModel" in t && t.viewModel instanceof J && t.viewModel.set(a, e);
+				"viewModel" in t && t.viewModel instanceof Y && t.viewModel.set(a, e);
 				break;
 		}
 	} else switch (typeof e) {
@@ -2329,12 +2353,12 @@ function Mt(e, t, n) {
 		default: t.setAttribute(n, e?.toString());
 	}
 }
-var Nt = class extends Y {
+var Pt = class extends X {
 	constructor(e, t) {
 		super(e), this.fn = t;
 	}
 	apply(e, t) {
-		return (e, t, ...n) => q((...t) => {
+		return (e, t, ...n) => J((...t) => {
 			let n = this.fn(...t);
 			typeof n == "function" && n(e);
 		}, ...n);
@@ -2350,7 +2374,7 @@ new Et().use([
 			"symbol",
 			"boolean"
 		],
-		mutator: (e, t) => new X(e, new Text(t?.toString() || ""))
+		mutator: (e, t) => new Ot(e, new Text(t?.toString() || ""))
 	},
 	{
 		place: "attr value",
@@ -2360,30 +2384,30 @@ new Et().use([
 			"bigint",
 			"symbol"
 		],
-		mutator: (e, t) => new Ot(e, t?.toString() || "")
+		mutator: (e, t) => new kt(e, t?.toString() || "")
 	},
 	{
 		place: "element content",
 		types: (e) => e instanceof Node,
-		mutator: (e, t) => new X(e, t)
+		mutator: (e, t) => new Ot(e, t)
 	},
 	{
 		place: "element content",
 		types: ["function"],
-		mutator: (e, t) => new kt(e, t)
+		mutator: (e, t) => new At(e, t)
 	},
 	{
 		place: "attr value",
 		types: ["function"],
-		mutator: (e, t) => new jt(e, t)
+		mutator: (e, t) => new Mt(e, t)
 	},
 	{
 		place: "tag content",
 		types: ["function"],
-		mutator: (e, t) => new Nt(e, t)
+		mutator: (e, t) => new Pt(e, t)
 	}
 ]);
-var Pt = class e extends HTMLElement {
+var Ft = class e extends HTMLElement {
 	static {
 		this.DISCOVERY_EVENT = "un-provider:discover";
 	}
@@ -2395,15 +2419,15 @@ var Pt = class e extends HTMLElement {
 	}
 	static {
 		document.addEventListener(e.DISCOVERY_EVENT, (e) => {
-			let [t, n] = e.detail, r = Rt(t);
+			let [t, n] = e.detail, r = zt(t);
 			r && n(r);
 		}), document.addEventListener(e.REGISTRY_EVENT, (e) => {
 			let [t, n] = e.detail;
-			Lt(t, n);
+			Rt(t, n);
 		});
 	}
 	constructor(t, n) {
-		super(), this.contextLabel = n, this.context = new J(t), this.context.setHost(this, e.CHANGE_EVENT), this.addEventListener(e.DISCOVERY_EVENT, (e) => {
+		super(), this.contextLabel = n, this.context = new Y(t), this.context.setHost(this, e.CHANGE_EVENT), this.addEventListener(e.DISCOVERY_EVENT, (e) => {
 			let [t, n] = e.detail;
 			t === this.contextLabel && (e.stopPropagation(), n(this));
 		});
@@ -2421,9 +2445,9 @@ var Pt = class e extends HTMLElement {
 		this.removeEventListener(e.CHANGE_EVENT, t);
 	}
 };
-function Ft(e, t) {
+function It(e, t) {
 	return new Promise((n, r) => {
-		let i = new CustomEvent(Pt.DISCOVERY_EVENT, {
+		let i = new CustomEvent(Ft.DISCOVERY_EVENT, {
 			bubbles: !0,
 			composed: !0,
 			detail: [t, (e) => e ? n(e) : r()]
@@ -2431,20 +2455,20 @@ function Ft(e, t) {
 		e.isConnected ? e.dispatchEvent(i) : document.dispatchEvent(i);
 	});
 }
-var It = {};
-function Lt(e, t) {
-	It[e] = t;
+var Lt = {};
+function Rt(e, t) {
+	Lt[e] = t;
 }
-function Rt(e) {
-	return It[e];
+function zt(e) {
+	return Lt[e];
 }
-var zt = class {
+var Bt = class {
 	constructor(e) {
 		this.contextLabel = e;
 	}
 	observe(e, t) {
 		return new Promise((n, r) => {
-			this.provider ? n(this.attachObserver(t)) : Ft(e, this.contextLabel).then((e) => {
+			this.provider ? n(this.attachObserver(t)) : It(e, this.contextLabel).then((e) => {
 				this.provider = e, n(this.attachObserver(t));
 			}).catch((e) => r(e));
 		});
@@ -2459,7 +2483,7 @@ var zt = class {
 		});
 		return this.observed = t, t;
 	}
-}, Bt = class {
+}, Vt = class {
 	constructor(e, t, n = "service:message", r = !0) {
 		this._pending = [], this._context = t, this._update = e, this._eventType = n, this._running = r;
 	}
@@ -2486,26 +2510,26 @@ var zt = class {
 		return r.forEach((e) => e.then((e) => this.consume(e))), n;
 	}
 };
-function Vt(e, t) {
-	return new Ht(e, t);
+function Ht(e, t) {
+	return new Ut(e, t);
 }
-var Ht = class {
+var Ut = class {
 	constructor(e, t) {
-		this.client = e, this.observer = new zt(t);
+		this.client = e, this.observer = new Bt(t);
 	}
 	start(e) {
 		return this.observer.observe(this.client, (t) => {
 			e(t.property, t.value);
 		});
 	}
-}, Ut = /* @__PURE__ */ ct({
+}, Wt = /* @__PURE__ */ ct({
 	AuthenticatedUser: () => $,
 	CONTEXT_DEFAULT: () => Z,
-	Provider: () => Gt,
+	Provider: () => Kt,
 	User: () => Q,
-	dispatch: () => Kt,
-	headers: () => Zt,
-	payload: () => Qt
+	dispatch: () => qt,
+	headers: () => Qt,
+	payload: () => $t
 }), Z = "context:auth", Q = class e {
 	static {
 		this.TOKEN_KEY = "un-auth:token";
@@ -2530,7 +2554,7 @@ var Ht = class {
 		let t = localStorage.getItem(Q.TOKEN_KEY);
 		return t ? e.authenticate(t) : new Q();
 	}
-}, Wt = class e extends Bt {
+}, Gt = class e extends Vt {
 	static {
 		this.EVENT_TYPE = "auth:message";
 	}
@@ -2541,10 +2565,10 @@ var Ht = class {
 		switch (e[0]) {
 			case "auth/signin":
 				let { token: n, redirect: r } = e[1];
-				return [Yt(n), qt(r)];
-			case "auth/signout": return [Xt(t), qt(this._redirectForLogin)];
+				return [Xt(n), Jt(r)];
+			case "auth/signout": return [Zt(t), Jt(this._redirectForLogin)];
 			case "auth/redirect":
-				Jt(this._redirectForLogin, { next: window.location.href });
+				Yt(this._redirectForLogin, { next: window.location.href });
 				break;
 			default:
 				let i = e[0];
@@ -2552,7 +2576,7 @@ var Ht = class {
 		}
 		return t;
 	}
-}, Gt = class extends Pt {
+}, Kt = class extends Ft {
 	get redirect() {
 		return this.getAttribute("redirect") || void 0;
 	}
@@ -2565,21 +2589,21 @@ var Ht = class {
 		}, Z);
 	}
 	connectedCallback() {
-		new Wt(this.context, this.redirect).attach(this);
+		new Gt(this.context, this.redirect).attach(this);
 	}
-}, Kt = pt.dispatcher(Wt.EVENT_TYPE);
-function qt(e, t = {}) {
+}, qt = pt.dispatcher(Gt.EVENT_TYPE);
+function Jt(e, t = {}) {
 	return new Promise((n) => {
-		Jt(e, t), n(pt.None);
+		Yt(e, t), n(pt.None);
 	});
 }
-function Jt(e, t = {}) {
+function Yt(e, t = {}) {
 	if (e) {
 		let n = window.location.href, r = new URL(e, n);
 		Object.entries(t).forEach(([e, t]) => r.searchParams.set(e, t)), console.log("Redirecting to ", e), window.location.assign(r);
 	}
 }
-function Yt(e) {
+function Xt(e) {
 	let { authenticated: t, username: n } = $.authenticate(e);
 	return {
 		authenticated: t,
@@ -2587,7 +2611,7 @@ function Yt(e) {
 		token: e
 	};
 }
-function Xt(e) {
+function Zt(e) {
 	let { authenticated: t, username: n } = Q.deauthenticate(new Q(e.username));
 	return {
 		username: n,
@@ -2595,30 +2619,30 @@ function Xt(e) {
 		token: void 0
 	};
 }
-function Zt(e) {
+function Qt(e) {
 	return e.authenticated ? { Authorization: `Bearer ${e.token || "NO_TOKEN"}` } : {};
 }
-function Qt(e) {
+function $t(e) {
 	return e.authenticated ? dt(e.token || "") : {};
 }
-function $t(e, t = Z) {
-	return Vt(e, t);
+function en(e, t = Z) {
+	return Ht(e, t);
 }
 //#endregion
 //#region src/fromHistory.ts
-function en(e, t = k) {
-	return new he(e, t);
+function tn(e, t = A) {
+	return new me(e, t);
 }
 //#endregion
 //#region src/switch.ts
-var tn = /* @__PURE__ */ s({
-	Element: () => nn,
-	Switch: () => nn
-}), nn = class extends HTMLElement {
+var nn = /* @__PURE__ */ s({
+	Element: () => rn,
+	Switch: () => rn
+}), rn = class extends HTMLElement {
 	constructor(e) {
-		super(), this.viewModel = ot({ authenticated: !1 }).with($t(this), "authenticated", "username").with(en(this), "location"), this._cases = [], this._routeView = L`
+		super(), this.viewModel = G({ authenticated: !1 }).with(en(this), "authenticated", "username").with(tn(this), "location"), this._cases = [], this._routeView = R`
     <h1>Routing...</h1>
-  `, this._routeViewModel = ot({
+  `, this._routeViewModel = G({
 			params: {},
 			query: new URLSearchParams()
 		}), this._cases = e.map((e) => ({
@@ -2634,7 +2658,7 @@ var tn = /* @__PURE__ */ s({
 	routeToView(e, t = !1, n) {
 		let r = this.matchRoute(e);
 		if (r) {
-			if ("view" in r) return r.auth && r.auth !== "public" && !t ? (Ut.dispatch(this, "auth/redirect"), L`
+			if ("view" in r) return r.auth && r.auth !== "public" && !t ? (Wt.dispatch(this, "auth/redirect"), R`
             <h1>Redirecting for Login</h1>
           `) : (this._routeViewModel.update({
 				params: r.params,
@@ -2646,12 +2670,12 @@ var tn = /* @__PURE__ */ s({
 			}), r.view);
 			if ("redirect" in r) {
 				let e = r.redirect;
-				if (typeof e == "string") return this.redirect(e), L`
+				if (typeof e == "string") return this.redirect(e), R`
             <h1>Redirecting to ${e}…</h1>
           `;
 			}
 		}
-		return L`
+		return R`
       <h1>Not Found</h1>
     `;
 	}
@@ -2668,8 +2692,8 @@ var tn = /* @__PURE__ */ s({
 		}
 	}
 	redirect(e) {
-		j(this, "history/redirect", { href: e });
+		M(this, "history/redirect", { href: e });
 	}
 };
 //#endregion
-export { ge as BrowserHistory, tn as Switch, en as fromHistory };
+export { he as BrowserHistory, nn as Switch, tn as fromHistory };

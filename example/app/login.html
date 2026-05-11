@@ -12,11 +12,11 @@
     <link rel="stylesheet" href="/styles/tokens.css" />
     <link rel="stylesheet" href="/styles/page.css" />
     <script type="module">
-      import { define, Auth } from "@un-bundled/modules";
-      import { LoginFormElement } from "/src/auth/login-form";
+      import { define, Auth } from "@unbndl/auth";
+      import { LoginFormElement } from "/src/auth/login-form.ts";
 
       define({
-        "un-auth": Auth.Provider,
+        "auth-provider": Auth.Provider,
         "login-form": LoginFormElement
       });
     </script>
@@ -43,7 +43,7 @@
     </style>
   </head>
   <body class="page">
-    <un-auth>
+    <auth-provider>
       <h2>User Login</h2>
       <main class="card">
         <login-form api="/auth/login">
@@ -60,6 +60,6 @@
       <p>
         Or did you want to <a href="new-user.html">Sign up as a new user</a>?
       </p>
-    </un-auth>
+    </auth-provider>
   </body>
 </html>

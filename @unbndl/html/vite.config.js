@@ -11,11 +11,11 @@ export default defineConfig({
       name: "html"
     }
   },
-    plugins: [
-      dts({
-        insertTypesEntry: true,
-        rollupTypes: true
-      })
-    ]
+  plugins: [
+    dts({
+      insertTypesEntry: true,
+      rollupTypes: true
+    })
+  ]
 
 });

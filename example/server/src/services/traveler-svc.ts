@@ -23,7 +23,7 @@ function index(): Promise<Traveler[]> {
   return TravelerModel.find();
 }
 
-function get(userid: String): Promise<Traveler> {
+function get(userid: string): Promise<Traveler> {
   return TravelerModel.find({ userid })
     .then((list) => list[0])
     .catch(() => {
@@ -32,7 +32,7 @@ function get(userid: String): Promise<Traveler> {
 }
 
 function update(
-  userid: String,
+  userid: string,
   traveler: Traveler
 ): Promise<Traveler> {
   return TravelerModel.findOne({ userid })
@@ -60,7 +60,7 @@ function create(traveler: Traveler): Promise<Traveler> {
   return p.save();
 }
 
-function remove(userid: String): Promise<void> {
+function remove(userid: string): Promise<void> {
   return TravelerModel.findOneAndDelete({ userid }).then(
     (deleted) => {
       if (!deleted) throw `${userid} not deleted`;

@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import credentials from "../services/credential-svc";
+import credentials from "../services/credential-svc.ts";
 
 export type JwtPayload = { username: string };
 export type AuthenticatedRequest = Request & {

@@ -1,4 +1,4 @@
-import { Context } from "../effects";
+import { Context } from "@unbndl/html";
 import { Provider } from "./provider.ts";
 import * as Message from "./message.ts";
 import { Update } from "./update.ts";
@@ -37,32 +37,33 @@ export class Service<
 
   start() {
     if (!this._running) {
-      // console.log(`Starting ${this._eventType} service`);
+      console.log(`Starting ${this._eventType} service`);
       this._running = true;
       this._pending.forEach((msg) => this.process(msg));
     }
   }
 
   consume(message: Msg | None) {
-    if (message.length === 0 ) {
+    console.log("Consume", message, this._running);
+    if (message.length !== 0 ) {
       const trueMsg = message as Msg;
       if (this._running) {
         this.process(trueMsg);
       } else {
-        // console.log(
-        //   `📥 Queueing ${this._eventType} message`,
-        //   message
-        // );
+        console.log(
+           `📥 Queueing ${this._eventType} message`,
+           message
+         );
         this._pending.push(trueMsg);
       }
     }
   }
 
   process(message: Msg) {
-    // console.log(
-    //   `📤 Processing ${this._eventType} message`,
-    //   message
-    // );
+    console.log(
+      `📤 Processing ${this._eventType} message`,
+       message
+     );
     const next: T | Message.Async<T, Msg> = this._update(
       message,
       this._context.toObject()

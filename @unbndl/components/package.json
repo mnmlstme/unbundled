@@ -1,6 +1,6 @@
 {
   "name": "@unbndl/components",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "description": "Unbundled library containing common components implemented as HTML custom elements",
   "main": "./dist/components.js",
   "type": "module",

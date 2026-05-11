@@ -1,8 +1,8 @@
 import express, { Request, Response } from "express";
-import auth, { authenticateUser } from "./routes/auth";
-import travelers from "./routes/travelers";
-import tours from "./routes/tours";
-import { connect } from "./services/mongo";
+import auth, { authenticateUser } from "./routes/auth.ts";
+import travelers from "./routes/travelers.ts";
+import tours from "./routes/tours.ts";
+import { connect } from "./services/mongo.ts";
 
 const app = express();
 const port = process.env.PORT || 3000;

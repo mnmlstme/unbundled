@@ -18,7 +18,7 @@ var e = Object.defineProperty, t = (t, n) => {
 };
 function r(e, ...t) {
 	let n = { execute() {
-		e(...t.map((e) => e instanceof o ? e.open(n) : e)), t.forEach((e) => e instanceof o && e.close());
+		e(...t.map((e) => e.open(n))), t.forEach((e) => e.close());
 	} };
 	n.execute();
 }
@@ -90,7 +90,7 @@ var i = class e {
 		this.proxy[e] = t;
 	}
 	toObject() {
-		return this.object;
+		return this.proxy;
 	}
 	update(e) {
 		Object.assign(this.proxy, e);
@@ -274,9 +274,7 @@ function v(e, t, n) {
 			return t.replaceChildren(...n), t;
 		} else if (e instanceof Node) return e;
 		else return new Text(e?.toString() || "");
-	}, a = i(e);
-	console.log("📸 Rendered for view:", e, a);
-	let o = t.nextSibling;
+	}, a = i(e), o = t.nextSibling;
 	for (; o && o !== n;) {
 		let e = o;
 		o = o.nextSibling, r.removeChild(e);
@@ -354,6 +352,14 @@ S.use([
 		place: "element content",
 		types: (e) => e instanceof Node,
 		mutator: (e, t) => new h(e, t)
+	},
+	{
+		place: "element content",
+		types: (e) => Array.isArray(e),
+		mutator: (e, t) => {
+			let n = new DocumentFragment(), r = t.map((e) => e instanceof Node ? e : new Text(e?.toString() || ""));
+			return n.append(...r), new h(e, n);
+		}
 	},
 	{
 		place: "element content",

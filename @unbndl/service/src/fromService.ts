@@ -1,5 +1,5 @@
-import { Signal } from "../effects";
-import { Source, SourceEffect } from "../view";
+import { Signal } from "@unbndl/html";
+import { Source, SourceEffect } from "@unbndl/view";
 import { Observer } from "./observer.ts";
 
 export function fromService<T extends object>(

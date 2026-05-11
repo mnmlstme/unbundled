@@ -1,9 +1,7 @@
-import { define, html,
-  Auth,
-  BrowserHistory,
-  Store,
-  Switch
-} from "@unbndl/modules";
+import { define, html } from "@unbndl/html";
+import { Auth } from "@unbndl/auth";
+import { Store } from "@unbndl/store";
+import { BrowserHistory, Switch } from "@unbndl/switch";
 import { Model, init } from "./model.ts";
 import { Msg } from "./message.ts";
 import { Cmd, update } from "./update.ts";

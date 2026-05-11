@@ -11,6 +11,10 @@
   "license": "ISC",
   "devDependencies": {
     "http-server": "^14.1.1"
+  },
+  "dependencies": {
+    "@unbndl/auth": "^1.0.2",
+    "@unbndl/html": "^1.0.4",
+    "@unbndl/view": "^1.0.4"
   }
-
 }

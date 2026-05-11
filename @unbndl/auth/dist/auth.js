@@ -87,7 +87,7 @@ var d = u(), f = class extends CustomEvent {
 };
 function p(e, ...t) {
 	let n = { execute() {
-		e(...t.map((e) => e instanceof g ? e.open(n) : e)), t.forEach((e) => e instanceof g && e.close());
+		e(...t.map((e) => e.open(n))), t.forEach((e) => e.close());
 	} };
 	n.execute();
 }
@@ -159,7 +159,7 @@ var m = class e {
 		this.proxy[e] = t;
 	}
 	toObject() {
-		return this.object;
+		return this.proxy;
 	}
 	update(e) {
 		Object.assign(this.proxy, e);
@@ -347,9 +347,7 @@ function O(e, t, n) {
 			return t.replaceChildren(...n), t;
 		} else if (e instanceof Node) return e;
 		else return new Text(e?.toString() || "");
-	}, a = i(e);
-	console.log("📸 Rendered for view:", e, a);
-	let o = t.nextSibling;
+	}, a = i(e), o = t.nextSibling;
 	for (; o && o !== n;) {
 		let e = o;
 		o = o.nextSibling, r.removeChild(e);
@@ -427,6 +425,14 @@ new S().use([
 		place: "element content",
 		types: (e) => e instanceof Node,
 		mutator: (e, t) => new T(e, t)
+	},
+	{
+		place: "element content",
+		types: (e) => Array.isArray(e),
+		mutator: (e, t) => {
+			let n = new DocumentFragment(), r = t.map((e) => e instanceof Node ? e : new Text(e?.toString() || ""));
+			return n.append(...r), new T(e, n);
+		}
 	},
 	{
 		place: "element content",
@@ -532,15 +538,16 @@ var L = class {
 		});
 	}
 	start() {
-		this._running || (this._running = !0, this._pending.forEach((e) => this.process(e)));
+		this._running || (console.log(`Starting ${this._eventType} service`), this._running = !0, this._pending.forEach((e) => this.process(e)));
 	}
 	consume(e) {
-		if (e.length === 0) {
+		if (console.log("Consume", e, this._running), e.length !== 0) {
 			let t = e;
-			this._running ? this.process(t) : this._pending.push(t);
+			this._running ? this.process(t) : (console.log(`📥 Queueing ${this._eventType} message`, e), this._pending.push(t));
 		}
 	}
 	process(e) {
+		console.log(`📤 Processing ${this._eventType} message`, e);
 		let t = this._update(e, this._context.toObject());
 		if (!Array.isArray(t)) return t;
 		let [n, ...r] = t;
@@ -599,7 +606,7 @@ var B = class {
 		super((e, t) => this.update(e, t), t, e.EVENT_TYPE), this._redirectForLogin = n;
 	}
 	update(e, t) {
-		switch (e[0]) {
+		switch (console.log("Auth update", e), e[0]) {
 			case "auth/signin":
 				let { token: n, redirect: r } = e[1];
 				return [X(n), J(r)];

@@ -1,8 +1,8 @@
-import { css, html, shadow } from "@un-bundled/modules/html";
+import { css, html, shadow } from "@unbndl/html";
 import {
   createViewModel,
   View
-} from "@un-bundled/modules/view";
+} from "@unbndl/view";
 
 export class BlzItineraryElement extends HTMLElement {
   viewModel = createViewModel({

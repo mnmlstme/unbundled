@@ -673,7 +673,7 @@ var be = P(), xe = class extends CustomEvent {
 };
 function F(e, ...t) {
 	let n = { execute() {
-		e(...t.map((e) => e instanceof L ? e.open(n) : e)), t.forEach((e) => e instanceof L && e.close());
+		e(...t.map((e) => e.open(n))), t.forEach((e) => e.close());
 	} };
 	n.execute();
 }
@@ -745,7 +745,7 @@ var I = class e {
 		this.proxy[e] = t;
 	}
 	toObject() {
-		return this.object;
+		return this.proxy;
 	}
 	update(e) {
 		Object.assign(this.proxy, e);
@@ -933,9 +933,7 @@ function Ae(e, t, n) {
 			return t.replaceChildren(...n), t;
 		} else if (e instanceof Node) return e;
 		else return new Text(e?.toString() || "");
-	}, a = i(e);
-	console.log("📸 Rendered for view:", e, a);
-	let o = t.nextSibling;
+	}, a = i(e), o = t.nextSibling;
 	for (; o && o !== n;) {
 		let e = o;
 		o = o.nextSibling, r.removeChild(e);
@@ -1013,6 +1011,14 @@ new De().use([
 		place: "element content",
 		types: (e) => e instanceof Node,
 		mutator: (e, t) => new B(e, t)
+	},
+	{
+		place: "element content",
+		types: (e) => Array.isArray(e),
+		mutator: (e, t) => {
+			let n = new DocumentFragment(), r = t.map((e) => e instanceof Node ? e : new Text(e?.toString() || ""));
+			return n.append(...r), new B(e, n);
+		}
 	},
 	{
 		place: "element content",
@@ -1173,7 +1179,7 @@ var Ve = class extends CustomEvent {
 };
 function G(e, ...t) {
 	let n = { execute() {
-		e(...t.map((e) => e instanceof q ? e.open(n) : e)), t.forEach((e) => e instanceof q && e.close());
+		e(...t.map((e) => e.open(n))), t.forEach((e) => e.close());
 	} };
 	n.execute();
 }
@@ -1245,7 +1251,7 @@ var K = class e {
 		this.proxy[e] = t;
 	}
 	toObject() {
-		return this.object;
+		return this.proxy;
 	}
 	update(e) {
 		Object.assign(this.proxy, e);
@@ -1425,9 +1431,7 @@ function Xe(e, t, n) {
 			return t.replaceChildren(...n), t;
 		} else if (e instanceof Node) return e;
 		else return new Text(e?.toString() || "");
-	}, a = i(e);
-	console.log("📸 Rendered for view:", e, a);
-	let o = t.nextSibling;
+	}, a = i(e), o = t.nextSibling;
 	for (; o && o !== n;) {
 		let e = o;
 		o = o.nextSibling, r.removeChild(e);
@@ -1508,6 +1512,14 @@ new Ke().use([
 	},
 	{
 		place: "element content",
+		types: (e) => Array.isArray(e),
+		mutator: (e, t) => {
+			let n = new DocumentFragment(), r = t.map((e) => e instanceof Node ? e : new Text(e?.toString() || ""));
+			return n.append(...r), new X(e, n);
+		}
+	},
+	{
+		place: "element content",
 		types: ["function"],
 		mutator: (e, t) => new Ye(e, t)
 	},
@@ -1540,14 +1552,11 @@ var Z = class extends q {
 		return this.merge(new W(e, t));
 	}
 	merge(e) {
-		if (e) {
-			let t = e.start((e, n) => {
-				console.log("🪄 Merging effect", e, n, t), this.set(e, n);
-			}).then((e) => {
-				console.log("👀 ViewModel source observed:", e, t), Object.keys(e).forEach((t) => this.set(t, e[t]));
-			});
-		}
-		return this;
+		return e && e.start((e, t) => {
+			this.set(e, t);
+		}).then((e) => {
+			Object.keys(e).forEach((t) => this.set(t, e[t]));
+		}), this;
 	}
 	render(e) {
 		return e.render(this);

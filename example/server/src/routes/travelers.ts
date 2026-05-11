@@ -1,8 +1,8 @@
 import express, { Request, Response } from "express";
-import { authorizeUser } from "./auth";
-import { Traveler } from "../models/traveler";
+import { authorizeUser } from "./auth.ts";
+import { Traveler } from "../models";
 
-import travelers from "../services/traveler-svc";
+import travelers from "../services/traveler-svc.ts";
 
 const router = express.Router();
 

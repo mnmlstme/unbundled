@@ -1,12 +1,10 @@
+import { css, html, shadow } from "@unbndl/html";
 import {
-  css,
-  html,
-  shadow,
   View,
   createView,
   createViewModel,
   fromAttributes
-} from "@unbndl/modules";
+} from "@unbndl/view";
 
 type CalendarWidgetAttributes = {
   "start-date": string;

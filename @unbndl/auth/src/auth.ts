@@ -1,6 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 import { Provider, Service, Message } from "@unbndl/service";
-import { Context } from "../html";
+import { Context } from "@unbndl/html";
 
 const AUTH_CONTEXT_DEFAULT = "context:auth";
 
@@ -90,6 +90,8 @@ class AuthService extends Service<AuthMsg, AuthModel> {
     message: AuthMsg,
     model: AuthModel
   ): AuthModel | Message.Async<AuthModel, AuthMsg> {
+    console.log("Auth update", message);
+
     switch (message[0]) {
       case "auth/signin":
         const { token, redirect } = message[1];
